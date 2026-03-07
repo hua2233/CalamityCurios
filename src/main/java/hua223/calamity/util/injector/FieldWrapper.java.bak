@@ -1,0 +1,167 @@
+package hua223.calamity.util.injector;
+
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.FieldNode;
+
+import java.io.IOException;
+import java.util.List;
+
+public class FieldWrapper extends CalamityWrapper {
+    public String fieldDescriptor;
+    public boolean isArr;
+
+    public FieldWrapper(String injectionLine) throws IOException {
+        super(injectionLine);
+    }
+
+    @Override
+    protected void parser(String[] info, byte startIndex) {
+        name = "calamity$" + info[startIndex];
+
+        String field = info[++startIndex];
+
+        switch (field) {
+            case "I", "B", "D", "F", "C", "J", "S", "Z" -> fieldDescriptor = field;
+
+            default -> {
+                if (field.endsWith("[]")) {
+                    field = field.substring(0, field.length() - 2);
+                    fieldDescriptor = "[L" + field.replaceAll("\\.", "/") + ";";
+                    isArr = true;
+                } else {
+                    fieldDescriptor = "L" + field.replaceAll("\\.", "/") + ";";
+                }
+            }
+        }
+    }
+
+    @Override
+    public void transformer(ClassNode classNode) {
+        List<FieldNode> fieldNodes = classNode.fields;
+        if (fieldNodes.stream().noneMatch(node -> node.name.equals(name) && node.desc.equals(fieldDescriptor))) {
+            FieldNode node = new FieldNode(access, name,
+                fieldDescriptor, null, null);
+            classNode.fields.add(node);
+            CalamityInjector.LOGGER.info("Injection field:{}", name);
+            CalamityInjector.LOGGER.info("Field injection completed, target class:{}", targetClass);
+        }
+    }
+}
+
+//    public Object getDefaultField() {
+//        if (value == null) {
+//            return switch (fieldDescriptor) {
+//                case "I", "S", "B" -> 0;
+//                case "F" -> 0.0f;
+//                case "D" -> 0.0d;
+//                case "C" -> '0';
+//                case "J" -> 0L;
+//                case "Z" -> false;
+//                default -> null;
+//            };
+//        } else {
+//            return switch (fieldDescriptor) {
+//                case "I" -> Integer.valueOf(value);
+//                case "S" -> Short.valueOf(value);
+//                case "J" -> Long.valueOf(value);
+//                case "Z" -> Boolean.parseBoolean(value);
+//                case "F" -> Float.valueOf(value);
+//                case "D" -> Double.valueOf(value);
+//                case "C" -> {
+//                    char[] c = new char[1];
+//                    value.getChars(0, 1, c, 0);
+//                    yield c[0];
+//                }
+//                case "B" -> Byte.valueOf(value);
+//                default -> null;
+//            };
+//        }
+//    }
+
+//    public static Object[] getArrValue(ClassLoader loader, Class<?> type, String arr) throws Exception {
+//        if (!arr.startsWith("{") || !arr.endsWith("}")) throw new IOException("illegal parameter formatting: " + arr);
+//
+//        arr = removeBeforeAndAfterChar(arr);
+//
+//        if (arr.isEmpty()) throw new IOException("arrays with content must be initialized");
+//
+//        String[] kv = arr.split(",");
+//
+//        Object[] array = (Object[]) Array.newInstance(type, kv.length);
+//
+//        Constructor<?>[] constructors = type.getConstructors();
+//        for (int i = 0; i < array.length; i++) {
+//            String kv2 = kv[i];
+//            if (kv2.startsWith("(") && kv2.endsWith(")")) {
+//                array[i] = getArgsValue(constructors, loader, removeBeforeAndAfterChar(kv2).split(","));
+//            } else throw new IOException("arrays with content must be initialized");
+//        }
+//
+//        return array;
+//    }
+//
+//    private static Object getArgsValue(Constructor<?>[] constructors, ClassLoader loader, String[] kvs) throws Exception {
+//        List<Pair<Class<?>, Object>> values = new ArrayList<>(kvs.length);
+//        for (String kv : kvs) {
+//            String[] kv2 = kv.split("=", 2);
+//            String type = kv2[0];
+//            switch (type) {
+//                case "i" -> values.add(new Pair<>(int.class, Integer.valueOf(kv2[1])));
+//                case "b" -> values.add(new Pair<>(boolean.class, Boolean.parseBoolean(kv2[1])));
+//                case "f" -> values.add(new Pair<>(float.class, Float.valueOf(kv2[1])));
+//                case "d" -> values.add(new Pair<>(double.class, Double.valueOf(kv2[1])));
+//
+//                default -> {
+//                    try {
+//                        if (type.contains("=")) {
+//                            String[] kv3 = type.split("=", 2);
+//                            String type2 = kv3[0];
+//                            if (type2.endsWith("[]")) {
+//                                Class<?> clazz = Class.forName(type2, false, loader);
+//                                values.add(new Pair<>(clazz, getArrValue(loader, loader.loadClass(type2.substring(0, type2.length() - 2)), kv3[1])));
+//                                break;
+//                            } else {
+//                                Class<?> clazz = loader.loadClass(type2);
+//                                if (kv3[1].startsWith("(") && kv3[1].endsWith(")")) {
+//                                    values.add(new Pair<>(clazz, getArgsValue(clazz.getConstructors(), loader, removeBeforeAndAfterChar(kv3[1]).split(","))));
+//                                    break;
+//                                }
+//                            }
+//                        }
+//
+//                        throw new IOException("");
+//                    } catch (Exception e) {
+//                        throw new RuntimeException(e);
+//                    }
+//                }
+//            }
+//        }
+//
+//        return values.isEmpty() ? null : createInstanceWithParams(constructors, values);
+//    }
+//
+//    private static Object createInstanceWithParams(Constructor<?>[] constructors, List<Pair<Class<?>, Object>> constructorParams) throws Exception {
+//        for (Constructor<?> constructor : constructors) {
+//            Class<?>[] types = constructor.getParameterTypes();
+//            if (types.length == constructorParams.size()) {
+//                int i = 0;
+//                for (Class<?> type : types) {
+//                    Pair<Class<?>, Object> params = constructorParams.get(i);
+//                    if (params.getA() != type) break;
+//                }
+//            }
+//
+//
+//            constructor.setAccessible(true);
+//            return constructor.newInstance(constructorParams.stream().map(Pair::getB).toArray());
+//        }
+//
+//        throw new IllegalArgumentException("no matching constructor found");
+//    }
+//
+//    private static String removeBeforeAndAfterChar(String s) {
+//        if (s == null || s.length() < 2) {
+//            throw new IllegalArgumentException("String too short to remove characters:" + s);
+//        }
+//        return s.substring(1, s.length() - 1);
+//    }

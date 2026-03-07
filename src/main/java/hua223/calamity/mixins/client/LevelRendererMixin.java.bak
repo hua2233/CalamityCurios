@@ -1,0 +1,63 @@
+package hua223.calamity.mixins.client;
+
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Matrix4f;
+import hua223.calamity.render.entity.CrusherRender;
+import hua223.calamity.util.CalamityHelp;
+import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+@Deprecated(since = "Replaced by Mod")
+@Mixin(LevelRenderer.class)
+public abstract class LevelRendererMixin {
+    @Shadow
+    @Final
+    private Minecraft minecraft;
+    @Unique
+    private static boolean calamity$detached;
+
+    @Inject(method = "doesMobEffectBlockSky", at = @At("RETURN"), cancellable = true)
+    private void canStoppedByRadiation(Camera camera, CallbackInfoReturnable<Boolean> cir) {
+        if (cir.getReturnValue() && camera.getEntity() instanceof Player player)
+            cir.setReturnValue(!CalamityHelp.getCalamityFlag(player, 0));
+    }
+
+    @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;isDetached()Z"))
+    private void fakeThirdPersonMode(PoseStack poseStack, float f, long l, boolean bl, Camera camera, GameRenderer gameRenderer,
+                                     LightTexture lightTexture, Matrix4f matrix4f, CallbackInfo ci) {
+        calamity$detached = camera.detached;
+
+        if (CrusherRender.isRendering && camera.getEntity() == minecraft.player) {
+            CrusherRender.isDetached = !calamity$detached && !minecraft.player.isSleeping();
+            camera.detached = true;
+        }
+    }
+
+    @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;isDetached()Z", shift = At.Shift.AFTER))
+    public void setIsDetached(PoseStack poseStack, float f, long l, boolean bl,
+                              Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f matrix4f, CallbackInfo ci) {
+        if (CrusherRender.isRendering) camera.detached = calamity$detached;
+    }
+
+    @Inject(method = "renderEntity", at = @At("TAIL"))
+    private void endRenderEntity(Entity entity, double cameraX, double cameraY, double cameraZ,
+                                      float tickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, CallbackInfo ci) {
+        if (entity == minecraft.gameRenderer.getMainCamera().getEntity())
+            CrusherRender.isDetached = false;
+//        CrusherRender.isDetached = entity != minecraft.gameRenderer.getMainCamera().getEntity();
+    }
+}

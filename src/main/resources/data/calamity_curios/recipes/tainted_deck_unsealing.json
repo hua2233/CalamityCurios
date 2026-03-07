@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "calamity_curios:tainted_deck"
+    },
+    {
+      "item": "calamity_curios:fate_thread"
+    }
+  ],
+  "result": {
+    "item": "calamity_curios:abyss_thread"
+  }
+}

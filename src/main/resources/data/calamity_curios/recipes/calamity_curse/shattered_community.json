@@ -1,0 +1,22 @@
+{
+  "type": "calamity_curios:calamity_curse",
+  "reactant": {
+    "item": "calamity_curios:community"
+  },
+  "ingredients": [
+    {
+      "item": "minecraft:diamond",
+      "count": 10
+    }
+  ],
+  "result": {
+    "item": "calamity_curios:shattered_community"
+  },
+  "renderer": {
+    "isDefault": false,
+    "gradual": true,
+    "startColor": "0x803E80",
+    "endColor": "0xF569F5",
+    "semiCycle": 40
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "credit": "Made with Blockbench",
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "calamity_curios:item/excelsus"
+  },
+  "display": {
+    "thirdperson_righthand": {
+      "rotation": [
+        50,
+        90,
+        0
+      ],
+      "translation": [
+        0,
+        8,
+        4.75
+      ],
+      "scale": [
+        1.2,
+        1.2,
+        1.2
+      ]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [
+        50,
+        -90,
+        0
+      ],
+      "translation": [
+        0,
+        8,
+        4.75
+      ],
+      "scale": [
+        1.2,
+        1.2,
+        1.2
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        65,
+        85,
+        -30
+      ],
+      "translation": [
+        3,
+        7.25,
+        -1
+      ],
+      "scale": [
+        1.2,
+        1.2,
+        1.2
+      ]
+    },
+    "firstperson_lefthand": {
+      "rotation": [
+        65,
+        -85,
+        30
+      ],
+      "translation": [
+        3,
+        7.25,
+        -1
+      ],
+      "scale": [
+        1.1,
+        1.1,
+        1.1
+      ]
+    },
+    "ground": {
+      "translation": [
+        0,
+        4.25,
+        0
+      ]
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "entries": [
+    "calamity_curios:chests_global_loots",
+    "calamity_curios:entities_global_loots"
+  ],
+  "replace": false
+}

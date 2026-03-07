@@ -1,0 +1,77 @@
+package hua223.calamity.util.injector;
+
+import org.objectweb.asm.Opcodes;
+
+import java.io.IOException;
+
+//All Forge and Minecraft classes should not be called before Transformer calls, as this can result in them being load prematurely
+public abstract class CalamityWrapper implements Opcodes, CalamityITransformer {
+    public final String targetClass;
+    public int access = -1;
+    public String name;
+
+    protected CalamityWrapper(String injectionLine) throws IOException {
+        String[] info = injectionLine.split(" ");
+        if (info.length < 4) throw new IOException("injected lines that cannot be parsed: " + injectionLine);
+        targetClass = info[0].replaceAll("\\.", "/");
+
+        byte j = 1;
+        boolean hasSet = false;
+        loop:
+        do {
+            String accessModifier = info[j];
+            switch (accessModifier) {
+                case "public" -> {
+                    if (hasSet) throw new IOException("modifiers for conflicts: " + injectionLine);
+                    access = ACC_PUBLIC;
+                    hasSet = true;
+                    j++;
+                }
+
+                case "private" -> {
+                    if (hasSet) throw new IOException("modifiers for conflicts: " + injectionLine);
+                    access = ACC_PRIVATE;
+                    j++;
+                }
+
+                case "protected" -> {
+                    if (hasSet) throw new IOException("modifiers for conflicts: " + injectionLine);
+                    access = ACC_PROTECTED;
+                    j++;
+                }
+
+                case "friendly" -> {
+                    if (hasSet) throw new IOException("modifiers for conflicts: " + injectionLine);
+                    access = 0;
+                    j++;
+                }
+
+                case "static" -> {
+                    if ((access & ACC_STATIC) != 0) throw new IOException("duplicate modifiers: " + injectionLine);
+                    access |= ACC_STATIC;
+                    j++;
+                }
+
+                case "final" -> {
+                    if ((access & ACC_FINAL) != 0) throw new IOException("duplicate modifiers: " + injectionLine);
+                    access |= ACC_FINAL;
+                    j++;
+                }
+
+                default -> {
+                    break loop;
+                }
+            }
+        } while (true);
+
+        if (access == -1) throw new IllegalArgumentException("incorrect modifier list: " + injectionLine);
+        parser(info, j++);
+    }
+
+    @Override
+    public String getTargetClass() {
+        return targetClass;
+    }
+
+    protected abstract void parser(String[] info, byte startIndex);
+}

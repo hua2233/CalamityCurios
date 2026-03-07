@@ -1,0 +1,27 @@
+{
+  "type": "calamity_curios:calamity_curse",
+  "reactant": {
+    "item": "minecraft:book",
+    "count": 32
+  },
+  "ingredients": [
+    {
+      "item": "calamity_curios:nightmare_fuel",
+      "count": 32
+    },
+    {
+      "item": "calamity_curios:meld_construct",
+      "count": 10
+    },
+    {
+      "item": "minecraft:sculk_catalyst",
+      "count": 5
+    }
+  ],
+  "result": {
+    "item": "calamity_curios:eternity"
+  },
+  "renderer": {
+    "isDefault": true
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "calamity_curios:item/old_duke_scales"
+  }
+}

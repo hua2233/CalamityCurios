@@ -1,0 +1,42 @@
+{
+  "required": true,
+  "minVersion": "0.8.5",
+  "package": "hua223.calamity.mixins",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "calamity_curios.refmap.json",
+  "mixins": [
+    "EffectMixin",
+    "EffectMixin$EffectInstance",
+    "EventMixin",
+    "LivingEntityMixin",
+    "MagicDataMixin",
+    "NaturalSpawnerMixin",
+    "NaturalSpawnerMixin$LocalMobCapMixin",
+    "NaturalSpawnerMixin$StateMixin",
+    "PlayerMixin",
+    "ProjectileMixin",
+    "ServerPlayerMixin",
+    "SniffMixin",
+    "SpellBookMixin",
+    "SpellMixin"
+  ],
+  "client": [
+    "client.ClientPacketListenerMixin",
+    "client.ClientPacketMixin",
+    "client.EffectTooltipsMixin",
+    "client.FogRendererMixin",
+    "client.ForgeHooksClientMixin",
+    "client.GameRendererMixin",
+    "client.GuiMixin",
+    "client.InventoryMixin",
+    "client.InventoryScreenMixin",
+    "client.ItemMixins",
+    "client.LightTextureMixin",
+    "client.MinecraftMixin",
+    "client.MobEffectPacketMixin",
+    "client.ScreenMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

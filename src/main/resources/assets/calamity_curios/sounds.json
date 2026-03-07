@@ -1,0 +1,201 @@
+{
+  "zenith_attack": {
+    "category": "ambient",
+    "subtitle": "calamity_curios.sound.subtitle.zenith_attack",
+    "sounds": [
+      {
+        "name": "calamity_curios:ambient/zenith_attack",
+        "steam": true
+      }
+    ]
+  },
+  "adrenaline_major_loss": {
+    "category": "players",
+    "subtitle": "calamity_curios.sound.subtitle.adrenaline_major_loss",
+    "sounds": [
+      {
+        "name": "calamity_curios:players/adrenaline_major_loss",
+        "steam": true
+      }
+    ]
+  },
+  "adrenaline_activate": {
+    "category": "players",
+    "subtitle": "calamity_curios.sound.subtitle.adrenaline_activate",
+    "sounds": [
+      {
+        "name": "calamity_curios:players/adrenaline_activate",
+        "steam": true
+      }
+    ]
+  },
+  "full_adrenaline": {
+    "category": "players",
+    "subtitle": "calamity_curios.sound.subtitle.full_adrenaline",
+    "sounds": [
+      {
+        "name": "calamity_curios:players/full_adrenaline",
+        "steam": true
+      }
+    ]
+  },
+  "full_rage": {
+    "category": "players",
+    "subtitle": "calamity_curios.sound.subtitle.full_rage",
+    "sounds": [
+      {
+        "name": "calamity_curios:players/full_rage",
+        "steam": true
+      }
+    ]
+  },
+  "rage_activate": {
+    "category": "players",
+    "subtitle": "calamity_curios.sound.subtitle.rage_activate",
+    "sounds": [
+      {
+        "name": "calamity_curios:players/rage_activate",
+        "steam": true
+      }
+    ]
+  },
+  "rage_end": {
+    "category": "players",
+    "subtitle": "calamity_curios.sound.subtitle.rage_end",
+    "sounds": [
+      {
+        "name": "calamity_curios:players/rage_end",
+        "steam": true
+      }
+    ]
+  },
+  "nano_machines_activate": {
+    "category": "players",
+    "subtitle": "calamity_curios.sound.subtitle.nano_machines_activate",
+    "sounds": [
+      {
+        "name": "calamity_curios:players/nano_machines_activate",
+        "steam": true
+      }
+    ]
+  },
+  "ascendant_activate": {
+    "category": "ambient",
+    "subtitle": "calamity_curios.sound.subtitle.ascendant_activate",
+    "sounds": [
+      {
+        "name": "calamity_curios:ambient/ascendant_activate",
+        "steam": true
+      }
+    ]
+  },
+  "ascendant_off": {
+    "category": "ambient",
+    "subtitle": "calamity_curios.sound.subtitle.ascendant_off",
+    "sounds": [
+      {
+        "name": "calamity_curios:ambient/ascendant_off",
+        "steam": true
+      }
+    ]
+  },
+  "plasma_bolt": {
+    "category": "ambient",
+    "subtitle": "calamity_curios.sound.subtitle.plasma_bolt",
+    "sounds": [
+      {
+        "name": "calamity_curios:ambient/plasma_bolt",
+        "attenuation_distance": 64,
+        "steam": true
+      }
+    ]
+  },
+  "phantom_death_ray": {
+    "category": "ambient",
+    "subtitle": "calamity_curios.sound.subtitle.phantom_death_ray",
+    "sounds": [
+      {
+        "name": "calamity_curios:ambient/phantom_death_ray",
+        "attenuation_distance": 80,
+        "steam": true
+      }
+    ]
+  },
+  "large_weapon_fire": {
+    "category": "ambient",
+    "subtitle": "calamity_curios.sound.subtitle.large_weapon_fire",
+    "sounds": [
+      {
+        "name": "calamity_curios:ambient/large_weapon_fire",
+        "attenuation_distance": 32,
+        "steam": true
+      }
+    ]
+  },
+  "excelsus_ray": {
+    "category": "ambient",
+    "subtitle": "calamity_curios.sound.subtitle.excelsus_ray",
+    "sounds": [
+      {
+        "name": "calamity_curios:ambient/excelsus_ray",
+        "attenuation_distance": 16,
+        "steam": true
+      }
+    ]
+  },
+  "cursed_dagger_throw": {
+    "category": "players",
+    "subtitle": "calamity_curios.sound.subtitle.cursed_dagger_throw",
+    "sounds": [
+      {
+        "name": "calamity_curios:players/cursed_dagger_throw",
+        "attenuation_distance": 16,
+        "steam": true
+      }
+    ]
+  },
+  "nebula": {
+    "category": "players",
+    "subtitle": "calamity_curios.sound.subtitle.nebula",
+    "sounds": [
+      {
+        "name": "calamity_curios:players/nebula",
+        "attenuation_distance": 16,
+        "steam": true
+      }
+    ]
+  },
+  "nebula_explode": {
+    "category": "ambient",
+    "subtitle": "calamity_curios.sound.subtitle.nebula_explode",
+    "sounds": [
+      {
+        "name": "calamity_curios:ambient/nebula_explode",
+        "attenuation_distance": 16,
+        "steam": true
+      }
+    ]
+  },
+  "supreme_calamitas": {
+    "category": "players",
+    "subtitle": "calamity_curios.sound.subtitle.supreme_calamitas",
+    "sounds": [
+      {
+        "name": "calamity_curios:players/supreme_calamitas",
+        "attenuation_distance": 8,
+        "steam": true
+      }
+    ]
+  },
+  "lunar_flare,": {
+    "category": "ambient",
+    "subtitle": "calamity_curios.sound.subtitle.lunar_flare,",
+    "sounds": [
+      {
+        "name": "calamity_curios:ambient/lunar_flare,",
+        "attenuation_distance": 16,
+        "steam": true
+      }
+    ]
+  }
+}

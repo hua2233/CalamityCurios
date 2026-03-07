@@ -1,0 +1,26 @@
+{
+  "targets": [
+    "swap"
+  ],
+  "passes": [
+    {
+      "name": "calamity_curios:heat_distortion",
+      "intarget": "minecraft:main",
+      "outtarget": "swap",
+      "auxtargets": [
+        {
+          "name": "NoiseSampler",
+          "id": "calamity_curios:blobby_noise",
+          "width": 512,
+          "height": 512,
+          "bilinear": true
+        }
+      ]
+    },
+    {
+      "name": "blit",
+      "intarget": "swap",
+      "outtarget": "minecraft:main"
+    }
+  ]
+}

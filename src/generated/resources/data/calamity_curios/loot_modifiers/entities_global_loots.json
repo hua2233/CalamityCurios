@@ -1,0 +1,10 @@
+{
+  "type": "calamity_curios:global_loot_modifier",
+  "conditions": [
+    {
+      "condition": "calamity_curios:table_type",
+      "table_type": "entities/"
+    }
+  ],
+  "loot_type": "ENTITY_LOOTS"
+}

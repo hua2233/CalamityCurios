@@ -1,0 +1,4 @@
+// 1.19.2	2026-02-04T02:39:37.4445584	Global Loot Modifiers : calamity_curios
+d625437832a3c65f0aab116fd34d56f2bb5c47b6 data/calamity_curios/loot_modifiers/chests_global_loots.json
+9f5b00f1a05b09940454be831191fd3e802316cd data/calamity_curios/loot_modifiers/entities_global_loots.json
+2af84b96df6aa2cba0074451165dde935e381713 data/forge/loot_modifiers/global_loot_modifiers.json

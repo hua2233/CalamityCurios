@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "calamity_curios:item/warbanner_of_the_sun"
+  }
+}

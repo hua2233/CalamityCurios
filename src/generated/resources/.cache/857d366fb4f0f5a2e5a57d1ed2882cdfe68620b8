@@ -1,0 +1,10 @@
+// 1.19.2	2026-02-19T16:46:12.8843821	tags/items generator for calamity_curios
+5c7538b8f67163087a9e69a684596b34be7bb447 data/curios/tags/items/back.json
+3edc72eb780b3a717433022cc76fb5f12efdd0c8 data/curios/tags/items/belt.json
+5c9b079d65d552dece4f8996ae89c000bb4c2d7a data/curios/tags/items/body.json
+201a7f6ac84fdf219352cb13b9f5de65571ee7dc data/curios/tags/items/charm.json
+95da2f94e4927e2ab492767c7362c0727bab53dc data/curios/tags/items/hands.json
+62e07e0eefd0ce42637c7f222c40e4f728c6732b data/curios/tags/items/head.json
+0a89c8090afee201d44cfb7b8d73709c6557b678 data/curios/tags/items/necklace.json
+e68d5fcacafc5c1d2d0a11c4454efc30350f78da data/curios/tags/items/ring.json
+e8faa7557825f35fd263ece6a6ea732e4ff8e533 data/curios/tags/items/spellbook.json

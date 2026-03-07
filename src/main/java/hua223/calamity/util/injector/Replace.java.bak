@@ -1,0 +1,16 @@
+package hua223.calamity.util.injector;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * Suitable for solving the coverage problem of pile methods in development environments,
+ * it will be switched to direct injection instead of coverage in formal environments,
+ * Because there is no piling method in the formal environment, it can be directly injected
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Replace {
+}

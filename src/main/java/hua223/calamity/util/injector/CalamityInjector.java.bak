@@ -1,0 +1,100 @@
+package hua223.calamity.util.injector;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.mojang.datafixers.util.Pair;
+import cpw.mods.modlauncher.api.IEnvironment;
+import cpw.mods.modlauncher.api.ITransformationService;
+import cpw.mods.modlauncher.api.ITransformer;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
+//I don't know how I came up with this idea in the first place, maybe I'm tired of constantly explicit type casting...
+@Deprecated(since = "Incompatible with Mod loading")
+public class CalamityInjector implements ITransformationService {
+    static final Logger LOGGER = LoggerFactory.getLogger(CalamityInjector.class);
+    private final Set<CalamityITransformer> wrappers = ConcurrentHashMap.newKeySet();
+
+    @Override
+    public @NotNull String name() {
+        return "calamity";
+    }
+
+    @Override
+    public void initialize(IEnvironment environment) {
+        LOGGER.debug("field injection begins");
+        ClassLoader loader = getClass().getClassLoader();
+        try (InputStream injector = loader.getResourceAsStream("META-INF/calamityinjector.cfg");
+             InputStream confuse = loader.getResourceAsStream("META-INF/calamitymappings.json")) {
+            if (injector == null) {
+                LOGGER.error("unable to find injector configuration file：{}", "META-INF/calamityinjector.cfg");
+                return;
+            }
+
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(injector, StandardCharsets.UTF_8))) {
+                String injectionLine;
+
+                while ((injectionLine = reader.readLine()) != null) {
+                    injectionLine = injectionLine.trim();
+                    if (injectionLine.isEmpty()) continue;
+                    if (injectionLine.startsWith("F-")) {
+                        wrappers.add(new FieldWrapper(injectionLine.substring(2)));
+                    } else if (injectionLine.startsWith("M-")) {
+                        wrappers.add(new MethodWrapper(injectionLine.substring(2)));
+                    }
+                }
+            }
+            LOGGER.info("Configuration file loading completed, with a total of {} field injection items loaded", wrappers.size());
+
+            if (confuse == null) {
+                LOGGER.error("unable to find confuse file：{}", "META-INF/calamitymappings.json");
+                return;
+            }
+
+            LOGGER.info("Start parsing Mixin internal method obfuscation mapping file");
+            try (BufferedReader buffer = new BufferedReader(new InputStreamReader(confuse, StandardCharsets.UTF_8))) {
+                String jsonText = buffer.lines().collect(Collectors.joining("\n"));
+
+                JsonObject confuseFile = JsonParser.parseString(jsonText).getAsJsonObject();
+                for (Map.Entry<String, JsonElement> entry : confuseFile.entrySet()) {
+                    String asmPath = "L" + entry.getKey().replaceAll("\\.", "/") + ";";
+
+                    Set<Pair<String, String>> info = new ObjectOpenHashSet<>();
+                    for (JsonElement element : entry.getValue().getAsJsonArray()) {
+                        JsonObject object = element.getAsJsonObject();
+
+                        info.add(new Pair<>(object.get("sourceMethod").getAsString(),
+                            object.get("confuseMethod").getAsString()));
+                    }
+
+                    wrappers.add(new MappingsTransformer(asmPath, info));
+                }
+            }
+            LOGGER.info("Confusion information analysis completed");
+        } catch (Exception e) {
+            LOGGER.error("failed to load injector configuration file", e);
+        }
+    }
+
+    @Override
+    public void onLoad(IEnvironment environment, Set<String> set) {
+    }
+
+    @Override
+    public @NotNull List<ITransformer> transformers() {
+        return List.of(new CalamityTransformer(wrappers));
+    }
+}

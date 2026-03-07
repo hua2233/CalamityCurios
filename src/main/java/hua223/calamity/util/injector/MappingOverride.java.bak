@@ -1,0 +1,20 @@
+package hua223.calamity.util.injector;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * A marker annotation that scans all Mixin class annotations during packaging and generates corresponding obfuscation mapping files
+ * At runtime, the confusion mapping file generated through scanning will be injected,
+ * Modify the method containing @MappingOverride in the mixin class through TransformerService
+ * This annotation method will replace @MappingOverride with @Unique,
+ * During subsequent mixin scans, @Unique will inject this method into the target class, and the JVM will consider it a overridden subclass method
+ * This achieves rewriting the parent class methods of the class that are not explicitly declared.
+ * If in a formal environment, method names are replaced with obfuscated names, development environments will not
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface MappingOverride {
+}

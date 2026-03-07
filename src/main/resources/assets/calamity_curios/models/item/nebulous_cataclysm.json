@@ -1,0 +1,78 @@
+{
+  "credit": "Made with Blockbench",
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "calamity_curios:item/nebulous_cataclysm"
+  },
+  "display": {
+    "thirdperson_righthand": {
+      "rotation": [
+        75,
+        90,
+        -15
+      ],
+      "translation": [
+        -0.25,
+        8,
+        4
+      ]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [
+        75,
+        -90,
+        15
+      ],
+      "translation": [
+        0,
+        8,
+        4
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        60,
+        90,
+        -1
+      ],
+      "translation": [
+        -0.5,
+        5,
+        0
+      ]
+    },
+    "firstperson_lefthand": {
+      "rotation": [
+        60,
+        -90,
+        1
+      ],
+      "translation": [
+        -0.5,
+        5,
+        0
+      ]
+    },
+    "ground": {
+      "translation": [
+        0,
+        4,
+        0
+      ]
+    }
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "calamity_curios:cataclysm_hold": 0
+      },
+      "model": "calamity_curios:item/nebulous_cataclysm"
+    },
+    {
+      "predicate": {
+        "calamity_curios:cataclysm_hold": 1
+      },
+      "model": "calamity_curios:item/nebulous_cataclysm_hold"
+    }
+  ]
+}

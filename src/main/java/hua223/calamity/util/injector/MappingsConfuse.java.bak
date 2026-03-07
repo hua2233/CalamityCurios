@@ -1,0 +1,334 @@
+package hua223.calamity.util.injector;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import net.minecraft.util.GsonHelper;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.tree.AnnotationNode;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.MethodNode;
+import org.spongepowered.asm.mixin.Overwrite;
+import org.spongepowered.asm.mixin.Unique;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.stream.Collectors;
+
+public class MappingsConfuse {
+    public static void main(String[] args) throws IOException {
+        new MappingsConfuse().replaceAnnotation(args[0], args[2], args[3].isEmpty());
+        //new MappingsConfuse().spawnConfuseMappings(args[0], args[1], args[2], args[3].isEmpty());
+    }
+
+    private void replaceAnnotation(String mixin, String buildRoot, boolean remap) throws IOException {
+        FileReader reader = new FileReader(mixin);
+        BufferedReader buffer = new BufferedReader(reader);
+
+        String jsonText = buffer.lines().collect(Collectors.joining("\n"));
+        reader.close();
+        buffer.close();
+
+        JsonObject main = JsonParser.parseString(jsonText).getAsJsonObject();
+        String root = GsonHelper.getAsString(main, "package") + ".";
+
+        //final String mappingDesc = "L" + MappingOverride.class.getName().replaceAll("\\.", "/") + ";";
+        final String replaceDesc = "L" + Replace.class.getName().replaceAll("\\.", "/") + ";";
+        AnnotationNode uniqueNode = new AnnotationNode("L" + Unique.class.getName().replaceAll("\\.", "/") + ";");
+        AnnotationNode overwrite = null;
+        if (!remap) {
+            overwrite = new AnnotationNode("L" + Overwrite.class.getName().replaceAll("\\.", "/") + ";");
+            overwrite.values = List.of("remap", false);
+        }
+        JsonArray mixins = GsonHelper.getAsJsonArray(main, "mixins");
+        mixins.addAll(GsonHelper.getAsJsonArray(main, "client"));
+
+        List<String> paths = new ArrayList<>(mixins.size());
+        for (JsonElement p : mixins) paths.add(root + p.getAsString());
+        buildRoot += "\\";
+        for (String path : paths) {
+            Path mixinClass = Path.of(buildRoot + path.replaceAll("\\.", "\\\\") + ".class");
+            ClassReader mixinReader = new ClassReader(Files.readAllBytes(mixinClass));
+            ClassNode node = new ClassNode();
+            mixinReader.accept(node, 0);
+
+            boolean transformation = false;
+            for (MethodNode mt : node.methods) {
+                if (mt.visibleAnnotations == null) continue;
+                if (mt.visibleAnnotations.removeIf(annotation -> annotation.desc.equals(replaceDesc))) {
+                    mt.visibleAnnotations.add(remap ? uniqueNode : overwrite);
+                    transformation = true;
+                }
+            }
+
+            if (transformation) {
+                ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+                node.accept(writer);
+                Files.write(mixinClass, writer.toByteArray());
+            }
+        }
+    }
+
+    //有时它会自动混淆，我不确定它是怎么工作的......
+    //我想我知道它是怎么工作的了，如果你的Mixin类继承了含有你要重写方法的的那些类，那么Mixin其实会自动混淆它
+//    private void spawnConfuseMappings(String mixin, String tSrg, String buildRoot, boolean remap) throws IOException {
+//        try {
+//            FileReader reader = new FileReader(mixin);
+//            BufferedReader buffer = new BufferedReader(reader);
+//
+//            String jsonText = buffer.lines().collect(Collectors.joining("\n"));
+//            reader.close();
+//            buffer.close();
+//
+//            JsonObject main = JsonParser.parseString(jsonText).getAsJsonObject();
+//            String root = GsonHelper.getAsString(main, "package") + ".";
+//
+//            uniqueNode = new AnnotationNode("L" + Unique.class.getName().replaceAll("\\.", "/") + ";");
+//            JsonArray mixins = GsonHelper.getAsJsonArray(main, "mixins");
+//            mixins.addAll(GsonHelper.getAsJsonArray(main, "client"));
+//
+//            List<String> path = new ArrayList<>(mixins.size());
+//            for (JsonElement p : mixins) path.add(root + p.getAsString());
+//            buildRoot += "\\";
+//            if (remap) {
+//                JsonObject confuseJson = getJsonObject(path, tSrg);
+//                for (String p : path) {
+//                    Path mixinClass = Path.of(buildRoot + p.replaceAll("\\.", "\\\\") + ".class");
+//                    ClassReader mixinReader = new ClassReader(Files.readAllBytes(mixinClass));
+//                    ClassNode node = new ClassNode();
+//                    mixinReader.accept(node, 0);
+//                    String p2 = p.replaceAll("\\.", "/");
+//                    JsonArray confuseInfo = null;
+//                    if (confuseJson.has(p2)) confuseInfo = confuseJson.getAsJsonArray(p2);
+//
+//                    AtomicBoolean transformation = new AtomicBoolean();
+//                    metLoop: for (MethodNode mt : node.methods) {
+//                        if (mt.visibleAnnotations == null) continue;
+//
+//                        if (confuseInfo != null) {
+//                            for (JsonElement element : confuseInfo) {
+//                                JsonObject object = element.getAsJsonObject();
+//                                String source = object.get("sourceMethod").getAsString();
+//
+//                                if (mt.name.equals(source) && mt.visibleAnnotations.removeIf(annotation -> annotation.desc.equals(mappingDesc))) {
+//                                    mt.name = object.get("confuseMethod").getAsString();
+//                                    mt.visibleAnnotations.add(uniqueNode);
+//                                    transformation.set(true);
+//                                    continue metLoop;
+//                                }
+//                            }
+//                        }
+//
+//                        if (mt.visibleAnnotations.removeIf(annotation -> annotation.desc.equals(replaceDesc))) {
+//                            mt.visibleAnnotations.add(uniqueNode);
+//                            transformation.set(true);
+//                        }
+//                    }
+//
+//                    if (transformation.get()) {
+//                        ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+//                        node.accept(writer);
+//                        Files.write(mixinClass, writer.toByteArray());
+//                        transformation.set(false);
+//                    }
+//                }
+//            } else {
+//                overwrite = new AnnotationNode("L" + Overwrite.class.getName().replaceAll("\\.", "/") + ";");
+//                overwrite.values = List.of("remap", false);
+//                onlyReplace(path, buildRoot);
+//            }
+//        } catch (Exception e) {
+//            throw new IOException(e);
+//        }
+//    }
+//
+//    private void onlyReplace(List<String> paths, String root) throws IOException {
+//        for (String path : paths) {
+//            Path mixinClass = Path.of(root + path.replaceAll("\\.", "\\\\") + ".class");
+//            ClassReader mixinReader = new ClassReader(Files.readAllBytes(mixinClass));
+//            ClassNode node = new ClassNode();
+//            mixinReader.accept(node, 0);
+//
+//            boolean transformation = false;
+//            AnnotationNode[] desc = {null};
+//            for (MethodNode mt : node.methods) {
+//                if (mt.visibleAnnotations == null) continue;
+//                if (mt.visibleAnnotations.removeIf(annotation -> {
+//                    if (annotation.desc.equals(mappingDesc)) {
+//                        desc[0] = uniqueNode;
+//                        return true;
+//                    } else if (annotation.desc.equals(replaceDesc)) {
+//                        desc[0] = overwrite;
+//                        return true;
+//                    }
+//                    return false;
+//                })) {
+//                    mt.visibleAnnotations.add(desc[0]);
+//                    desc[0] = null;
+//                    transformation = true;
+//                }
+//            }
+//
+//            if (transformation) {
+//                ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+//                node.accept(writer);
+//                Files.write(mixinClass, writer.toByteArray());
+//            }
+//        }
+//    }
+//
+//    private @NotNull JsonObject getJsonObject(List<String> path, String tStg) throws Exception {
+////        ClassLoader loader = MappingsConfuse.class.getClassLoader();
+//        JsonObject confuseJson = new JsonObject();
+//        HashMultimap<String, Map.Entry<String, String>> source = HashMultimap.create();
+//        HashMap<String, String> mappingTabs = new HashMap<>();
+//
+//        String mixinDesc = "L" + Mixin.class.getName().replaceAll("\\.", "/") + ";";
+//
+//        for (String p2 : path) {
+//            ClassNode node = new ClassNode();
+//            new ClassReader(p2).accept(node, 0);
+//
+//            for (MethodNode m : node.methods) {
+//                if (containAnnotation(m, mappingDesc)) {
+//                    String asmPath = getMixinTargetClass(node, mixinDesc, m);
+//                    String methodSignature = m.name + m.desc;
+//                    mappingTabs.put(methodSignature, node.name.replaceAll("\\.", "/"));
+//                    source.put(asmPath, new AbstractMap.SimpleEntry<>(methodSignature, null));
+//                }
+//            }
+//        }
+//
+//        HashMultimap<String, Map.Entry<String, String>> refMap = parsingMethodMapping(source, tStg);
+//        for (String key : refMap.keySet()) {
+//            Set<Map.Entry<String, String>> info = refMap.get(key);
+//
+//            for (Map.Entry<String, String> srgToMcp : info) {
+//                String methodSignature = srgToMcp.getKey();
+//                String mixinClass = mappingTabs.get(methodSignature);
+//                JsonArray confuseData;
+//
+//                if (confuseJson.has(mixinClass)) confuseData = confuseJson.getAsJsonArray(mixinClass);
+//                else {
+//                    confuseData = new JsonArray();
+//                    confuseJson.add(mixinClass, confuseData);
+//                }
+//
+//                JsonObject entry = new JsonObject();
+//                entry.addProperty("sourceMethod", methodSignature.split("\\(")[0]);
+//                entry.addProperty("confuseMethod", srgToMcp.getValue());
+//                confuseData.add(entry);
+//            }
+//        }
+//        return confuseJson;
+//    }
+//
+//    private static boolean containAnnotation(MethodNode node, String desc) {
+//        if (node.visibleAnnotations != null) {
+//            for (AnnotationNode annotation : node.visibleAnnotations) {
+//                if (annotation.desc.equals(desc)) return true;
+//            }
+//        }
+//
+//        return false;
+//    }
+//
+//    //@Mixin annotation is not retained after running
+//    @SuppressWarnings("ALL")
+//    private static String getMixinTargetClass(ClassNode node, String desc, MethodNode source) throws Exception {
+//        if (node.invisibleAnnotations != null) {
+//            for (AnnotationNode annotation : node.invisibleAnnotations) {
+//                if (annotation.desc.equals(desc)) {
+//                    for (int i = 0; i < annotation.values.size(); i += 2) {
+//                        String key = (String) annotation.values.get(i);
+//                        if (key.equals("value"))
+//                            //Trace to the source
+//                            return matchingAllVirtualMethod(((ArrayList<Type>) annotation.values.get(i + 1))
+//                                .get(0).getClassName(), source);
+//                    }
+//                }
+//            }
+//        }
+//
+//        throw new ClassMetadataNotFoundException("Unable to find @Mixin or its value attribute!");
+//    }
+//
+//    private static String matchingAllVirtualMethod(String classPath, MethodNode source) throws ClassNotFoundException {
+//        Class<?> c = Class.forName(classPath, false, MappingsConfuse.class.getClassLoader());
+//        //Only supports finding the next level of Object, because the original version has basically processed the methods of Object,
+//        //and there is no need to rewrite an Object method in Mixin
+//        int argumentCount = Type.getArgumentCount(source.desc);
+//        while (c != Object.class) {
+//            Class<?> c1 = c.getSuperclass();
+//            for (Method method : c1.getDeclaredMethods())
+//                if (matchingMethod(method, source, argumentCount))
+//                    return method.getDeclaringClass().getName()
+//                        .replaceAll("\\.", "/");
+//            c = c1;
+//        }
+//
+//        throw new NoSuchMethodError("No matching target can be found among all its retrievable virtual methods!");
+//    }
+//
+//    private static boolean matchingMethod(Method method, MethodNode source, int argumentCount) {
+//        return method.getParameterTypes().length == argumentCount &&
+//            method.getName().equals(source.name) &&
+//            Type.getReturnType(source.desc).getClassName()
+//                .equals(method.getReturnType().getName());
+//    }
+//
+//    private static HashMultimap<String, Map.Entry<String, String>> parsingMethodMapping(
+//        HashMultimap<String, Map.Entry<String, String>> source, String tStg) {
+//        try (BufferedReader reader = Files.newBufferedReader(Paths.get(tStg))) {
+//            String line;
+//            Set<String> parsedSource = null;
+//            String clazz = null;
+//            int totalArticles = source.size();
+//            int numberOfCompiledEntries = 0;
+//            byte tab = 9;
+//
+//            while ((line = reader.readLine()) != null) {
+//                boolean isClass = line.charAt(0) != tab;
+//                //Only classes without indentation
+//                if (isClass) {
+//                    if (clazz != null) {
+//                        clazz = null;
+//                        parsedSource = null;
+//                        if (numberOfCompiledEntries == totalArticles) break;
+//                    }
+//
+//                    //Class names are not confused
+//                    String parts = line.trim().split("\\s+")[0];
+//                    if (source.containsKey(parts)) {
+//                        clazz = parts;
+//                        parsedSource = source.get(parts).stream().map(Map.Entry::getKey).collect(Collectors.toSet());
+//                    }
+//                } else if (clazz != null && line.contains("(")) {
+//                    String[] method = line.trim().split("\\s+");
+//                    String p = method[0] + method[1];
+//                    if (parsedSource.contains(p)) {
+//                        numberOfCompiledEntries++;
+//                        source.get(clazz).stream().filter(entry -> entry.getKey().equals(p))
+//                            .findFirst().get().setValue(method[2]);
+//                    }
+//                }
+//            }
+//
+//            if (totalArticles == numberOfCompiledEntries) {
+//                //left source right confuse
+//                System.out.println("总编译" + numberOfCompiledEntries + "个方法的混淆映射");
+//                return source;
+//            }
+//
+//            throw new ParseException("Missing mapping file!");
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
+}

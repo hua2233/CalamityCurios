@@ -1,0 +1,41 @@
+package hua223.calamity.util.injector;
+
+import cpw.mods.modlauncher.api.ITransformer;
+import cpw.mods.modlauncher.api.ITransformerVotingContext;
+import cpw.mods.modlauncher.api.TransformerVoteResult;
+import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.tree.ClassNode;
+
+import java.util.Set;
+import java.util.stream.Collectors;
+
+public class CalamityTransformer implements ITransformer<ClassNode> {
+    private final Set<CalamityITransformer> wrapper;
+
+    public CalamityTransformer(Set<CalamityITransformer> wrapper) {
+        this.wrapper = wrapper;
+    }
+
+    @Override
+    public @NotNull ClassNode transform(ClassNode classNode, ITransformerVotingContext transformerVotingContext) {
+        try {
+            for (CalamityITransformer w : wrapper) {
+                if (w.getTargetClass().equals(classNode.name))
+                    w.transformer(classNode);
+            }
+            return classNode;
+        } catch (Exception e) {
+            throw new RuntimeException("注入时出现错误", e);
+        }
+    }
+
+    @Override
+    public @NotNull TransformerVoteResult castVote(ITransformerVotingContext transformerVotingContext) {
+        return TransformerVoteResult.YES;
+    }
+
+    @Override
+    public @NotNull Set<Target> targets() {
+        return wrapper.stream().map(wrapper -> Target.targetClass(wrapper.getTargetClass())).collect(Collectors.toSet());
+    }
+}
