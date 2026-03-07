@@ -1,5 +1,6 @@
 package hua223.calamity.util;
 
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 
@@ -13,14 +14,30 @@ import java.util.UUID;
  * - 支持直接设置或修改属性值
  * - 自动标记属性实例为dirty以确保重新计算
  * <p>
- * 注意：这个类无法被序列化。它的本意就是为了处理快速更改的值。故此它只作用于临时属性
  */
 public class VariableAttributeModifier extends AttributeModifier {
     private double modifiableValue;
+    private boolean retain;
 
     public VariableAttributeModifier(UUID id, String name, double amount, Operation operation) {
         super(id, name, 0, operation);
         modifiableValue = amount;
+    }
+
+    public static VariableAttributeModifier createRetainVariable(UUID uuid, String name, double amount, Operation operation) {
+        VariableAttributeModifier modifier = new VariableAttributeModifier(uuid, name, amount, operation);
+        modifier.retain = true;
+        return modifier;
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    public static void readOldValuesOfDeath(ServerPlayer _new, ServerPlayer old) {
+        old.getAttributes().attributes.forEach((k, v) -> {
+            AttributeInstance instance = _new.getAttribute(k);
+            for (AttributeModifier modifier : v.permanentModifiers)
+                if (modifier instanceof VariableAttributeModifier variable && variable.retain)
+                    instance.addPermanentModifier(variable);
+        });
     }
 
     public static VariableAttributeModifier getModifierInInstance(AttributeInstance instance, UUID uuid) {
@@ -45,10 +62,6 @@ public class VariableAttributeModifier extends AttributeModifier {
 
     public void setValue(double value) {
         modifiableValue = value;
-    }
-
-    public void addValue(double v) {
-        modifiableValue += v;
     }
 
     public void setValue(double v, AttributeInstance instance) {

@@ -64,7 +64,8 @@ public class EnchantedParticleSet {
             RenderSystem.setShader(GameRenderer::getPositionColorTexShader);
             RenderSystem.setShaderTexture(0, TEXTURE);
             RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-            RenderSystem.depthMask(false);
+            //RenderSystem.depthMask(false);
+            RenderSystem.enableDepthTest();
             RenderSystem.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
             Tesselator tesselator = Tesselator.getInstance();
             BufferBuilder buffer = tesselator.getBuilder();
@@ -102,7 +103,7 @@ public class EnchantedParticleSet {
 
             tesselator.end();
             RenderSystem.defaultBlendFunc();
-            RenderSystem.depthMask(true);
+            //RenderSystem.depthMask(true);
         }
     }
 

@@ -2,8 +2,6 @@
 
 uniform sampler2D Sampler0;
 uniform float GameTime;
-uniform mat4 ModelViewMat;
-uniform mat4 ProjMat;
 
 in vec3 worldPos;
 in float vertexDistance;

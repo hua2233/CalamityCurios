@@ -1,6 +1,6 @@
 package hua223.calamity.net.S2CPacket;
 
-import hua223.calamity.integration.curios.Item.StatisNinjaBelt;
+import hua223.calamity.integration.curios.item.StatisNinjaBelt;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.OptionInstance;
 import net.minecraft.network.FriendlyByteBuf;

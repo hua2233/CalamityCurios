@@ -64,12 +64,6 @@
   "overrides": [
     {
       "predicate": {
-        "calamity_curios:cataclysm_hold": 0
-      },
-      "model": "calamity_curios:item/nebulous_cataclysm"
-    },
-    {
-      "predicate": {
         "calamity_curios:cataclysm_hold": 1
       },
       "model": "calamity_curios:item/nebulous_cataclysm_hold"

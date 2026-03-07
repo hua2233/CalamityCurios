@@ -21,13 +21,12 @@ public class EventTypes<T extends BaseListener<?>> {
     public static final EventTypes<HurtListener> HURT =
         new EventTypes<>(HurtListener.class);
 
-
     public static final EventTypes<PlayerHealListener> HEAL =
         new EventTypes<>(PlayerHealListener.class);
 
     public static final EventTypes<DeathListener> DEATH =
         new EventTypes<>(DeathListener.class);
-    
+
     public static final EventTypes<EffectListener> EFFECT =
         new EventTypes<>(EffectListener.class);
 

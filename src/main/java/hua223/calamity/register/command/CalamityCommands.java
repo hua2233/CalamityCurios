@@ -22,7 +22,7 @@ public class CalamityCommands {
             = DeferredRegister.create(Registry.COMMAND_ARGUMENT_TYPE_REGISTRY, MODID);
 
 //        ARGUMENT_TYPES.register(MODID, () -> ArgumentTypeInfos.registerByClass(CalamityArgument.class,
-//            SingletonArgumentInfo.contextFree(CalamityArgument::getInstance)));
+//            SingletonArgumentInfo.contextFree(CalamityArgument::getBlackInstance)));
 
         ARGUMENT_TYPES.register(bus);
         MinecraftForge.EVENT_BUS.addListener(CalamityCommands::register);
@@ -35,7 +35,7 @@ public class CalamityCommands {
 //        LiteralArgumentBuilder<CommandSourceStack> root =
 //            Commands.literal("calamity").requires(player -> player.hasPermission(2));
 
-//        root.then(Commands.argument("capability", CalamityArgument.getInstance())
+//        root.then(Commands.argument("capability", CalamityArgument.getBlackInstance())
 //            .then(Commands.literal("set")
 //                .then(Commands.argument("value", IntegerArgumentType.integer(0))
 //                    .executes(context -> {

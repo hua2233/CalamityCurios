@@ -187,13 +187,24 @@
       }
     ]
   },
-  "lunar_flare,": {
+  "lunar_flare": {
     "category": "ambient",
-    "subtitle": "calamity_curios.sound.subtitle.lunar_flare,",
+    "subtitle": "calamity_curios.sound.subtitle.lunar_flare",
     "sounds": [
       {
-        "name": "calamity_curios:ambient/lunar_flare,",
+        "name": "calamity_curios:ambient/lunar_flare",
         "attenuation_distance": 16,
+        "steam": true
+      }
+    ]
+  },
+  "prism": {
+    "category": "ambient",
+    "subtitle": "calamity_curios.sound.subtitle.prism",
+    "sounds": [
+      {
+        "name": "calamity_curios:ambient/prism",
+        "attenuation_distance": 12,
         "steam": true
       }
     ]

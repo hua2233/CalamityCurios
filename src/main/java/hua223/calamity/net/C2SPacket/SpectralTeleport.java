@@ -1,6 +1,6 @@
 package hua223.calamity.net.C2SPacket;
 
-import hua223.calamity.integration.curios.Item.SpectralVeil;
+import hua223.calamity.integration.curios.item.SpectralVeil;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkEvent;

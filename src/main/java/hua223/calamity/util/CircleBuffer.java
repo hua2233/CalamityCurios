@@ -35,6 +35,7 @@ public class CircleBuffer<E> implements Iterable<E> {
         elements[head] = e;
     }
 
+    //This method is executed in array order rather than in chronological order.
     public void forAll(Function<E, E> function) {
         for (int i = 0; i < getCount(); i++)
             elements[i] = function.apply(elements[i]);
@@ -83,7 +84,8 @@ public class CircleBuffer<E> implements Iterable<E> {
 
     @Override
     public @NotNull Iterator<E> iterator() {
-        if (!connected && head == 0) throw new IllegalStateException("empty list cannot be traversed");
+        if (!connected && head == -1)
+            throw new IllegalStateException("empty list cannot be traversed");
         if (iterator != null) {
             iterator.count = 0;
             iterator.currentIndex = head;
@@ -111,22 +113,17 @@ public class CircleBuffer<E> implements Iterable<E> {
 
         @Override
         public E next() {
-            if (!hasNext()) {
-                throw new java.util.NoSuchElementException();
+            if (hasNext()) {
+                count++;
+                if (connected) {
+                    if (currentIndex != tail)
+                        currentIndex = (currentIndex - 1 + size) % size;
+                } else if (currentIndex > 0) currentIndex--;
+
+                return elements[currentIndex];
             }
 
-            count++;
-            if (connected) {
-                if (currentIndex != tail) {
-                    currentIndex = (currentIndex - 1 + size) % size;
-                }
-            } else {
-                if (currentIndex > 0) {
-                    currentIndex--;
-                }
-            }
-
-            return elements[currentIndex];
+            throw new java.util.NoSuchElementException();
         }
     }
 }

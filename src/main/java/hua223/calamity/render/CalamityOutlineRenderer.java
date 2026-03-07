@@ -47,17 +47,16 @@ public class CalamityOutlineRenderer {
             pose.pushPose();
             pose.translate(outline.x, outline.y, outline.z);
             OutlineSource.setRenderColor(outline);
-            if (outline.isBlock()) {
+            if (outline.isBlock())
 //                dispatcher.getModelRenderer().renderModel(pose, bulider, outline.state, dispatcher.getBlockModel
 //                (outline.state), 5728880, OverlayTexture.NO_OVERLAY, ModelData.EMPTY, null);
                 dispatcher.renderSingleBlock(outline.state, pose, OutlineSource.source, 15728880,
                     OverlayTexture.NO_OVERLAY, ModelData.EMPTY, null);
-                pose.popPose();
-            } else {
+            else
                 entityRenderDispatcher.getRenderer(outline.entity).render(outline.entity,
                     outline.entity.getYRot(), partialTick, pose, OutlineSource.source, 15728880);
-                pose.popPose();
-            }
+
+            pose.popPose();
         }
 
         OutlineSource.endBatch();

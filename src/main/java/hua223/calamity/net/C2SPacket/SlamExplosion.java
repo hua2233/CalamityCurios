@@ -1,6 +1,6 @@
 package hua223.calamity.net.C2SPacket;
 
-import hua223.calamity.integration.curios.Item.GravistarSabaton;
+import hua223.calamity.integration.curios.item.GravistarSabaton;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Explosion;

@@ -1,6 +1,6 @@
 package hua223.calamity.net.S2CPacket;
 
-import hua223.calamity.integration.curios.Item.GravistarSabaton;
+import hua223.calamity.integration.curios.item.GravistarSabaton;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;

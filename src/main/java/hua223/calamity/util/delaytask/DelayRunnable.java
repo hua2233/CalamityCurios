@@ -1,8 +1,6 @@
 package hua223.calamity.util.delaytask;
 
-import net.minecraft.client.Minecraft;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.event.server.ServerStartedEvent;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,10 +18,8 @@ public final class DelayRunnable {
         TASK_TABLE.add(new DelayTask(runTick, task));
     }
 
-    @OnlyIn(Dist.CLIENT)
-    public static void onPlayerLogInSetUp() {
-        Minecraft minecraft = Minecraft.getInstance();
-        INTEGRATED_SERVER = minecraft.hasSingleplayerServer();
+    public static void setDist(ServerStartedEvent event) {
+        INTEGRATED_SERVER = event.getServer().isSingleplayer();
     }
 
     public static void nextTickRun(Runnable task) {
