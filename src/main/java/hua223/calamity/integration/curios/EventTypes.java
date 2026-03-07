@@ -29,7 +29,7 @@ public class EventTypes<T extends BaseListener<?>> {
         new EventTypes<>(DeathListener.class);
     
     public static final EventTypes<EffectListener> EFFECT =
-        new EventTypes<>(EffectListener.class);The item registration is basically completed. Start troubleshooting the problem
+        new EventTypes<>(EffectListener.class);
 
     public static final EventTypes<PlayerAttackListener> ATTACK =
         new EventTypes<>(PlayerAttackListener.class);
