@@ -245,13 +245,6 @@ public class Calamity extends BaseCurio implements ICuriosStorage {
     protected boolean startServerTick() {
         return true;
     }
-//
-//    @Override
-//    public @Nullable ICapabilityProvider initCapabilities(ItemStack stack, @Nullable CompoundTag nbt) {
-//        CalamityCapProvider<CalamityCap> cap = CalamityCapProvider.CALAMITY.copy();
-//        if (nbt != null) cap.deserializeNBT(nbt);
-//        return cap;
-//    }
 
     @Override
     @OnlyIn(Dist.CLIENT)
@@ -268,6 +261,9 @@ public class Calamity extends BaseCurio implements ICuriosStorage {
 
             tooltips.add(CMLangUtil.getTranslatable(CalamityCap.CurseType.ABYSS.reversed
                 ? "abyss_inverted" : "calamity_abyss").withStyle(ChatFormatting.GOLD));
+
+            tooltips.add(CMLangUtil.getTranslatable(CalamityCap.CurseType.DESERT.reversed
+                ? "desert_inverted" : "calamity_desert").withStyle(ChatFormatting.GOLD));
         } else {
             tooltips.add(CMLangUtil.getTranslatable("calamity", 1).withStyle(ChatFormatting.DARK_RED));
             tooltips.add(CMLangUtil.getTranslatable("calamity", 2).withStyle(ChatFormatting.DARK_RED));

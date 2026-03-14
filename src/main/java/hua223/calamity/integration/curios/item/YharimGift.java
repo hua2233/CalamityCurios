@@ -5,7 +5,9 @@ import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.integration.curios.listeners.HurtListener;
 import hua223.calamity.register.entity.projectiles.FireMeteor;
 import hua223.calamity.util.CMLangUtil;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
@@ -74,9 +76,10 @@ public class YharimGift extends BaseCurio {
     @Override
     @OnlyIn(Dist.CLIENT)
     public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
-        tooltips.add(CMLangUtil.getTranslatable("yharim_gift", 1));
-        tooltips.add(CMLangUtil.getTranslatable("yharim_gift", 2));
-        tooltips.add(CMLangUtil.getTranslatable("yharim_gift", 3));
+        Style gold = Style.EMPTY.withColor(ChatFormatting.GOLD);
+        tooltips.add(CMLangUtil.getTranslatable("yharim_gift", 1).setStyle(gold));
+        tooltips.add(CMLangUtil.getTranslatable("yharim_gift", 2).setStyle(gold));
+        tooltips.add(CMLangUtil.getTranslatable("yharim_gift", 3).setStyle(gold));
         return tooltips;
     }
 }

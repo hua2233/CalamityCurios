@@ -31,7 +31,7 @@ public class Perplexed extends Card {
         modifier.put(Attributes.ATTACK_SPEED,
             new AttributeModifier(uuid, "perplexed", flag ? 0.2 : 0.1, AttributeModifier.Operation.MULTIPLY_BASE));
         modifier.put(CalamityAttributes.CRITICAL_STRIKE_CHANCE.get(),
-            new AttributeModifier(uuid, "perplexed", flag ? -0.12 : -0.05, AttributeModifier.Operation.MULTIPLY_BASE));
+            new AttributeModifier(uuid, "perplexed", flag ? -0.1 : -0.12, AttributeModifier.Operation.MULTIPLY_BASE));
     }
 
     @Override

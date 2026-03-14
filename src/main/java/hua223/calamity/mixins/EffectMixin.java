@@ -118,7 +118,7 @@ public abstract class EffectMixin {
 
         @Inject(method = "writeDetailsTo", at = @At(value = "INVOKE", target =
             "Lnet/minecraft/world/effect/MobEffectInstance;writeCurativeItems(Lnet/minecraft/nbt/CompoundTag;)V",
-            shift = At.Shift.AFTER), cancellable = true)//, remap = false
+            shift = At.Shift.AFTER), cancellable = true, remap = false)//
         private void saveUniversalFactor(CompoundTag nbt, CallbackInfo ci) {
             if (calamity$Factor) {
                 nbt.put("UniversalFactor", ((UniversalFactorEffect<?, ?>) effect).toNbt(factorData.get()));

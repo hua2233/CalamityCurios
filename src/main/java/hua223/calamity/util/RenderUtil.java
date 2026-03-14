@@ -17,10 +17,7 @@ import hua223.calamity.main.CalamityCurios;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.register.entity.projectiles.BaseProjectile;
 import hua223.calamity.register.recipe.CalamityCurseRecipe;
-import hua223.calamity.render.CalamityOutlineRenderer;
-import hua223.calamity.render.CurseFont;
-import hua223.calamity.render.EnchantedParticleSet;
-import hua223.calamity.render.IllusionBufferSource;
+import hua223.calamity.render.*;
 import hua223.calamity.util.delaytask.DelayRunnable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
@@ -930,7 +927,7 @@ public final class RenderUtil {
                             CalamityOutlineRenderer.updateOutlineTarget(minecraft);
                             return false;
                         }
-                    }, 5, LIGHT);
+                    }, 1, LIGHT);
                 });
             }
         }

@@ -32,7 +32,7 @@ public class Frail extends Card {
 
     @ApplyEvent
     public final void onHurt(HurtListener listener) {
-        listener.amplifier += 0.1f;
+        listener.amplifier += 0.15f;
     }
 
     @Override
@@ -43,7 +43,9 @@ public class Frail extends Card {
     @Override
     @OnlyIn(Dist.CLIENT)
     public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
-        tooltips.add(CMLangUtil.getTranslatable("frail").withStyle(ChatFormatting.DARK_PURPLE));
+        tooltips.add(CMLangUtil.getTranslatable("frail", 1).withStyle(ChatFormatting.GOLD));
+        tooltips.add(CMLangUtil.blankLine());
+        tooltips.add(CMLangUtil.getTranslatable("frail", 2).withStyle(ChatFormatting.DARK_PURPLE));
         return tooltips;
     }
 }

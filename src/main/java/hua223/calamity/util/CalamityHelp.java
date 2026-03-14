@@ -47,6 +47,7 @@ public class CalamityHelp {
     public static final EntityDataSerializer<Short> SHORT = EntityDataSerializer.simple((buf, value) ->
         buf.writeShort(value), FriendlyByteBuf::readShort);
     public static EntityDataAccessor<Short> CALAMITY_DATA_SHARED_FLAGS;
+    public static EntityDataAccessor<Boolean> CALAMITY_PROJECTILE_TAG;
 
     private CalamityHelp() {
     }

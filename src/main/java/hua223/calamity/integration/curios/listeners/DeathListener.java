@@ -9,11 +9,11 @@ import net.minecraftforge.event.entity.living.LivingDeathEvent;
 public class DeathListener extends BaseListener<LivingDeathEvent> {
     public final DamageSource source;
     public final LivingEntity entity;
-    public final boolean isPlayerDeath;
+    public final Boolean isPlayerDeath;
     public ServerPlayer player;
 
     @EventConstructor
-    public DeathListener(LivingDeathEvent event, ServerPlayer player, boolean isPlayerDeath) {
+    public DeathListener(LivingDeathEvent event, ServerPlayer player, Boolean isPlayerDeath) {
         super(event);
         source = event.getSource();
         this.isPlayerDeath = isPlayerDeath;

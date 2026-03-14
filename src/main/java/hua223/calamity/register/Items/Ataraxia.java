@@ -69,6 +69,9 @@ public class Ataraxia extends SwordItem {
     @OnlyIn(Dist.CLIENT)
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level pLevel, List<Component> tooltipComponents, TooltipFlag advanced) {
-        tooltipComponents.add(CMLangUtil.getTranslatable("ataraxia").withStyle(ChatFormatting.AQUA));
+        tooltipComponents.add(CMLangUtil.getTranslatable("ataraxia", 1).withStyle(ChatFormatting.LIGHT_PURPLE));
+        tooltipComponents.add(CMLangUtil.getTranslatable("ataraxia", 2).withStyle(ChatFormatting.LIGHT_PURPLE));
+        tooltipComponents.add(CMLangUtil.blankLine());
+        tooltipComponents.add(CMLangUtil.getTranslatable("ataraxia", 3).withStyle(ChatFormatting.AQUA));
     }
 }

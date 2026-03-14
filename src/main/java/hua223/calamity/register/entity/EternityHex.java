@@ -107,14 +107,16 @@ public class EternityHex extends Entity {
     public static void create(Player player, Level level, LivingEntity target) {
         CalamityCapProvider.safetyRunCalamityMagic(player, expand -> {
             if (expand.calamity$GetMana() > 30) {
-                EternityHex hex = new EternityHex(CalamityEntity.ETERNITY_HEX.get(), level);
-                hex.yOffset = target.getBbHeight() / 2;
-                hex.expand = expand;
-                hex.setPos(target.position().add(0, hex.yOffset, 0));
-                hex.owner = player;
-                hex.target = target;
-                CalamityHelp.setCalamityFlag(target, 3, true);
-                level.addFreshEntity(hex);
+                EternityHex hex = CalamityEntity.ETERNITY_HEX.get().create(level);
+                if (hex != null) {
+                    hex.yOffset = target.getBbHeight() / 2;
+                    hex.expand = expand;
+                    hex.setPos(target.position().add(0, hex.yOffset, 0));
+                    hex.owner = player;
+                    hex.target = target;
+                    CalamityHelp.setCalamityFlag(target, 3, true);
+                    level.addFreshEntity(hex);
+                }
             } else player.stopUsingItem();
         });
     }
@@ -157,8 +159,9 @@ public class EternityHex extends Entity {
             }
 
             if (tickCount % 10 == 0) {
-                float amount = (float) (owner.getAttributeValue(Attributes.ATTACK_DAMAGE)) + target.getMaxHealth() * 0.05f;
-                if (expand.calamity$ConsumeMana(Math.min(50f, amount * 3f))) {
+                float amount = (float) (owner.getAttributeValue(Attributes.ATTACK_DAMAGE));
+                if (expand.calamity$ConsumeMana(Math.min(50f, amount * 3))) {
+                    amount += target.getMaxHealth() * 0.03f;
                     target.calamity$HurtNoInvulnerable(new CalamityDamageSource("player")
                         .setOwner(owner).setNoDecay(amount).setMagic(), amount);
                     if (target.isDeadOrDying()) death(reSpawn());
@@ -181,7 +184,7 @@ public class EternityHex extends Entity {
 
                     f[1]++;
                     return f[1] == 6;
-                }, 3);
+                }, 2);
             }
         }
     }

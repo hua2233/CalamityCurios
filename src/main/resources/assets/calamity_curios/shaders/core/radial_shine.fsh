@@ -8,7 +8,6 @@ in vec4 vertexColor;
 out vec4 fragColor;
 
 void main() {
-
     vec2 polar = vec2(atan(texCoord0.y - 0.5, texCoord0.x - 0.5) / 6.283 + 0.5, distance(texCoord0, vec2(0.5)));
 
     float noiseA = texture(Sampler0, polar * vec2(2, 0.02) + vec2(0, GameTime * -22)).r;

@@ -94,7 +94,8 @@ public class CalamityCap implements BaseCap<CalamityCap> {
         SUNK(0),
         SULFUR_FIRE(1),
         SILVA(2),
-        ABYSS(3);
+        ABYSS(3),
+        DESERT(4);
 
         private final byte bit;
         @OnlyIn(Dist.CLIENT)

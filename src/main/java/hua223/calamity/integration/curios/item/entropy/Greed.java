@@ -47,7 +47,9 @@ public class Greed extends Card {
     @Override
     @OnlyIn(Dist.CLIENT)
     public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
-        tooltips.add(CMLangUtil.getTranslatable("greed").withStyle(ChatFormatting.DARK_PURPLE));
+        tooltips.add(CMLangUtil.getTranslatable("greed", 1).withStyle(ChatFormatting.GOLD));
+        tooltips.add(CMLangUtil.blankLine());
+        tooltips.add(CMLangUtil.getTranslatable("greed", 2).withStyle(ChatFormatting.DARK_PURPLE));
         return tooltips;
     }
 }

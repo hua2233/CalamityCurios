@@ -28,12 +28,12 @@ public class Sacrifice extends Card {
     @Override
     protected void setAttributeModifiers(UUID uuid, ItemStack stack, Multimap<Attribute, AttributeModifier> modifier, LivingEntity equipped) {
         modifier.put(CalamityAttributes.DAMAGE_UP.get(), new AttributeModifier(
-            uuid, "sacrifice", CalamityHelp.getCalamityFlag(equipped, 10) ? 0.16 : 0.1, AttributeModifier.Operation.MULTIPLY_BASE));
+            uuid, "sacrifice", CalamityHelp.getCalamityFlag(equipped, 10) ? 0.22 : 0.15, AttributeModifier.Operation.MULTIPLY_BASE));
     }
 
     @ApplyEvent
     public final void onHeal(PlayerHealListener listener) {
-        listener.amplification -= CalamityHelp.getCalamityFlag(listener.player, 10) ? 0.2f : 0.4f;
+        listener.amplification -= CalamityHelp.getCalamityFlag(listener.player, 10) ? 0.25f : 0.3f;
     }
 
     @Override
@@ -44,7 +44,9 @@ public class Sacrifice extends Card {
     @Override
     @OnlyIn(Dist.CLIENT)
     public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
-        tooltips.add(CMLangUtil.getTranslatable("sacrifice").withStyle(ChatFormatting.DARK_PURPLE));
+        tooltips.add(CMLangUtil.getTranslatable("sacrifice", 1).withStyle(ChatFormatting.GOLD));
+        tooltips.add(CMLangUtil.blankLine());
+        tooltips.add(CMLangUtil.getTranslatable("sacrifice", 2).withStyle(ChatFormatting.DARK_PURPLE));
         return tooltips;
     }
 }

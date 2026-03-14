@@ -6,8 +6,9 @@ import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.ICuriosStorage;
 import hua223.calamity.util.VariableAttributeModifier;
-import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -113,16 +114,15 @@ public class Radiance extends BaseCurio implements ICuriosStorage {
     @Override
     @OnlyIn(Dist.CLIENT)
     public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
-        if (Screen.hasShiftDown()) {
-            tooltips.add(CMLangUtil.getTranslatable("radiance", 2));
-            tooltips.add(CMLangUtil.getTranslatable("radiance", 3));
-            tooltips.add(CMLangUtil.getTranslatable("radiance", 4));
-            tooltips.add(CMLangUtil.getTranslatable("radiance", 5));
-            tooltips.add(CMLangUtil.getTranslatable("radiance", 6));
-            tooltips.add(CMLangUtil.getTranslatable("radiance", 7));
-        } else {
-            tooltips.add(CMLangUtil.getTranslatable("radiance", 1));
-        }
+        Style yellow = Style.EMPTY.withColor(ChatFormatting.YELLOW);
+        tooltips.add(CMLangUtil.getTranslatable("radiance", 2).setStyle(yellow));
+        tooltips.add(CMLangUtil.getTranslatable("radiance", 3).setStyle(yellow));
+        tooltips.add(CMLangUtil.getTranslatable("radiance", 4).setStyle(yellow));
+        tooltips.add(CMLangUtil.getTranslatable("radiance", 5).setStyle(yellow));
+        tooltips.add(CMLangUtil.getTranslatable("radiance", 6).setStyle(yellow));
+        tooltips.add(CMLangUtil.getTranslatable("radiance", 7).setStyle(yellow));
+        tooltips.add(CMLangUtil.blankLine());
+        tooltips.add(CMLangUtil.getTranslatable("radiance", 1).withStyle(ChatFormatting.AQUA));
         return tooltips;
     }
 }

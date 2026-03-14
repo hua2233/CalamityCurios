@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(Item.class)
 public class ItemMixins {
     @Redirect(method = "fillItemCategory", at = @At(value = "INVOKE",
-        target = "Lnet/minecraft/core/NonNullList;add(Ljava/lang/Object;)Z")) //, remap = false
+        target = "Lnet/minecraft/core/NonNullList;add(Ljava/lang/Object;)Z"), remap = false) //
     private boolean addCurse(NonNullList<ItemStack> instance, Object o) {
         //某些常规物品在创造物品栏时的能力附加事件无法被触发。此处处理客户端的渲染。
         ItemStack stack = (ItemStack) o;

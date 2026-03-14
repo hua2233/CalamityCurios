@@ -34,7 +34,9 @@ public class Tarnish extends Card {
     @Override
     @OnlyIn(Dist.CLIENT)
     public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
-        tooltips.add(CMLangUtil.getTranslatable("tarnish").withStyle(ChatFormatting.DARK_PURPLE));
+        tooltips.add(CMLangUtil.getTranslatable("tarnish", 1).withStyle(ChatFormatting.GOLD));
+        tooltips.add(CMLangUtil.blankLine());
+        tooltips.add(CMLangUtil.getTranslatable("tarnish", 2).withStyle(ChatFormatting.DARK_PURPLE));
         return tooltips;
     }
 }

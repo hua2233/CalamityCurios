@@ -2,6 +2,7 @@ package hua223.calamity.integration.curios;
 
 import hua223.calamity.events.CuriosEventHandler;
 import hua223.calamity.integration.curios.listeners.*;
+import hua223.calamity.main.CalamityCurios;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
@@ -59,6 +60,9 @@ public class EventTypes<T extends BaseListener<?>> {
                     supplier = original.asType(MethodType.methodType(BaseListener.class, original.type()))
                         .asSpreader(Object[].class, constructor.getParameterCount());
 
+                    //verifyParameters
+                    for (Class<?> c : constructor.getParameterTypes()) if (c.isPrimitive()) CalamityCurios.LOGGER.warn(
+                        "Basic data type found in event constructor: {}, corresponding wrapper data type can be manually set", c.getSimpleName());
                     EVENT_TYPES.add(this);
                     return;
                 }

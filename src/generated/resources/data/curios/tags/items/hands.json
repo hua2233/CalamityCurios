@@ -5,8 +5,8 @@
     "calamity_curios:craw_carapace",
     "calamity_curios:destiny_book",
     "calamity_curios:baroclaw",
-    "calamity_curios:calamity",
     "calamity_curios:ocean_shield",
+    "calamity_curios:dark_matter_sheath",
     "calamity_curios:archaic_powder",
     "calamity_curios:radiant_ooze",
     "calamity_curios:angelic_alliance",
@@ -33,7 +33,6 @@
     "calamity_curios:electricians_glove",
     "calamity_curios:precision_glove",
     "calamity_curios:recklessness_glove",
-    "calamity_curios:abyssal_mirror",
-    "calamity_curios:dark_matter_sheath"
+    "calamity_curios:abyssal_mirror"
   ]
 }

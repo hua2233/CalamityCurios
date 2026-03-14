@@ -134,24 +134,24 @@ public class CuriosEventHandler {
         LivingEntity entity = event.getEntity();
         if (!entity.level.isClientSide && entity.calamity$IsPlayer)
             onPlayerHurt(event, (ServerPlayer) event.getEntity());
-        else if (event.getSource().getEntity() instanceof ServerPlayer player) onPlayerAttack(event, player);
+        else if (event.getSource().getEntity() instanceof ServerPlayer player)
+            onPlayerAttack(event, player);
     }
 
     public static void onPlayerHurt(final LivingHurtEvent event, ServerPlayer player) {
         if (event.getSource().isFall() && player.hasEffect(CalamityEffects.CALCIUM.get())) {
             event.setCanceled(true);
-            return;
-        }
+        } else {
+            HurtListener listener = dispatch(player, EventTypes.HURT, event, player);
+            if (listener != null) {
+                Calamity.sunkCurse(listener);
+                DeitiesRampart.rampartGuard(listener);
+                tryTriggerEnchant(player, event, SpellType.TriggerType.PLAYER_HURT);
 
-        HurtListener listener = dispatch(player, EventTypes.HURT, event, player);
-        if (listener != null) {
-            Calamity.sunkCurse(listener);
-            DeitiesRampart.rampartGuard(listener);
-            tryTriggerEnchant(player, event, SpellType.TriggerType.PLAYER_HURT);
-
-            if (listener.player.hasEffect(CalamityEffects.BOUNDING.get())) listener.amplifier -= 0.4f;
-            listener.amplifier -= (float) player.getAttributeValue(CalamityAttributes.INJURY_OFFSET.get()) - 1;
-            event.setAmount(listener.getCorrectionValue());
+                if (listener.player.hasEffect(CalamityEffects.BOUNDING.get())) listener.amplifier -= 0.4f;
+                listener.amplifier -= (float) player.getAttributeValue(CalamityAttributes.INJURY_OFFSET.get()) - 1;
+                event.setAmount(listener.getCorrectionValue());
+            }
         }
     }
 
@@ -235,9 +235,10 @@ public class CuriosEventHandler {
 
     @SubscribeEvent
     public static void onProjectileHit(final ProjectileImpactEvent event) {
-        if (event.getRayTraceResult() instanceof EntityHitResult result)
-            if (result.getEntity() instanceof LivingEntity target && event.getProjectile().getOwner() instanceof ServerPlayer player)
-                dispatch(player, EventTypes.PROJECTILE_HIT, event, player, target);
+        if (event.getRayTraceResult() instanceof EntityHitResult result &&
+            result.getEntity() instanceof LivingEntity target &&
+            event.getProjectile().getOwner() instanceof ServerPlayer player)
+            dispatch(player, EventTypes.PROJECTILE_HIT, event, player, target);
     }
 
     @SubscribeEvent

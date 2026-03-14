@@ -2,6 +2,7 @@ package hua223.calamity.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import hua223.calamity.util.CalamityHelp;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -48,8 +49,6 @@ public class CalamityOutlineRenderer {
             pose.translate(outline.x, outline.y, outline.z);
             OutlineSource.setRenderColor(outline);
             if (outline.isBlock())
-//                dispatcher.getModelRenderer().renderModel(pose, bulider, outline.state, dispatcher.getBlockModel
-//                (outline.state), 5728880, OverlayTexture.NO_OVERLAY, ModelData.EMPTY, null);
                 dispatcher.renderSingleBlock(outline.state, pose, OutlineSource.source, 15728880,
                     OverlayTexture.NO_OVERLAY, ModelData.EMPTY, null);
             else
@@ -85,12 +84,10 @@ public class CalamityOutlineRenderer {
         ClientLevel level = minecraft.level;
         highLightOutlines.clear();
         BlockPos.betweenClosedStream(scope)
-//                .limit(maxCount)
             .forEach(pos -> {
                 BlockState state = level.getBlockState(pos);
                 if (!state.isAir() && level.hasChunk(pos.getX(), pos.getY())) {
-                    if (state.is(Tags.Blocks.ORES))
-                        highLightOutlines.add(new OutlineInfo(pos, state, false));
+                    if (state.is(Tags.Blocks.ORES)) highLightOutlines.add(new OutlineInfo(pos, state, false));
                     else if (level.getBlockEntity(pos) instanceof RandomizableContainerBlockEntity loot
                         && loot.getPersistentData().contains("LootTable"))
                         highLightOutlines.add(new OutlineInfo(pos, state, true));
@@ -100,8 +97,8 @@ public class CalamityOutlineRenderer {
         List<Entity> entities = level.getEntities(minecraft.player, scope);
         if (!entities.isEmpty())
             for (Entity entity : entities)
-                if (entity instanceof Enemy || (entity instanceof Projectile
-                    && ((Projectile) entity).getOwner() instanceof Enemy))
+                if (entity instanceof Enemy || (entity instanceof Projectile &&
+                    entity.getEntityData().get(CalamityHelp.CALAMITY_PROJECTILE_TAG)))
                     highLightOutlines.add(new OutlineInfo(entity));
     }
 }
@@ -148,7 +145,7 @@ class OutlineInfo {
         entity = null;
     }
 
-    public boolean isBlock() {
+    boolean isBlock() {
         return state != null;
     }
 }

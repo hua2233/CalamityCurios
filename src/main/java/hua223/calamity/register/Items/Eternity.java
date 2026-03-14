@@ -10,7 +10,6 @@ import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.item.UniqueSpellBook;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -82,8 +81,8 @@ public class Eternity extends UniqueSpellBook {
     @OnlyIn(Dist.CLIENT)
     public void appendHoverText(ItemStack stack, Level level, List<Component> components, TooltipFlag advanced) {
         super.appendHoverText(stack, level, components, advanced);
-        if (Screen.hasShiftDown()) {
-            components.add(CMLangUtil.getTranslatable("eternity", 2).withStyle(ChatFormatting.LIGHT_PURPLE));
-        } else components.add(CMLangUtil.getTranslatable("eternity", 1).withStyle(ChatFormatting.LIGHT_PURPLE));
+        components.add(CMLangUtil.blankLine());
+        components.add(CMLangUtil.getTranslatable("eternity", 2).withStyle(ChatFormatting.LIGHT_PURPLE));
+        components.add(CMLangUtil.getTranslatable("eternity", 1).withStyle(ChatFormatting.LIGHT_PURPLE));
     }
 }

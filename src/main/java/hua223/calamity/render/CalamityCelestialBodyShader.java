@@ -1,4 +1,4 @@
-package hua223.calamity.util;
+package hua223.calamity.render;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.shaders.Uniform;

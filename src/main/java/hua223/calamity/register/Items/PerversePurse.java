@@ -90,7 +90,7 @@ public class PerversePurse extends Item {
                     player.setItemInHand(usedHand, stack);
                 } else {
                     int id = stackTag.getInt("LastSave");
-                    if (id < 3 || !stackTag.contains(String.valueOf(id - 1))
+                    if (id < 2 || !stackTag.contains(String.valueOf(id - 1))
                         || !stackTag.contains(String.valueOf(id - 2))) {
                         CompoundTag tag = new CompoundTag();
                         interactionTarget.save(tag);

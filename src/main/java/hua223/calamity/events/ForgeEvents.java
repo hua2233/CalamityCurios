@@ -113,7 +113,7 @@ public class ForgeEvents {
         if (old > new_) {
             float v = (float) event.getEntity().getAttributeValue(CalamityAttributes.MAGIC_REDUCTION.get());
             if (v > 1f) event.setNewMana(Mth.lerp(v - 1f, new_, old));
-            else event.setNewMana(Math.min(0, old - (old - new_) * (2f - v)));
+            else event.setNewMana(Math.max(0, old - (old - new_) * (2f - v)));
         }
     }
 

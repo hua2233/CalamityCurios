@@ -4,7 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
-import hua223.calamity.util.CalamityCelestialBodyShader;
+import hua223.calamity.render.CalamityCelestialBodyShader;
 import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.RenderUtil;
 import net.minecraft.client.renderer.MultiBufferSource;

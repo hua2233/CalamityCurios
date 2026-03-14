@@ -74,6 +74,8 @@ public class NebulousCataclysm extends StaffItem implements ILongPressAvailable 
     @Override
     @OnlyIn(Dist.CLIENT)
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> components, TooltipFlag advanced) {
-        components.add(CMLangUtil.getTranslatable("nebulous_cataclysm").withStyle(ChatFormatting.LIGHT_PURPLE));
+        components.add(CMLangUtil.blankLine());
+        components.add(CMLangUtil.getTranslatable("nebulous_cataclysm", 1).withStyle(ChatFormatting.LIGHT_PURPLE));
+        components.add(CMLangUtil.getTranslatable("nebulous_cataclysm", 2).withStyle(ChatFormatting.LIGHT_PURPLE));
     }
 }
