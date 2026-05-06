@@ -1,0 +1,37 @@
+{
+	"format_version": "1.21.11",
+	"credit": "Made with Blockbench",
+	"parent": "minecraft:item/handheld",
+	"textures": {
+		"layer0": "calamity_curios:item/xytheron"
+	},
+	"display": {
+		"thirdperson_righthand": {
+			"rotation": [22, 90, 25],
+			"translation": [-0.25, 10, 2],
+			"scale": [1.7, 1.7, 1]
+		},
+		"thirdperson_lefthand": {
+			"rotation": [22, -90, -25],
+			"translation": [-0.25, 10, 2],
+			"scale": [1.7, 1.7, 1]
+		},
+		"firstperson_righthand": {
+			"rotation": [65, 90, -15],
+			"translation": [1.25, 5.5, 0.25],
+			"scale": [1.05, 1.05, 1]
+		},
+		"firstperson_lefthand": {
+			"rotation": [39, -90, -15],
+			"translation": [1.25, 5.5, 0.25],
+			"scale": [1.05, 1.05, 1]
+		},
+		"ground": {
+			"translation": [0, 8, 0],
+			"scale": [2, 2, 1]
+		},
+		"fixed": {
+			"scale": [1.25, 1.25, 1]
+		}
+	}
+}

@@ -5,10 +5,10 @@
       "item": "calamity_curios:tainted_deck"
     },
     {
-      "item": "calamity_curios:fate_thread"
+      "item": "calamity_curios:abyss_thread"
     }
   ],
   "result": {
-    "item": "calamity_curios:abyss_thread"
+    "item": "calamity_curios:tainted_deck"
   }
 }

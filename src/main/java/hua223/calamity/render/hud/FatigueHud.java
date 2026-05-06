@@ -1,28 +1,49 @@
 package hua223.calamity.render.hud;
 
+import hua223.calamity.main.CalamityCurios;
+import hua223.calamity.util.delaytask.DelayRunnable;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
-public class FatigueHuds extends EnergyBarHud {
-//    private static final int INNER_RING_START_COLOR = 0xCC1900;
-//    private static final int INNER_RING_END_COLOR = 0x008000;
-//    private static final int OUTER_RING_START_COLOR = 0x3D0700;
-//    private static final int OUTER_RING_END_COLOR = 0x002600;
-    private static FatigueHuds INSTANCE;
-    protected FatigueHuds() {
+public class FatigueHud extends EnergyBarHud {
+    private static FatigueHud INSTANCE;
+    public FatigueHud() {
         super(30, 100);
         INSTANCE = this;
     }
 
-    public static FatigueHuds getInstance() {
+    public static FatigueHud getInstance() {
         return INSTANCE;
     }
 
     @Override
+    protected void renderMain(GuiGraphics guiGraphics, int x, int y) {
+        guiGraphics.blit(x, y - 45, 0, 54, 54, MAIN_TEXTURE);
+    }
+
+    @Override
     public void setProgress(float value) {
-        super.setProgress(value);
-        color = Mth.lerp(Mth.clamp(value / maxValue, 0f, 1f), , 3999488);
+        lastProgress = progress;
+        finalProgress = value / maxValue;
+        if (!DelayRunnable.addUniqueLoopTask(() -> {
+            frameProgress = progress;
+
+            color = FastColor.ARGB32.lerp(progress, 0xFF3D0700, 0xFF002600);
+            progress = Mth.clamp(Mth.lerp(++tickProgress / 20f, lastProgress, finalProgress), 0f, 1f);
+            if (progress == finalProgress) {
+                tickProgress = 0;
+                return true;
+            }
+            return false;
+        }, 1, getClass())) tickProgress = 0;
+    }
+
+    public static void afterMainTextureLoad(TextureAtlas atlas) {
+        getInstance().MAIN_TEXTURE = atlas.getSprite(CalamityCurios.ModResource("scales"));
     }
 }

@@ -2,7 +2,7 @@
   "sources": [
     {
       "type": "directory",
-      "source": "calamity_gui/atlas/adrenaline",
+      "source": "calamity_gui/atlas",
       "prefix": ""
     }
   ]

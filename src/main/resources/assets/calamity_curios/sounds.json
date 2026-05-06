@@ -208,5 +208,16 @@
         "steam": true
       }
     ]
+  },
+  "angelic_alliance_activation": {
+    "category": "ambient",
+    "subtitle": "calamity_curios.sound.subtitle.angelic_alliance_activation",
+    "sounds": [
+      {
+        "name": "calamity_curios:ambient/angelic_alliance_activation",
+        "attenuation_distance": 12,
+        "steam": true
+      }
+    ]
   }
 }
