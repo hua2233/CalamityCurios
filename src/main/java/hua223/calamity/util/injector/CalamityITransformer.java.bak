@@ -1,0 +1,9 @@
+package hua223.calamity.util.injector;
+
+import org.objectweb.asm.tree.ClassNode;
+
+interface CalamityITransformer {
+    void transformer(ClassNode node);
+
+    String getTargetClass();
+}

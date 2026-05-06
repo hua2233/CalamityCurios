@@ -1,0 +1,249 @@
+package hua223.calamity.util.injector;
+
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.MethodNode;
+
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+public class MethodWrapper extends CalamityWrapper {
+    public String desc;
+    public String signature;
+    public Set<String> argsName;
+    public int[] returnInsn;
+    public int[] stack;
+
+    public MethodWrapper(String injectionLine) throws IOException {
+        super(injectionLine);
+    }
+
+    @Override
+    protected void parser(String[] info, byte startIndex) {
+
+        String signature = info[startIndex];
+        String generic = "";
+        int typeStart = 0;
+        int typeEnd = 0;
+        StringBuilder builder = new StringBuilder(64);
+        if (signature.startsWith("<")) {
+            if (!signature.endsWith(">")) {
+                while (++startIndex < info.length) {
+                    signature += info[startIndex];
+                    if (signature.endsWith(">")) break;
+                }
+
+                if (!signature.endsWith(">")) throw new IllegalArgumentException("illegal generic signature");
+            }
+
+            builder.append('<');
+            signature = signature.substring(1, signature.length() - 1);
+            //处理继承即可，其他的大概率我用不上
+            if (signature.contains("extends")) {
+                String[] info2 = signature.split("extends");
+                generic = info2[0].replaceAll("\\s+", "");
+                builder.append(generic);
+                builder.append(":");
+                typeStart = builder.length();
+                builder.append("L");
+                //this will not allow too much signature nesting
+                String processed = info2[1].replaceAll("\\s+", "").replaceAll("\\.", "/");
+                if (info2[1].endsWith(">")) {
+                    char[] type = processed.toCharArray();
+                    boolean illegal = true;
+                    for (int i = type.length - 1; i >= 0; i--) {//
+                        if (type[i] == '<') {
+                            builder.append(type, 0, i + 1);
+                            typeEnd = builder.length() - 1;
+                            builder.append("*>;");
+                            illegal = false;
+                            break;
+                        }
+                    }
+
+                    if (illegal) throw new IllegalArgumentException("illegal generic signature");
+                } else {
+                    builder.append(processed);
+                    typeEnd = builder.length() - 1;
+                    builder.append(';');
+                }
+            } else {
+                signature = signature.replaceAll("\\s+", "");
+                if (signature.startsWith("L")) signature = signature.replaceAll("\\.", "/") + ";";
+                typeStart = builder.length();
+                builder.append(generic = signature);
+                typeEnd = builder.length() - 1;
+            }
+
+            builder.append(">");
+            startIndex++;
+        }
+
+        String result = info[startIndex];
+        StringBuilder finalResult = new StringBuilder(64);
+        int genericStart = 0;
+        returnInsn = new int[]{ICONST_0, IRETURN};
+        stack = new int[]{1, 1};
+        if ((access & ACC_STATIC) == 0) stack[1]++;
+        switch (result) {
+            case "I", "B", "D", "F", "C", "J", "S", "Z", "V" -> {
+                finalResult.append(result);
+
+                returnInsn[0] = switch (result) {
+                    case "I", "B", "Z", "S", "C" -> ICONST_0;
+
+                    case "F" -> {
+                        returnInsn[1] = FRETURN;
+                        yield FCONST_0;
+                    }
+
+                    case "D" -> {
+                        stack[0] = 2;
+                        returnInsn[1] = DRETURN;
+                        yield DCONST_0;
+                    }
+
+                    case "J" -> {
+                        stack[0] = 2;
+                        returnInsn[1] = LRETURN;
+                        yield LCONST_0;
+                    }
+                    case "V" -> {
+                        stack[0]--;
+                        returnInsn[1] = -1;
+                        yield RETURN;
+                    }
+                    default -> throw new IllegalStateException("unable to find the type of return value: " + result);
+                };
+            }
+
+            default -> {
+                returnInsn[0] = ACONST_NULL;
+                returnInsn[1] = ARETURN;
+                if (result.equals(generic)) {
+                    finalResult.append(builder, typeStart, typeEnd).append(';');
+                    genericStart = builder.length();
+                    builder.append(generic).append(generic).append(";");
+                } else if (result.endsWith("[]")) {
+                    result = result.substring(0, result.length() - 2);
+                    finalResult.append("[L").append(result.replaceAll("\\.", "/")).append(";");
+                } else if (result.endsWith(">")) {
+                    String processed = "L" + result.replaceAll("\\s+", "").replaceAll("\\.", "/");
+
+                    genericStart = builder.length();
+                    char[] type = processed.toCharArray();
+                    boolean illegal = true;
+                    for (int i = type.length - 1; i >= 0; i--) {
+                        if (type[i] == '<') {
+                            processed = new String(type, 0, i);
+                            builder.append(type, 0, i + 1).append(generic).append(";>;");
+                            illegal = false;
+                            break;
+                        }
+                    }
+
+                    if (illegal) throw new IllegalArgumentException("illegal generic signature");
+                    finalResult.append(processed).append(';');
+                } else {
+                    finalResult.append('L').append(result.replaceAll("\\.", "/")).append(';');
+                }
+            }
+        }
+
+        name = "calamity$" + info[++startIndex];
+
+        StringBuilder p = new StringBuilder(32);
+        while (++startIndex < info.length - 1) {
+            p.append(info[startIndex]).append(' ');
+        }
+
+        String parameter = p.append(info[startIndex]).toString();
+        if (parameter.startsWith("(") && parameter.endsWith(")")) {
+            StringBuilder args = new StringBuilder(48);
+            StringBuilder argsG = new StringBuilder(48);
+            args.append('(');
+            argsG.append('(');
+
+            //If it contains parameters, it must include at least one parameter type and the name of that parameter
+            boolean hasG = false;
+            if (parameter.length() > 3) {
+                String[] types = parameter.substring(1, parameter.length() - 1).split(", ");
+                argsName = new HashSet<>();
+                int count = 0;
+                for (String type : types) {
+                    String[] base = type.split(" ");
+                    switch (base[0]) {
+                        case "J", "D": stack[1]++;
+
+                        case "I", "B", "F", "C", "S", "Z":
+                            args.append(base[0]);
+                            argsName.add(base[1]);
+                            stack[1]++;
+                            if (count < types.length - 1) args.append(",");
+                            break;
+
+                        default: if (type.contains("<") && type.contains(">")) {
+                            stack[1]++;
+                            type = type.replaceAll("\\.", "/");
+                            String[] pair = type.split("<");
+                            args.append('L').append(pair[0]).append(';');
+                            argsG.append('L').append(pair[0]);
+
+                            String[] n$a = pair[1].split(">");
+                            if (argsName.contains(n$a[1]))
+                                throw new IllegalStateException("duplicate variable names");
+                            argsName.add(n$a[1]);
+
+                            argsG.append('<');
+                            String[] as = n$a[0].split(",");
+                            for (int i = 0; i < as.length; i++) {
+                                if (as[i].equals(generic)) argsG.append(generic).append(generic);
+                                else argsG.append('*');
+
+                                if (i >= as.length - 1) argsG.append(";>;");
+                            }
+
+                            hasG = true;
+                        } else {
+                            String[] typeInfo = type.split(" ");
+                            argsName.add(typeInfo[1]);
+                            typeInfo[0] = typeInfo[0].replaceAll("\\.", "/");
+                            args.append('L').append(typeInfo[0]).append(';');
+                            argsG.append('L').append(typeInfo[0]).append(';');
+                        }
+                    }
+
+                    count++;
+                }
+            }
+
+            argsG.append(')');
+            args.append(')');
+            if (hasG && !argsG.toString().equals("()")) builder.insert(genericStart, argsG);
+
+            if (!builder.isEmpty()) this.signature = builder.toString();
+            this.desc = args + finalResult.toString();
+        } else throw new IllegalArgumentException("illegal parameter format: " + parameter);
+    }
+
+    @Override
+    public void transformer(ClassNode classNode) {
+        List<MethodNode> methodNodes = classNode.methods;
+        if (methodNodes.stream().noneMatch(method -> method.name.equals(name) && method.desc.equals(desc))) {
+            MethodNode node = new MethodNode(access, name, desc, signature, null);
+            node.visitCode();
+            node.instructions.add(new InsnNode(returnInsn[0]));
+            int opcode = returnInsn[1];
+            if (opcode > 0) node.instructions.add(new InsnNode(opcode));
+            node.maxStack = stack[0];
+            node.maxLocals = stack[1];
+            node.visitEnd();
+            classNode.methods.add(node);
+
+            CalamityInjector.LOGGER.debug("injection method: {}", name);
+            CalamityInjector.LOGGER.debug("method injection completed, target class: {}", targetClass);
+        }
+    }
+}

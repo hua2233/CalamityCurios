@@ -1,0 +1,35 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "calamity_curios:sacrifice"
+    },
+    {
+      "item": "calamity_curios:confuse"
+    },
+    {
+      "item": "calamity_curios:barren"
+    },
+    {
+      "item": "calamity_curios:frail"
+    },
+    {
+      "item": "calamity_curios:perplexed"
+    },
+    {
+      "item": "calamity_curios:nothing"
+    },
+    {
+      "item": "calamity_curios:greed"
+    },
+    {
+      "item": "calamity_curios:fool"
+    },
+    {
+      "item": "calamity_curios:tarnish"
+    }
+  ],
+  "result": {
+    "item": "calamity_curios:tainted_deck"
+  }
+}

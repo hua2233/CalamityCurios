@@ -1,0 +1,27 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "calamity_curios:item/shattered_community"
+  },
+  "display": {
+    "gui": {
+      "scale": [
+        1.5,
+        1.5,
+        1.5
+      ]
+    },
+    "ground": {
+      "translation": [
+        0,
+        2,
+        0
+      ],
+      "scale": [
+        1.2,
+        1,
+        1
+      ]
+    }
+  }
+}

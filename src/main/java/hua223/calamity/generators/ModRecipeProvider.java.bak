@@ -1,0 +1,75 @@
+package hua223.calamity.generators;
+
+import net.minecraft.advancements.critereon.InventoryChangeTrigger;
+import net.minecraft.advancements.critereon.ItemPredicate;
+import net.minecraft.data.DataGenerator;
+import net.minecraft.data.recipes.*;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.block.Block;
+
+import java.util.List;
+import java.util.function.Consumer;
+
+import static hua223.calamity.main.CalamityCurios.MODID;
+
+public class ModRecipeProvider extends RecipeProvider {
+    private static final String ID = "id_";
+    private static int count = 0;
+
+    public ModRecipeProvider(DataGenerator pGenerator) {
+        super(pGenerator);
+    }
+
+    public static void initializeSimpleRecipes(Consumer<FinishedRecipe> consumer) {
+    }
+
+    public static void initializeShapedRecipe(Consumer<FinishedRecipe> consumer) {
+    }
+
+    public static void addSmelting(Item input, Item output, float xp, Consumer<FinishedRecipe> consumer) {
+        Ingredient ingredient = Ingredient.of(input);
+        SimpleCookingRecipeBuilder.smelting(ingredient, output, xp, 200)
+            .group(MODID).unlockedBy(ID + count++, InventoryChangeTrigger.TriggerInstance.hasItems(
+                ItemPredicate.Builder.item().of(input).build())).save(consumer);
+        SimpleCookingRecipeBuilder.blasting(ingredient, output, xp, 100)
+            .group(MODID).unlockedBy(ID + count++, InventoryChangeTrigger.TriggerInstance.hasItems(
+                ItemPredicate.Builder.item().of(input).build())).save(consumer);
+    }
+
+    public static void addOreHandler(Item output, float xp, Consumer<FinishedRecipe> consumer, Block... input) {
+        oreSmelting(consumer, List.of(input), output, xp, 200, MODID);
+        oreBlasting(consumer, List.of(input), output, xp, 100, MODID);
+    }
+
+    public static void addCraftBlock(Block result, Item input, boolean countIsNine, Consumer<FinishedRecipe> consumer) {
+        Item item = result.asItem();
+        if (countIsNine) {
+            ShapedRecipeBuilder.shaped(item)
+                .pattern("AAA")
+                .pattern("AAA")
+                .pattern("AAA")
+                .define('A', input)
+                .group(MODID).unlockedBy(ID + count++, InventoryChangeTrigger.TriggerInstance.hasItems(
+                    ItemPredicate.Builder.item().of(input).build())).save(consumer);
+            splitBlock(item, input, consumer);
+        } else {
+            ShapedRecipeBuilder.shaped(item)
+                .pattern("AA").pattern("AA").define('A', input)
+                .group(MODID).unlockedBy(ID + count++, InventoryChangeTrigger.TriggerInstance.hasItems(
+                    ItemPredicate.Builder.item().of(input).build())).save(consumer);
+        }
+    }
+
+    public static void splitBlock(Item input, Item result, Consumer<FinishedRecipe> consumer) {
+        ShapelessRecipeBuilder.shapeless(result, 9)
+            .requires(input).group(MODID).unlockedBy(ID + count++, InventoryChangeTrigger.TriggerInstance.hasItems(
+                ItemPredicate.Builder.item().of(result).build())).save(consumer);
+    }
+
+    @Override
+    protected void buildCraftingRecipes(Consumer<FinishedRecipe> consumer) {
+        initializeSimpleRecipes(consumer);
+        initializeShapedRecipe(consumer);
+    }
+}

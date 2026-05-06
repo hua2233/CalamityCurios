@@ -1,0 +1,35 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "calamity_curios:brilliance"
+    },
+    {
+      "item": "calamity_curios:aura"
+    },
+    {
+      "item": "calamity_curios:inspiration"
+    },
+    {
+      "item": "calamity_curios:endurance"
+    },
+    {
+      "item": "calamity_curios:entity"
+    },
+    {
+      "item": "calamity_curios:wisdom"
+    },
+    {
+      "item": "calamity_curios:metropolis"
+    },
+    {
+      "item": "calamity_curios:radiance_card"
+    },
+    {
+      "item": "calamity_curios:temperance"
+    }
+  ],
+  "result": {
+    "item": "calamity_curios:oracle_deck"
+  }
+}

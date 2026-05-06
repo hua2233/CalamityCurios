@@ -1,0 +1,62 @@
+package hua223.calamity.generators;
+
+public class ModBlockModelGen /* extends BlockStateProvider */ {
+//    public ModBlockModelGen(DataGenerator gen, ExistingFileHelper exFileHelper) {
+//        super(gen, MODID, exFileHelper);
+//    }
+//    public static final String BLOCK_PATH = "block/";
+//    public static final String TOP = "_top";
+//    public static final String SIDE = "_side";
+//    public static final String BOTTOM = "_bottom";
+//
+//    @Override
+//    protected void registerStatesAndModels() {
+//        RegisterBlock.initialize();
+//        for (Block block : COMMON_MODLES_BLOCKS) {
+//            addStatesAndModels(block);
+//        }
+//
+//        for (Block block : TOP_MODLES_BLOCKS) {
+//            addTopBottomSameModels(block);
+//        }
+//
+//        for (Block block : BOTTOM_MODLES_BLOCKS) {
+//            addBottomModels(block);
+//        }
+//    }
+//
+//    public void addStatesAndModels(Block block) {
+//        simpleBlock(block, this.cubeAll(block));
+//    }
+//
+//    public void addTopBottomSameModels(Block block) {
+//        String path = blockName(block);
+//        String top = getTopPath(path);
+//        ModelFile model = models().cubeBottomTop(path, modLoc(getSidePath(path)),modLoc(top), modLoc(top));
+//        simpleBlock(block, model);
+//    }
+//
+//    public void addBottomModels(Block block) {
+//        String path = blockName(block);
+//        ModelFile model = models().cubeBottomTop(path,
+//            modLoc(getSidePath(path)),modLoc(getBottomPath(path)), modLoc(getTopPath(path)));
+//        simpleBlock(block, model);
+//    }
+//
+//    public static String getTopPath(String path) {
+//        return BLOCK_PATH + path + TOP;
+//    }
+//
+//    public static String getSidePath(String path) {
+//        return BLOCK_PATH + path + SIDE;
+//    }
+//
+//    public static String getBottomPath(String path) {
+//        return BLOCK_PATH + path + BOTTOM;
+//    }
+//
+//    //获取item的所在路径
+//    private static String blockName(Block block) {
+//        return ForgeRegistries.BLOCKS.getKey(block).getPath();
+//    }
+}

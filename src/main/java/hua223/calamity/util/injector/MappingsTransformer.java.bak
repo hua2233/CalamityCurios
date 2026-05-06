@@ -1,0 +1,45 @@
+package hua223.calamity.util.injector;
+
+import com.mojang.datafixers.util.Pair;
+import org.objectweb.asm.tree.AnnotationNode;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.MethodNode;
+import org.spongepowered.asm.mixin.Intrinsic;
+
+import java.util.Iterator;
+import java.util.Set;
+
+public class MappingsTransformer implements CalamityITransformer {
+    private final String targetClass;
+    private final Set<Pair<String, String>> confuseInfo;
+    private final String mappingDesc = "L" + MappingOverride.class.getName().replaceAll("\\.", "/") + ";";
+    private final String intrinsicDesc = "L" + Intrinsic.class.getName().replaceAll("\\.", "/") + ";";
+
+    MappingsTransformer(String targetClass, Set<Pair<String, String>> confuseInfo) {
+        this.targetClass = targetClass;
+        this.confuseInfo = confuseInfo;
+    }
+
+    @Override
+    public void transformer(ClassNode node) {
+        for (MethodNode mt : node.methods) {
+            Iterator<Pair<String, String>> iterator = confuseInfo.iterator();
+
+            while (iterator.hasNext()) {
+                Pair<String, String> pair = iterator.next();
+                if (pair.getFirst().equals(mt.name)) {
+                    mt.visibleAnnotations.removeIf(annotation -> annotation.desc.equals(mappingDesc));
+                    mt.visibleAnnotations.add(new AnnotationNode(intrinsicDesc));
+                    mt.name = pair.getSecond();
+                    iterator.remove();
+                    break;
+                }
+            }
+        }
+    }
+
+    @Override
+    public String getTargetClass() {
+        return targetClass;
+    }
+}
