@@ -42,7 +42,7 @@ public enum SpellType {
         }
 
         @Override
-        public void getApplyTriggerTypes() {
+        public void getTriggerTypes() {
             APPLICABLE_TYPE.add(TriggerType.PLAYER_ATTACK);
         }
 
@@ -60,12 +60,13 @@ public enum SpellType {
         }
 
         @Override
-        public void getApplyTriggerTypes() {
+        public void getTriggerTypes() {
             APPLICABLE_TYPE.add(TriggerType.PLAYER_ATTACK);
             APPLICABLE_TYPE.add(TriggerType.MAIN_HAND_ITEM_CHANGE);
         }
 
         @Override
+        @SuppressWarnings("ConstantConditions")
         public void onTrigger(TriggerType type) {
             switch (type) {
                 case MAIN_HAND_ITEM_CHANGE -> {
@@ -112,6 +113,7 @@ public enum SpellType {
             }
         }
 
+        @SuppressWarnings("ConstantConditions")
         private void startRecover(ServerPlayer player, int[] args) {
             if (args[2] == 0) {
                 args[2] = 1;
@@ -140,7 +142,7 @@ public enum SpellType {
         }
 
         @Override
-        public void getApplyTriggerTypes() {
+        public void getTriggerTypes() {
             APPLICABLE_TYPE.add(TriggerType.PLAYER_HURT);
             APPLICABLE_TYPE.add(TriggerType.PLAYER_ATTACK);
         }
@@ -173,7 +175,7 @@ public enum SpellType {
         }
 
         @Override
-        public void getApplyTriggerTypes() {
+        public void getTriggerTypes() {
             APPLICABLE_TYPE.add(TriggerType.PLAYER_ATTACK);
         }
 
@@ -195,7 +197,7 @@ public enum SpellType {
         }
 
         @Override
-        public void getApplyTriggerTypes() {
+        public void getTriggerTypes() {
             APPLICABLE_TYPE.add(TriggerType.PLAYER_ATTACK);
         }
 
@@ -219,7 +221,7 @@ public enum SpellType {
         }
 
         @Override
-        public void getApplyTriggerTypes() {
+        public void getTriggerTypes() {
             APPLICABLE_TYPE.add(TriggerType.PLAYER_ATTACK);
         }
 
@@ -237,8 +239,15 @@ public enum SpellType {
     LECHEROUS {
         @Override
         public boolean canApply(ItemStack stack) {
-            return false;
+            return Predicate.SWORD_CLASS.getResult(stack);
         }
+
+        @Override
+        public void getTriggerTypes() {
+            APPLICABLE_TYPE.add(TriggerType.PROJECTILE);
+        }
+
+
     },
 
     TAINTED {
@@ -307,6 +316,7 @@ public enum SpellType {
     }
 
     @OnlyIn(Dist.CLIENT)
+    @SuppressWarnings("ConstantConditions")
     public static SpellType getCanApply(ItemStack stack) {
         //pre
         AVAILABILITY.clear();
@@ -414,15 +424,16 @@ public enum SpellType {
 
     public final boolean canApplyEvent(TriggerType type) {
         APPLICABLE_TYPE.clear();
-        getApplyTriggerTypes();
+        getTriggerTypes();
         return APPLICABLE_TYPE.contains(type);
     }
 
-    public void getApplyTriggerTypes() {}
+    public void getTriggerTypes() {}
 
     public enum TriggerType {
         MAIN_HAND_ITEM_CHANGE,
         PLAYER_ATTACK,
+        PROJECTILE,
         PLAYER_HURT;
 
         private static CurseEnchantment enchantment;

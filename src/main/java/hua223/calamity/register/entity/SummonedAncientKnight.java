@@ -190,7 +190,7 @@ public class SummonedAncientKnight extends KeeperEntity {
     }
 
     public boolean isAlliedTo(Entity entity) {
-        return entity instanceof SummonedAncientKnight ||  (player != null && player.isAlliedTo(entity));
+        return entity instanceof SummonedAncientKnight || (player != null && entity instanceof Player);
     }
 
     @Override

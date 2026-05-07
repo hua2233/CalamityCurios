@@ -5,12 +5,14 @@ import hua223.calamity.register.RegisterList;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.register.keys.IKeyDataPackResponse;
+import hua223.calamity.register.sounds.CalamitySounds;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.IEquipmentInspection;
 import hua223.calamity.util.PlayerServantsManager;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -46,7 +48,7 @@ public class DemonShade extends ArmorItem implements IKeyDataPackResponse, IEqui
 
             if (player.walkDist == player.walkDistO) {
                 if (stillTime > 100 && player.getHealth() < player.getMaxHealth())
-                    player.heal(Math.min(34, stillTime - 100));
+                    player.heal(stillTime > 300 ? 34f : (float) (34 * (1 - Math.exp(-0.023 * (stillTime - 100)))));
                 tag.putInt("Still", stillTime + 1);
             } else if (stillTime != 0) tag.putInt("Still",  0);
         }
@@ -54,7 +56,7 @@ public class DemonShade extends ArmorItem implements IKeyDataPackResponse, IEqui
         if (stack.popTime > 0) --stack.popTime;
     }
 
-    public DemonShade(Type type) { //
+    public DemonShade(Type type) {
         super(RegisterList.DEMON_SHADE, type, RegisterList.ITEM_CALAMITY);
 
         ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
@@ -62,8 +64,6 @@ public class DemonShade extends ArmorItem implements IKeyDataPackResponse, IEqui
         UUID uuid = ARMOR_MODIFIER_UUID_PER_TYPE.get(type);
         switch (type) {
             case HELMET -> {
-
-
                 builder.put(CalamityAttributes.DAMAGE_UP.get(),
                     new AttributeModifier(uuid, "DemonShade", 0.3, AttributeModifier.Operation.MULTIPLY_BASE));
                 builder.put(CalamityAttributes.CRITICAL_STRIKE_CHANCE.get(),
@@ -88,7 +88,7 @@ public class DemonShade extends ArmorItem implements IKeyDataPackResponse, IEqui
                 builder.put(AttributeRegistry.SPELL_POWER.get(),
                     new AttributeModifier(uuid, "DemonShade", 1.5, AttributeModifier.Operation.MULTIPLY_BASE));
                 builder.put(Attributes.MOVEMENT_SPEED,
-                    new AttributeModifier(uuid, "DemonShade", 1, AttributeModifier.Operation.MULTIPLY_BASE));
+                    new AttributeModifier(uuid, "DemonShade", 1, AttributeModifier.Operation.MULTIPLY_TOTAL));
             }
         }
 
@@ -139,9 +139,7 @@ public class DemonShade extends ArmorItem implements IKeyDataPackResponse, IEqui
         MobEffect effect = CalamityEffects.ENRAGE.get();
         for (LivingEntity entity : entities)
             if (entity.isAlive() && !entity.isAlliedTo(player))
-                entity.calamity$ForciblyAddEffect(new MobEffectInstance(effect, 200, 1), player);
-
-        player.addEffect(new MobEffectInstance(effect, 200, 0), player);
+                entity.calamity$ForciblyAddEffect(new MobEffectInstance(effect, 200, entity == player ? 0 : 1), player);
         player.getCooldowns().addCooldown(this, 300);
     }
 
@@ -161,7 +159,14 @@ public class DemonShade extends ArmorItem implements IKeyDataPackResponse, IEqui
     @OnlyIn(Dist.CLIENT)
     @SuppressWarnings("ConstantConditions")
     public boolean accept(Minecraft minecraft) {
-        return notInCooling(minecraft);
+        if (notInCooling(minecraft)) {
+            LocalPlayer player = minecraft.player;
+            minecraft.level.playLocalSound(minecraft.player.getOnPos(),
+                CalamitySounds.DEMON_SHADE_ENRAGE.get(), player.getSoundSource(), 1f, 1f, false);
+            return true;
+        }
+
+        return false;
     }
 
     @Override

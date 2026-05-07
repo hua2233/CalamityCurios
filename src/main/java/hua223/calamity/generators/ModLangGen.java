@@ -224,9 +224,7 @@ public class ModLangGen extends LanguageProvider {
         add(getDeath("core"), "%s被渎火屏障震碎了");
         add(getDeathPlayer("core"), "%s被渎火屏障震碎了");
         add(CALAMITY.get(), "灾厄");
-        add(getCommonText("calamity", 1), "你看起来很自信，但你对接下来将要到来的痛苦一无所知");
-        add(getCommonText("calamity", 2), "你享受地狱之旅么？");
-        add(getCommonText("calamity"), "THE END HAS COME");
+        add(getCommonText("calamity"), "你看起来很自信？但你对接下来将要到来的痛苦一无所知");
         add(getCommonText("calamity_sunk"), "第一灾（沉沦）: 任何玩家的受伤都会使你承担一部分伤害。如果只有你一人则此次伤害翻倍");
         add(getCommonText("sunk_inverted"), "第一灾（反转）: 你受到的伤害减少30%");
         add(getCommonText("calamity_fire"), "第二灾（硫火）: 你受到的火焰伤害转化为真实灼烧，如果你具有防火增益，则会引爆并根据增益剩余时间和着火时间造成百分比伤害");
@@ -1001,6 +999,8 @@ public class ModLangGen extends LanguageProvider {
         add(getCurioKeyId(DEMON_SHADE_CHEST.get()), "魔影套装奖励");
         add(CalamityEffects.ENRAGE.get(), "激怒");
         add(getEffectText("enrage"), "所有受到的伤害增加");
+        add(RegisterList.DEMON_SHADE_BLESS.get(), "魔影庇佑");
+        add(CalamitySounds.DEMON_SHADE_ENRAGE.getLocationLang(), "魔影激怒");
     }
 
     @SuppressWarnings("ConstantConditions")

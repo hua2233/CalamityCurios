@@ -265,7 +265,11 @@ public class Calamity extends BaseCurio implements ICuriosStorage, IDataPackResp
 
             tooltips.add(CMLangUtil.getTranslatable(CalamityCap.CurseType.DESERT.reversed
                 ? "desert_inverted" : "calamity_desert").setStyle(style));
-        } else CMLangUtil.batchColorTexts(tooltips, ChatFormatting.DARK_RED, "calamity", 1, 2);
+        } else {
+            tooltips.add(CMLangUtil.getTranslatable("calamity").withStyle(ChatFormatting.DARK_RED));
+            tooltips.add(CMLangUtil.blankLine());
+            tooltips.add(CMLangUtil.getView());
+        }
         return tooltips;
     }
 

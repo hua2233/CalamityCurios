@@ -11,6 +11,9 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -19,6 +22,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
@@ -32,6 +36,8 @@ import java.util.UUID;
 public class DemonGate extends Entity {
     private float health;
     private UUID player;
+    private static final EntityDataAccessor<Boolean> DISAPPEAR =
+        SynchedEntityData.defineId(DemonGate.class, EntityDataSerializers.BOOLEAN);
 
     @OnlyIn(Dist.CLIENT)
     private int alpha = 255;
@@ -61,9 +67,12 @@ public class DemonGate extends Entity {
 
     @Override
     public boolean hurt(@NotNull DamageSource source, float amount) {
-        boolean canAttack = super.hurt(source, amount);
-        if (canAttack) health -= amount;
-        return canAttack;
+        if (source.getEntity() instanceof Player) {
+            health -= amount;
+            return true;
+        }
+
+        return false;
     }
 
     @Override
@@ -80,11 +89,17 @@ public class DemonGate extends Entity {
     public void tick() {
         if (level().isClientSide) {
             rotate += 6;
-            if (tickCount > 200) alpha = Mth.lerpInt((300 - tickCount) / 100f, 0, 255);
-        } else if (tickCount == 200) {
-            SummonedAncientKnight.summonedFromDemonGate(this,
-                health > 0 ? null : (ServerPlayer) ((ServerLevel) level()).getEntity(player));
-        } else if (tickCount > 300) discard();
+            if (tickCount <= 300 && entityData.get(DISAPPEAR))
+                alpha = Mth.lerpInt((300 - tickCount) / 100f, 0, 255);
+        } else {
+            if (health < 0 && tickCount < 200) tickCount = 200;
+
+            if (tickCount == 200) {
+                SummonedAncientKnight.summonedFromDemonGate(this,
+                    health > 0 ? null : (ServerPlayer) ((ServerLevel) level()).getEntity(player));
+                entityData.set(DISAPPEAR, true);
+            } else if (tickCount > 300) discard();
+        }
     }
 
     @Override
@@ -92,6 +107,7 @@ public class DemonGate extends Entity {
 
     @Override
     protected void defineSynchedData() {
+        entityData.define(DISAPPEAR, false);
     }
 
     @Override

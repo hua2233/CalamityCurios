@@ -243,13 +243,18 @@ public class CuriosEventHandler {
                         callBack.onLoad(instance, entity);
             } else if (event.getEntity() instanceof Projectile projectile && projectile.getOwner() instanceof ServerPlayer player) {
                 ProjectileSpawnListener listener = dispatch(player, EventTypes.PROJECTILE_SPAWN, event, player, projectile);
-                if (listener == null || listener.isCanceled()) return;
+                boolean canTriggerEnchant = SpellType.TriggerType.canTriggerEnchant(player, SpellType.TriggerType.PROJECTILE);
 
-                if (listener.speedVectorAmplifier != 1)
-                    projectile.setDeltaMovement(projectile.getDeltaMovement().scale(listener.speedVectorAmplifier));
-
-                if (listener.isArrow && listener.hurtAmplifier != 1)
-                    listener.arrow.setBaseDamage(listener.arrow.getBaseDamage() * listener.hurtAmplifier);
+                if (listener == null) {
+                    if (canTriggerEnchant) {
+                        listener = SpellType.TriggerType.listenerTriggerEnchant(
+                            EventTypes.PROJECTILE_SPAWN, event, player, projectile);
+                        if (!listener.isCanceled()) listener.settlement();
+                    }
+                } else if (!listener.isCanceled()) {
+                    if (canTriggerEnchant) SpellType.TriggerType.listenerTriggerEnchant(listener);
+                    if (!listener.isCanceled()) listener.settlement();
+                }
             }
         }
     }

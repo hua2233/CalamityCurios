@@ -4,6 +4,8 @@ import hua223.calamity.integration.curios.EventConstructor;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 
 public class ProjectileSpawnListener extends BaseListener<EntityJoinLevelEvent> {
@@ -26,6 +28,15 @@ public class ProjectileSpawnListener extends BaseListener<EntityJoinLevelEvent> 
             isArrow = false;
             arrow = null;
         }
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    public final void settlement() {
+        if (speedVectorAmplifier != 1)
+            projectile.setDeltaMovement(projectile.getDeltaMovement().scale(speedVectorAmplifier));
+
+        if (isArrow && hurtAmplifier != 1)
+            arrow.setBaseDamage(arrow.getBaseDamage() * hurtAmplifier);
     }
 
     @Override

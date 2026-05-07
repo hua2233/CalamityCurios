@@ -219,5 +219,16 @@
         "steam": true
       }
     ]
+  },
+  "demon_shade_enrage": {
+    "category": "players",
+    "subtitle": "calamity_curios.sound.subtitle.demon_shade_enrage",
+    "sounds": [
+      {
+        "name": "calamity_curios:players/demon_shade_enrage",
+        "attenuation_distance": 12,
+        "steam": true
+      }
+    ]
   }
 }

@@ -6,6 +6,7 @@ import hua223.calamity.main.CalamityLightBlock;
 import hua223.calamity.register.Items.CalamityItems;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.effects.CalamityEffects;
+import hua223.calamity.register.enchantments.DemonShadeBless;
 import hua223.calamity.register.enchantments.SharedPain;
 import hua223.calamity.register.entity.CalamityEntity;
 import hua223.calamity.register.gui.CalamityCurseMenu;
@@ -57,6 +58,7 @@ public class RegisterList {
     public static DeferredRegister<Attribute> ATTRIBUTES = DeferredRegister.create(ForgeRegistries.ATTRIBUTES, MODID);
     public static RegistryObject<MenuType<CalamityCurseMenu>> CALAMITY_CURES;
     public static RegistryObject<Enchantment> SHARED_PAIN;
+    public static RegistryObject<Enchantment> DEMON_SHADE_BLESS;
     public static Item.Properties CURIOS_COMMON = new Item.Properties().stacksTo(1);
     public static final Rarity CALAMITY = Rarity.create("CALAMITY", ChatFormatting.DARK_RED);
     public static Item.Properties CURIOS_UNCOMMON = new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON);
@@ -111,9 +113,9 @@ public class RegisterList {
         @Override
         public int getDurabilityForType(@NotNull ArmorItem.Type type) {
             return switch (type) {
-                case HELMET, BOOTS -> 1024;
-                case CHESTPLATE -> 1892;
-                case LEGGINGS -> 1565;
+                case HELMET, BOOTS -> 4024;
+                case CHESTPLATE -> 5892;
+                case LEGGINGS -> 4965;
             };
         }
 
@@ -179,6 +181,7 @@ public class RegisterList {
 
         DeferredRegister<Enchantment> ENCHANTMENT = DeferredRegister.create(ForgeRegistries.ENCHANTMENTS, MODID);
         SHARED_PAIN = ENCHANTMENT.register("shared_pain", SharedPain::new);
+        DEMON_SHADE_BLESS = ENCHANTMENT.register("demon_shade_bless", DemonShadeBless::new);
         ENCHANTMENT.register(bus);
 
         DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
