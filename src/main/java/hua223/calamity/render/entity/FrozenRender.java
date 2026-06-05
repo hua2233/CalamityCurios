@@ -33,7 +33,8 @@ public class FrozenRender extends RenderLayer<Player, HumanoidModel<Player>> {
     @Override
     public void render(@NotNull PoseStack poseStack, @NotNull MultiBufferSource buffer, int i,
                        Player player, float v, float v1, float v2, float v3, float v4, float v5) {
-        if (player.calamity$IsFreeze) {
+        //
+        if (player.Calamity$Player.freeze) {
             poseStack.pushPose();
             getParentModel().copyPropertiesTo(model);
             VertexConsumer consumer = buffer.getBuffer(RenderType.entityCutoutNoCull(FROZEN_TEXTURE));

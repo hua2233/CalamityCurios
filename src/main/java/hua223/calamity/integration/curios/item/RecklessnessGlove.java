@@ -1,9 +1,10 @@
 package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.integration.curios.listeners.CriticalHitCheckListener;
-import hua223.calamity.integration.curios.listeners.ProjectileSpawnListener;
+import hua223.calamity.events.listeners.CriticalHitCheckListener;
+import hua223.calamity.events.listeners.ProjectileSpawnListener;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.ConflictChain;
 import net.minecraft.network.chat.Component;
@@ -11,6 +12,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
@@ -39,12 +41,16 @@ public class RecklessnessGlove extends BaseCurio {
 
     @ApplyEvent
     public final void onProjectileShoot(ProjectileSpawnListener listener) {
-        Vec3 move = listener.projectile.getDeltaMovement();
+        offsetProjectile(listener.projectile, 10);
+    }
+
+    public static void offsetProjectile(Projectile projectile, float maxOffset) {
+        Vec3 move = projectile.getDeltaMovement();
         double originalSpeed = move.length();
 
         if (originalSpeed < 1e-6) return;
-        float inaccuracy = (float) Math.min(10.0, 0.5 * originalSpeed);
-        listener.projectile.shoot(move.x, move.y, move.z, (float) originalSpeed, inaccuracy);
+        float inaccuracy = (float) Math.min(maxOffset, maxOffset / 3 * originalSpeed);
+        projectile.shoot(move.x, move.y, move.z, (float) originalSpeed, inaccuracy);
     }
 
     @Override

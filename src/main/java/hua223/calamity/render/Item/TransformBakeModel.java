@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.block.state.BlockState;
@@ -19,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 
 @OnlyIn(Dist.CLIENT)
 public abstract class TransformBakeModel implements BakedModel {
@@ -30,12 +32,14 @@ public abstract class TransformBakeModel implements BakedModel {
 
     public static void register(ModelEvent.ModifyBakingResult event) {
         final String itemModelPath = "inventory";
+        Map<ResourceLocation, BakedModel> models = event.getModels();
+
         //SetUp
         ZenithProjectile.ZenithProjectileRenderer.model =
-            event.getModels().get(new ModelResourceLocation(CalamityItems.ZENITH.getId(), itemModelPath));
+            models.get(new ModelResourceLocation(CalamityItems.ZENITH.getId(), itemModelPath));
 
         ModelResourceLocation bookKey = new ModelResourceLocation(CalamityItems.DESTINY_BOOK.getId(), itemModelPath);
-        event.getModels().computeIfPresent(bookKey, (key, bookExistingModel) ->
+        models.computeIfPresent(bookKey, (key, bookExistingModel) ->
             new TransformBakeModel(bookExistingModel) {
             @Override
             public @NotNull BakedModel applyTransform(@NotNull ItemDisplayContext transformType, @NotNull PoseStack poseStack, boolean applyLeftHandTransform) {
@@ -45,7 +49,7 @@ public abstract class TransformBakeModel implements BakedModel {
         });
 
         ModelResourceLocation yharimsKey = new ModelResourceLocation(CalamityItems.YHARIMS_CRYSTAL.getId(), itemModelPath);
-        event.getModels().computeIfPresent(yharimsKey, (key , yharimsExistingModel) -> {
+        models.computeIfPresent(yharimsKey, (key , yharimsExistingModel) -> {
             ItemOverrides.BakedOverride[] bakedOverrides = yharimsExistingModel.getOverrides().overrides;
             if (bakedOverrides.length != 0)  {
                 ItemOverrides.BakedOverride override = bakedOverrides[0];
@@ -74,7 +78,8 @@ public abstract class TransformBakeModel implements BakedModel {
     }
 
     @Override
-    public @NotNull List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction direction, RandomSource random) {
+    @SuppressWarnings("deprecation")
+    public @NotNull List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction direction, @NotNull RandomSource random) {
         return originalModel.getQuads(state, direction, random);
     }
 
@@ -99,6 +104,7 @@ public abstract class TransformBakeModel implements BakedModel {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public @NotNull TextureAtlasSprite getParticleIcon() {
         return originalModel.getParticleIcon();
     }

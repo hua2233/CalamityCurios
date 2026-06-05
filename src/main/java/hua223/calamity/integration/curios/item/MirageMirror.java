@@ -1,7 +1,8 @@
 package hua223.calamity.integration.curios.item;
 
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.integration.curios.listeners.CriticalHitCheckListener;
+import hua223.calamity.events.listeners.CriticalHitCheckListener;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.ConflictChain;
 import net.minecraft.ChatFormatting;
@@ -21,12 +22,12 @@ public class MirageMirror extends BaseCurio {
 
     @Override
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
-        player.calamity$Invisible = 0.5f;
+        player.Calamity$Player.changeInvisible(0.5f);
     }
 
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
-        player.calamity$Invisible = 0f;
+        player.Calamity$Player.changeInvisible(-0.5f);
     }
 
     @ApplyEvent

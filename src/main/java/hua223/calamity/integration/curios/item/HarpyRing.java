@@ -2,7 +2,6 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.integration.curios.Wings;
 import hua223.calamity.util.CMLangUtil;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -10,7 +9,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -32,12 +30,12 @@ public class HarpyRing extends BaseCurio {
 
     @Override
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
-        player.calamity$WingsExpand[2] += 0.2f;
+        player.Calamity$Player.flyTimeAmplifier += 0.2f;
     }
 
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
-        player.calamity$WingsExpand[2] -= 0.2f;
+        player.Calamity$Player.flyTimeAmplifier -= 0.2f;
     }
 
     @Override

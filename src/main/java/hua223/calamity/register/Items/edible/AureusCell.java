@@ -1,9 +1,7 @@
 package hua223.calamity.register.Items.edible;
 
-import hua223.calamity.mixed.ICalamityMagicExpand;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.util.CMLangUtil;
-import io.redspace.ironsspellbooks.api.magic.MagicData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
@@ -19,6 +17,7 @@ import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -35,7 +34,7 @@ public class AureusCell extends Item {
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {
+    public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player, @NotNull InteractionHand usedHand) {
         if (player.getCooldowns().isOnCooldown(this))
             return InteractionResultHolder.fail(player.getItemInHand(usedHand));
         return super.use(level, player, usedHand);
@@ -43,14 +42,14 @@ public class AureusCell extends Item {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public UseAnim getUseAnimation(ItemStack stack) {
+    public @NotNull UseAnim getUseAnimation(@NotNull ItemStack stack) {
         return UseAnim.BOW;
     }
 
     @Override
-    public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity entity) {
+    public @NotNull ItemStack finishUsingItem(@NotNull ItemStack stack, Level level, @NotNull LivingEntity entity) {
         if (!level.isClientSide && entity.calamity$IsPlayer) {
-            ((ICalamityMagicExpand) MagicData.getPlayerMagicData(entity)).calamity$ChangeMana(150, true);
+            entity.calamity$Player.Calamity$Player.changeMana(150, true);
             entity.calamity$Player.getCooldowns().addCooldown(this, 400);
         }
         return super.finishUsingItem(stack, level, entity);
@@ -58,7 +57,7 @@ public class AureusCell extends Item {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void appendHoverText(ItemStack stack, @Nullable Level pLevel, List<Component> tooltips, TooltipFlag isAdvanced) {
+    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level pLevel, List<Component> tooltips, @NotNull TooltipFlag isAdvanced) {
         tooltips.add(CMLangUtil.getTranslatable("aureus_cell").withStyle(ChatFormatting.BLUE));
     }
 }

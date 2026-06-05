@@ -230,5 +230,27 @@
         "steam": true
       }
     ]
+  },
+  "terminus_activate": {
+    "category": "ambient",
+    "subtitle": "calamity_curios.sound.subtitle.terminus_activate",
+    "sounds": [
+      {
+        "name": "calamity_curios:ambient/terminus_activate",
+        "attenuation_distance": 12,
+        "steam": true
+      }
+    ]
+  },
+  "terminus_deactivate": {
+    "category": "ambient",
+    "subtitle": "calamity_curios.sound.subtitle.terminus_deactivate",
+    "sounds": [
+      {
+        "name": "calamity_curios:ambient/terminus_deactivate",
+        "attenuation_distance": 12,
+        "steam": true
+      }
+    ]
   }
 }

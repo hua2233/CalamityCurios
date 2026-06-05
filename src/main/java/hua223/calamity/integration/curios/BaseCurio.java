@@ -2,6 +2,7 @@ package hua223.calamity.integration.curios;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import hua223.calamity.events.EventTypes;
 import hua223.calamity.register.keys.IKeyDataPackResponse;
 import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.ConflictChain;
@@ -15,18 +16,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodData;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 
 public abstract class BaseCurio extends Item implements ICurioItem {
@@ -38,8 +31,8 @@ public abstract class BaseCurio extends Item implements ICurioItem {
     protected BaseCurio(Properties properties) {
         super(properties);
         //initialization attribute
-        hasEvent = !collectEvents().isEmpty();
         Class<?> c = getClass();
+        hasEvent = !EventTypes.collectEvents(c).isEmpty();
         hasConflictChain = c.isAnnotationPresent(ConflictChain.class);
         if (hasConflictChain) ConflictChain.Conflict.registerRootToLink(c);
 
@@ -56,18 +49,6 @@ public abstract class BaseCurio extends Item implements ICurioItem {
         if (this instanceof IKeyDataPackResponse response)
             response.registerResponseKeyMapping();
         hash = super.hashCode();
-    }
-
-    public static void playerStorage(ServerPlayer player) {
-        //The Curios author defaults to not processing the first frame, possibly to prevent excessive noise, so manual registration is required here
-        //If FirstTick is set to true when a player instance is created, it should be manually reset, such low frequency events are acceptable
-        CuriosApi.getCuriosInventory(player).ifPresent(handler -> {
-            for (int i = 0; i < handler.getSlots(); i++) {
-                ItemStack stack = handler.getEquippedCurios().getStackInSlot(i);
-                if (!stack.isEmpty() && stack.getItem() instanceof ICuriosStorage storage)
-                    storage.addToStorage(player);
-            }
-        });
     }
 
     public static void syncHealth(ServerPlayer player) {
@@ -105,7 +86,7 @@ public abstract class BaseCurio extends Item implements ICurioItem {
             ServerPlayer player = (ServerPlayer) entity;
             if (hasConflictChain) ConflictChain.Conflict.lockInConflict(
                 getClass().getAnnotation(ConflictChain.class), entity);
-            if (hasEvent) EventTypes.applyEvent(this, collectEvents(), player, true);
+            if (hasEvent) EventTypes.applyEvent(this, player, true);
             equipHandle(player, stack);
         }
     }
@@ -118,7 +99,7 @@ public abstract class BaseCurio extends Item implements ICurioItem {
         LivingEntity entity = slotContext.entity();
         if (entity.calamity$IsPlayer && !entity.calamity$Player.isLocalPlayer()) {
             ServerPlayer player = (ServerPlayer) entity;
-            if (hasEvent) EventTypes.applyEvent(this, collectEvents(), player, false);
+            if (hasEvent) EventTypes.applyEvent(this, player, false);
             unEquipHandle(player, stack);
             if (this instanceof ICuriosStorage storage) storage.removeStorage(player);//!newStack.is(this) &&
             if (hasConflictChain)
@@ -155,31 +136,10 @@ public abstract class BaseCurio extends Item implements ICurioItem {
         }
     }
 
-    private List<Method> collectEvents() {
-        Class<?> curio = this.getClass();
-        List<Method> methods = new ArrayList<>(4);
-        int modifier = 17;
-        for (Method method : curio.getDeclaredMethods()) {
-            if ((modifier & method.getModifiers()) == modifier
-                && method.getReturnType() == void.class
-                && method.isAnnotationPresent(ApplyEvent.class)) {
-                methods.add(method);
-            }
-        }
-
-        return methods;
-    }
-
     @Override
     public int hashCode() {
         return hash;
     }
 
     public void onLogOut(Player player) {}
-
-    @Retention(RetentionPolicy.RUNTIME) //hua223
-    @Target(ElementType.METHOD)
-    protected @interface ApplyEvent {
-        int value() default 200;
-    }
 }

@@ -1,8 +1,9 @@
 package hua223.calamity.integration.curios.item;
 
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.integration.curios.listeners.CriticalHitTriggerListener;
-import hua223.calamity.integration.curios.listeners.PlayerAttackListener;
+import hua223.calamity.events.listeners.CriticalHitTriggerListener;
+import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.loots.ApplyGlobalLoot;
 import hua223.calamity.loots.EntitiesLootContext;
 import hua223.calamity.loots.GlobalLoot;
@@ -52,7 +53,7 @@ public class VeneratedLocket extends BaseCurio implements ICuriosStorage {
     public final void onAttack(PlayerAttackListener listener) {
         if (listener.isFarAttack()) {
             ServerLevel level = listener.player.serverLevel();
-            Projectile projectile = (Projectile) listener.projectile.getType().create(level);
+            Projectile projectile = (Projectile) listener.getProjectile().getType().create(level);
             if (projectile != null) {
                 RandomSource source = listener.entity.getRandom();
                 Vec3 endPos = listener.entity.getEyePosition();

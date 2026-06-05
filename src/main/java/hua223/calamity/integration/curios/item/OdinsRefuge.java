@@ -1,12 +1,12 @@
 package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.integration.curios.SprintCurio;
-import hua223.calamity.integration.curios.listeners.EffectListener;
-import hua223.calamity.integration.curios.listeners.HurtListener;
+import hua223.calamity.events.listeners.EffectListener;
+import hua223.calamity.events.listeners.HurtListener;
 import hua223.calamity.register.Items.CalamityItems;
-import hua223.calamity.register.effects.CalamityEffect;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.CalamityHelp;
@@ -49,7 +49,7 @@ public class OdinsRefuge extends AsgardianAegis implements ICuriosStorage {
             count[0] = 400;
         }
 
-        if (count[1] < 1) {
+        if (count[1] < 1 && listener.isTriggerByLiving) {
             listener.player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 100, 2));
             listener.player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 100, 1));
             listener.entity.addEffect(new MobEffectInstance(CalamityEffects.ASTRAL_INFECTION.get(), 200, 1));

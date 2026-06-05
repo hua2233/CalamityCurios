@@ -2,10 +2,9 @@ package hua223.calamity.mixins;
 
 import hua223.calamity.mixed.ISelfCast;
 import hua223.calamity.net.NetMessages;
-import hua223.calamity.net.S2CPacket.EffectSync;
+import hua223.calamity.net.packets.EffectSync;
 import hua223.calamity.register.Items.CalamityItems;
 import hua223.calamity.register.effects.factor.UniversalFactorEffect;
-import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.GlobalCuriosStorage;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.effect.MobEffect;
@@ -14,7 +13,6 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeMap;
-import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
@@ -44,29 +42,20 @@ public abstract class EffectMixin {
 
     @Inject(at = @At("HEAD"), method = "applyEffectTick", cancellable = true)
     private void injectTick(LivingEntity entity, int amplifier, CallbackInfo info) {
-        if (category != MobEffectCategory.BENEFICIAL && entity.calamity$IsPlayer) {
-            if (CalamityHelp.getCalamityFlag(entity, 0)) {
-                info.cancel();
-            }
-        }
+        if (category != MobEffectCategory.BENEFICIAL && entity.calamity$IsPlayer)
+            if (entity.calamity$Player.Calamity$Player.hasRadianceEffect) info.cancel();
     }
 
     @Inject(at = @At("HEAD"), method = "addAttributeModifiers", cancellable = true)
     private void injectAddModifier(LivingEntity entity, AttributeMap pAttributeMap, int pAmplifier, CallbackInfo info) {
-        if (category != MobEffectCategory.BENEFICIAL && entity.calamity$IsPlayer) {
-            if (CalamityHelp.getCalamityFlag(entity, 0)) {
-                info.cancel();
-            }
-        }
+        if (category != MobEffectCategory.BENEFICIAL && entity.calamity$IsPlayer)
+            if (entity.calamity$Player.Calamity$Player.hasRadianceEffect) info.cancel();
     }
 
     @Inject(at = @At("HEAD"), method = "applyInstantenousEffect", cancellable = true)
-    private void injectInstantenous(Entity source, Entity indirectSource, LivingEntity livingEntity, int amplifier, double health, CallbackInfo info) {
-        if (category != MobEffectCategory.BENEFICIAL && livingEntity instanceof Player player) {
-            if (CalamityHelp.getCalamityFlag(player, 0)) {
-                info.cancel();
-            }
-        }
+    private void injectInstantenous(Entity source, Entity indirectSource, LivingEntity entity, int amplifier, double health, CallbackInfo info) {
+        if (category != MobEffectCategory.BENEFICIAL && entity.calamity$IsPlayer)
+            if (entity.calamity$Player.Calamity$Player.hasRadianceEffect) info.cancel();
     }
 
     @Mixin({MobEffectInstance.class})//@Implements(@Interface(iface = IEffect.class, prefix = "calamity$"))

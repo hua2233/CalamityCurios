@@ -1,11 +1,12 @@
 package hua223.calamity.register.Items.edible;
 
 import hua223.calamity.register.Items.AvailableItem;
-import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.VariableAttributeModifier;
+import hua223.calamity.register.Items.CalamityItems;
+import hua223.calamity.util.*;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
@@ -23,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.UUID;
 
-public class LifeFruit extends AvailableItem {
+public class LifeFruit extends AvailableItem implements IDataPackResponse {
     public LifeFruit(Rarity rarity, int level) {
         super(new Item.Properties()
             .rarity(rarity)
@@ -40,21 +41,52 @@ public class LifeFruit extends AvailableItem {
     @Override
     @SuppressWarnings({"ConstantConditions", "deprecation"})
     public @NotNull ItemStack finishUsingItem(@NotNull ItemStack stack, @NotNull Level world, @NotNull LivingEntity entity) {
-        if (entity.calamity$IsPlayer) {
+        if (entity.calamity$IsPlayer && !world.isClientSide) {
             int level = stack.getItem().getFoodProperties().getNutrition() / 6;
             UUID uuid = UUID.nameUUIDFromBytes("LifeFruit".getBytes());
             AttributeInstance instance = entity.getAttribute(Attributes.MAX_HEALTH);
             VariableAttributeModifier modifier = (VariableAttributeModifier) instance.getModifier(uuid);
-            if (modifier == null && level == 1)
-                instance.addPermanentModifier(new VariableAttributeModifier(uuid, "LifeFruit", 0.25f, AttributeModifier.Operation.MULTIPLY_BASE));
-            else if (modifier != null) {
+            byte texture = -1;
+
+            if (modifier == null && level == 1) {
+                instance.addPermanentModifier(new VariableAttributeModifier(uuid,
+                    "LifeFruit", 0.25f, AttributeModifier.Operation.MULTIPLY_BASE));
+                texture = 0;
+            } else if (modifier != null) {
                 float value = (float) modifier.getAmount();
                 float levelValue = level * 0.25f;
-                if (value + 0.25f == levelValue) modifier.setValue(levelValue, instance);
+                if (value + 0.25f == levelValue) {
+                    texture = (byte) (level - 1);
+                    modifier.setValue(levelValue, instance);
+                }
+            }
+
+            if (texture > -1) {
+                getPack().putByte("level", texture);
+                sendToClient((ServerPlayer) entity);
             }
         }
 
         return super.finishUsingItem(stack, world, entity);
+    }
+
+    @SuppressWarnings({"ConstantConditions"})
+    public static void setTexture(ServerPlayer player) {
+        UUID uuid = UUID.nameUUIDFromBytes("LifeFruit".getBytes());
+        AttributeInstance instance = player.getAttribute(Attributes.MAX_HEALTH);
+        VariableAttributeModifier modifier = (VariableAttributeModifier) instance.getModifier(uuid);
+
+        if (modifier != null) {
+            IDataPackResponse lifeFruit = CalamityItems.SANGUINE_TANGERINE.asPackHandler();
+            lifeFruit.getPack().putByte("level", (byte) (modifier.getAmount() / 0.25 - 1));
+            lifeFruit.sendToClient(player);
+        }
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void onClientResponse(CompoundTag tag) {
+        CalamityHelp.getClientCalamity().setFromLifeFruitLevel(tag.getByte("level"));
     }
 
     @Override

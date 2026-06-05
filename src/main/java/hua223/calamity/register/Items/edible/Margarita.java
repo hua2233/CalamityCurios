@@ -1,9 +1,7 @@
 package hua223.calamity.register.Items.edible;
 
-import hua223.calamity.mixed.ICalamityMagicExpand;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.util.CMLangUtil;
-import io.redspace.ironsspellbooks.api.magic.MagicData;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
@@ -31,9 +29,9 @@ public class Margarita extends Beer {
             if (!instance.getEffect().isBeneficial())
                 instance.calamity$SetProperties(instance.getDuration() / 2, instance.getAmplifier(), entity);
 
-        if (!level.isClientSide) {
+        if (!level.isClientSide && entity.calamity$IsPlayer) {
             entity.heal(14);
-            ((ICalamityMagicExpand) MagicData.getPlayerMagicData(entity)).calamity$ChangeMana(200, true);
+            entity.calamity$Player.Calamity$Player.changeMana(200, true);
         }
     }
 

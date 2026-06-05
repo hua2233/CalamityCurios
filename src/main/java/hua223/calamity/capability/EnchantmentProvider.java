@@ -1,9 +1,9 @@
 package hua223.calamity.capability;
 
 import hua223.calamity.net.NetMessages;
-import hua223.calamity.net.S2CPacket.PersistentCurseFontSync;
-import hua223.calamity.register.gui.SpellType;
-import hua223.calamity.render.CurseFont;
+import hua223.calamity.net.packets.PersistentCurseFontSync;
+import hua223.calamity.render.font.CurseFont;
+import hua223.calamity.util.CalamityHelp;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -26,9 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class EnchantmentProvider implements ICapabilitySerializable<CompoundTag> {
-    public static final Capability<CurseEnchantment> CURSE_ENCHANTMENT = CapabilityManager.get(new CapabilityToken<>() {
-    });
-    public static final String FONT_FLAG = "curse";
+    public static final Capability<CurseEnchantment> CURSE_ENCHANTMENT = CapabilityManager.get(new CapabilityToken<>() {});
     private static final Map<Item, EnchantmentProvider> EXHUMED = new Object2ObjectOpenHashMap<>(6);
 
     protected CurseEnchantment enchantment;
@@ -46,6 +44,7 @@ public class EnchantmentProvider implements ICapabilitySerializable<CompoundTag>
      *
      * @param stack 需要长久被渲染的物品
      */
+    @SuppressWarnings({"ConstantConditions", "deprecation"})
     public static void addDefaultProvider(ItemStack stack) {
         int start = stack.getRarity().color.getColor();
         EnchantmentProvider provider = new EnchantmentProvider();
@@ -79,11 +78,9 @@ public class EnchantmentProvider implements ICapabilitySerializable<CompoundTag>
         ItemStack stack = event.getObject();
         Item item = stack.getItem();
         if (EXHUMED.containsKey(item)) {
-            stack.getOrCreateTag().putString(FONT_FLAG, "EXHUMED");
+            stack.getOrCreateTag().putInt(CalamityHelp.FONT_FLAG, 1);
             event.addCapability(key, EXHUMED.get(item));
-        } else if (SpellType.anyMatch(stack)) {
-            event.addCapability(key, new EnchantmentProvider());
-        }
+        } else event.addCapability(key, new EnchantmentProvider());
     }
 
     @Override

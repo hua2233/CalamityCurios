@@ -1,7 +1,9 @@
 package hua223.calamity.mixins;
 
 import hua223.calamity.capability.CalamityCap;
+import hua223.calamity.util.CalamityPlayer;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
@@ -50,48 +52,51 @@ public abstract class EnchantmentMixin extends AbstractContainerMenu {
         calamity$EnchantmentInfo = new int[] {-1, -1, -1};
     }
 
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings({"deprecation", "ConstantConditions"})
     @Inject(method = "slotsChanged", at = @At(value = "INVOKE", target =
         "Lnet/minecraft/world/inventory/ContainerLevelAccess;execute(Ljava/util/function/BiConsumer;)V", shift = At.Shift.AFTER))
     public void modifyDisplayEnchantment(Container inventory, CallbackInfo ci) {
         //After the actual value and enchantment settings are completed, before the actual transmission,
         //the enchantment type and Xp consumption are corrected by whether there is a curse and whether it is reversed
         calamity$EnchantmentInfo[0] = -1;
-        access.execute((level, pos) -> level.getEntitiesOfClass(Player.class, new AABB(pos).inflate(10))
-            .stream().filter(player -> player.containerMenu == this && CalamityCap.isCalamity(player))
-            .findFirst().ifPresent(player -> {
-                boolean reverse = CalamityCap.isInverted(CalamityCap.CurseType.DESERT, player);
-                float amplifier = reverse ? 0.25f : 2f;
-                for (int i = 0; i < 3; i++) {
-                    int v = costs[i];
-                    if (v > 0) {
-                        calamity$EnchantmentInfo[0] = i;
-                        costs[i] = (int) (costs[i] * amplifier);
-                    }
-                }
-
-                if (calamity$EnchantmentInfo[0] != -1) {
-                    calamity$EnchantmentInfo[2] = reverse ? 0 : 1;
-                    if (reverse) {
-                        for (int i = 0; i < calamity$EnchantmentInfo[0]; i++) {
-                            Enchantment enchantment = BuiltInRegistries.ENCHANTMENT.byId(enchantClue[i]);
-                            if (enchantment != null && enchantment.isCurse()) {
-                                levelClue[i] = -1;
-                                enchantClue[i] = -1;
-                            }
+        access.execute(((level, pos) -> {
+            for (ServerPlayer player : level.getEntitiesOfClass(ServerPlayer.class, new AABB(pos).inflate(10))) {
+                CalamityCap cap = player.Calamity$Player.calamityCap;
+                if (cap.isCursePlayer()) {
+                    boolean reverse = cap.isInverted(CalamityCap.CurseType.DESERT);
+                    float amplifier = reverse ? 0.25f : 2f;
+                    for (int i = 0; i < 3; i++) {
+                        int v = costs[i];
+                        if (v > 0) {
+                            calamity$EnchantmentInfo[0] = i;
+                            costs[i] = (int) (costs[i] * amplifier);
                         }
-                    } else {
-                        List<Enchantment> enchantments = ForgeRegistries.ENCHANTMENTS.getValues().stream().filter(Enchantment::isCurse).toList();
-                        if (enchantments.isEmpty()) return;
-
-                        Enchantment enchantment = enchantments.get(random.nextInt(0, enchantments.size()));
-                        levelClue[calamity$EnchantmentInfo[0]] = enchantment.getMaxLevel();
-                        enchantClue[calamity$EnchantmentInfo[0]] = BuiltInRegistries.ENCHANTMENT.getId(enchantment);
                     }
 
-                    broadcastChanges();
+                    if (calamity$EnchantmentInfo[0] != -1) {
+                        calamity$EnchantmentInfo[2] = reverse ? 0 : 1;
+                        if (reverse) {
+                            for (int i = 0; i < calamity$EnchantmentInfo[0]; i++) {
+                                Enchantment enchantment = BuiltInRegistries.ENCHANTMENT.byId(enchantClue[i]);
+                                if (enchantment != null && enchantment.isCurse()) {
+                                    levelClue[i] = -1;
+                                    enchantClue[i] = -1;
+                                }
+                            }
+                        } else {
+                            List<Enchantment> enchantments = ForgeRegistries.ENCHANTMENTS.getValues().stream().filter(Enchantment::isCurse).toList();
+                            if (enchantments.isEmpty()) return;
+
+                            Enchantment enchantment = enchantments.get(random.nextInt(0, enchantments.size()));
+                            levelClue[calamity$EnchantmentInfo[0]] = enchantment.getMaxLevel();
+                            enchantClue[calamity$EnchantmentInfo[0]] = BuiltInRegistries.ENCHANTMENT.getId(enchantment);
+                        }
+
+                        broadcastChanges();
+                    }
                 }
-            }));
+            }
+        }));
     }
 
     @Inject(method = "clickMenuButton", at = @At(value = "INVOKE",

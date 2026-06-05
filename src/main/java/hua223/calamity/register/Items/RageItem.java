@@ -1,9 +1,7 @@
 package hua223.calamity.register.Items;
 
-import hua223.calamity.capability.CalamityCapProvider;
 import hua223.calamity.util.CMLangUtil;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -25,12 +23,9 @@ public class RageItem extends AvailableItem {
 
     @Override
     public @NotNull ItemStack finishUsingItem(@NotNull ItemStack stack, Level level, @NotNull LivingEntity entity) {
-        if (!level.isClientSide) {
-            CalamityCapProvider.RAGE.getCapabilityFrom(entity).ifPresent(rage -> {
-                if (rage.tryUseRageItem(id, (ServerPlayer) entity)) {
-                    stack.shrink(1);
-                }
-            });
+        if (!level.isClientSide && entity.calamity$IsPlayer
+            && entity.calamity$Player.Calamity$Player.rage.tryUseRageItem(id)) {
+            stack.shrink(1);
         }
         return stack;
     }

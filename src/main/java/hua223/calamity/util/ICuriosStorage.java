@@ -49,8 +49,7 @@ public interface ICuriosStorage {
     }
 
     default float[] getCount(Player player) {
-        GlobalCuriosStorage.CuriosMemory memory = GlobalCuriosStorage.getStorage(this, player);
-        return memory != null ? memory.count : null;
+        return GlobalCuriosStorage.getCountStorages(player, this);
     }
 
     default UUID[] getUUID(LivingEntity player) {

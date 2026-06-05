@@ -123,8 +123,14 @@ public class CalamityCurseScreen extends AbstractContainerScreen<CalamityCurseMe
             ItemStack stack = stacks[i];
             int xOffset = 20 * i;
             guiGraphics.renderItem(stack, xOffset, 0);
+
             if (renderText && mouseX > 202 + xOffset - 18 && mouseX < 202 + xOffset - 2)
                 guiGraphics.renderComponentTooltip(font, List.of(stack.getItem().getName(stack)), xOffset - 18, 9, stack);
+
+            pose.translate(0, 0, 200);
+            String count = String.valueOf(stack.getCount());
+            guiGraphics.drawString(font, count, xOffset + 17 -
+                font.width(count), 9, menu.enough[i] ? 5636095 : 11141120, true);
         }
         pose.popPose();
     }

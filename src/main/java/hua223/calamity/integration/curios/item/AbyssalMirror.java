@@ -1,8 +1,9 @@
 package hua223.calamity.integration.curios.item;
 
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.integration.curios.listeners.CriticalHitCheckListener;
-import hua223.calamity.integration.curios.listeners.HurtListener;
+import hua223.calamity.events.listeners.CriticalHitCheckListener;
+import hua223.calamity.events.listeners.HurtListener;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.util.*;
 import hua223.calamity.util.delaytask.DelayRunnable;
@@ -26,12 +27,12 @@ public class AbyssalMirror extends BaseCurio implements ICuriosStorage {
 
     @Override
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
-        player.calamity$Invisible = 0.3f;
+        player.Calamity$Player.changeInvisible(0.3f);
     }
 
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
-        player.calamity$Invisible = 0f;
+        player.Calamity$Player.changeInvisible(-0.3f);
     }
 
     @ApplyEvent

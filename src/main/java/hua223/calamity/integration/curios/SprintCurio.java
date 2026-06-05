@@ -1,7 +1,7 @@
 package hua223.calamity.integration.curios;
 
 import hua223.calamity.net.NetMessages;
-import hua223.calamity.net.S2CPacket.ApplyKeyEvent;
+import hua223.calamity.net.packets.ApplyKeyEvent;
 import hua223.calamity.util.IDataPackResponse;
 import hua223.calamity.util.delaytask.DelayRunnable;
 import net.minecraft.client.Minecraft;
@@ -129,7 +129,7 @@ public abstract class SprintCurio extends BaseCurio implements IDataPackResponse
     @SuppressWarnings("ConstantConditions")
     public void onClientResponse(CompoundTag tag) {
         LocalPlayer player = Minecraft.getInstance().player;
-        if (tag.contains("isStop")) {
+        if (tag.contains("stop")) {
             Vec3 vector = player.getDeltaMovement();
             player.setDeltaMovement(vector.scale(-0.9));
             DelayRunnable.removeTask(SprintCurio.class);
@@ -166,7 +166,7 @@ public abstract class SprintCurio extends BaseCurio implements IDataPackResponse
     }
 
     protected void applyCounterforce(ServerPlayer player) {
-        getPack().putByte("isStop", (byte) 0);
+        getPack().putByte("stop", (byte) 0);
         sendToClient(player);
         DelayRunnable.removeTask(player.getUUID());
     }

@@ -41,6 +41,8 @@ public enum CalamitySounds implements EnumRegister<SoundEvent> {
     PRISM("prism", () -> SoundEvent.createVariableRangeEvent(CalamityCurios.ModResource("prism"))),
     AA_ACTIVATION("angelic_alliance_activation", () -> SoundEvent.createVariableRangeEvent(CalamityCurios.ModResource("angelic_alliance_activation"))),
     SUPREME_CALAMITAS("supreme_calamitas", () -> SoundEvent.createVariableRangeEvent(CalamityCurios.ModResource("supreme_calamitas"))),
+    TERMINUS_ACTIVATE("terminus_activate", () -> SoundEvent.createVariableRangeEvent(CalamityCurios.ModResource("terminus_activate"))),
+    TERMINUS_DEACTIVATE("terminus_deactivate", () -> SoundEvent.createVariableRangeEvent(CalamityCurios.ModResource("terminus_deactivate"))),
     DEMON_SHADE_ENRAGE("demon_shade_enrage", () -> SoundEvent.createVariableRangeEvent(CalamityCurios.ModResource("demon_shade_enrage")));
 
     private final RegistryObject<SoundEvent> sound;

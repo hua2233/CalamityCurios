@@ -19,6 +19,7 @@ import hua223.calamity.render.entity.CrystallizationRenderLayer;
 import hua223.calamity.render.entity.FrozenRender;
 import hua223.calamity.render.entity.PurpleFlames;
 import hua223.calamity.render.hud.*;
+import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.RenderUtil;
 import io.redspace.ironsspellbooks.entity.mobs.keeper.KeeperEntity;
 import net.minecraft.client.Minecraft;
@@ -31,6 +32,7 @@ import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.resources.TextureAtlasHolder;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -71,6 +73,11 @@ public class ModEvents {
         event.enqueueWork(RegisterList::onFMLSetUp);
     }
 
+    //Okay, I feel sad for my art
+//    public static void Render(CustomizeGuiOverlayEvent.BossEventProgress event) {
+//        event.getBossEvent()
+//    }
+
     @SubscribeEvent
     public static void onAttributeCreate(EntityAttributeCreationEvent event) {
         event.put(CalamityEntity.SAK.get(), KeeperEntity.prepareAttributes().build());
@@ -90,8 +97,11 @@ public class ModEvents {
     public static void onFillItemCategory(BuildCreativeModeTabContentsEvent event) {
         for (Map.Entry<ItemStack, CreativeModeTab.TabVisibility> itemStackTabVisibilityEntry : event.getEntries()) {
             ItemStack stack = itemStackTabVisibilityEntry.getKey();
-            if (!stack.hasTag() && EnchantmentProvider.isExhumed(stack))
-                stack.getOrCreateTag().putString(EnchantmentProvider.FONT_FLAG, "EXHUMED");
+            if (!stack.hasTag() && EnchantmentProvider.isExhumed(stack)) {
+                CompoundTag tag = stack.getOrCreateTag();
+                tag.putInt(CalamityHelp.FONT_FLAG, 1);
+                tag.putString("spell", "EXHUMED");
+            }
         }
     }
 
@@ -129,6 +139,7 @@ public class ModEvents {
                 CrystallizationRenderLayer.afterMainTextureLoad(atlas);
                 CalamityCurseScreen.afterMainTextureLoad(atlas);
                 SpellType.afterMainTextureLoad(atlas);
+                FatigueSlot.afterMainTextureLoad(atlas);
             }
         }
 

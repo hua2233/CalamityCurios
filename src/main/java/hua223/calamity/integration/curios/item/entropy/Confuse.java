@@ -1,7 +1,8 @@
 package hua223.calamity.integration.curios.item.entropy;
 
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.Card;
-import hua223.calamity.integration.curios.listeners.PlayerAttackListener;
+import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.loots.ApplyGlobalLoot;
 import hua223.calamity.loots.EntitiesLootContext;
 import hua223.calamity.loots.GlobalLoot;
@@ -32,7 +33,7 @@ public class Confuse extends Card {
     @ApplyEvent
     public final void onAttack(PlayerAttackListener listener) {
         if (!listener.player.getCooldowns().isOnCooldown(this)) {
-            boolean flag = CalamityHelp.getCalamityFlag(listener.player, 10);
+            boolean flag = listener.player.Calamity$Player.cardDeck;
             listener.entity.addEffect(new MobEffectInstance(
                 CalamityEffects.DECEIVE.get(), flag ? 90 : 60, flag ? 1 : 0));
             listener.player.getCooldowns().addCooldown(this, flag ? 140 : 200);

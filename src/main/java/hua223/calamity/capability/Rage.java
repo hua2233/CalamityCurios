@@ -7,10 +7,11 @@ import hua223.calamity.util.delaytask.DelayRunnable;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Player;
 
-public class Rage implements BaseCap<Rage> {
+public class Rage implements BaseCap {
     private static final float MAX_VALUE = 100;
+    private final ServerPlayer player;
     private float rageValue;
     private int extraTick = 0;
     private int mutableTick = 0;
@@ -23,34 +24,38 @@ public class Rage implements BaseCap<Rage> {
     private int levelUpDamage = 300;
     private byte bitFlags;
 
-    public void addValue(float value, ServerPlayer player, IDataPackResponse response) {
+    public Rage(ServerPlayer player) {
+        this.player = player;
+    }
+
+    public void addValue(float value, IDataPackResponse response) {
         if (!enabled || rageValue >= MAX_VALUE) return;
         if (active && attenuation) value /= 2;
         rageValue = Math.min(MAX_VALUE, rageValue + value);
         response.getPack().putFloat("value", rageValue);
         response.sendToClient(player);
-        playAnimation(player, response);
+        playAnimation(response);
     }
 
     public float getValue() {
         return rageValue;
     }
 
-    public void activeRage(ServerPlayer player, IDataPackResponse response) {
+    public void activeRage(IDataPackResponse response) {
         if (!enabled || active || MAX_VALUE != rageValue) return;
         active = true;
         player.level().playSound(null, player, CalamitySounds.RAGE_ACTIVATE.get(), SoundSource.PLAYERS, 1f, 1f);
-        activeState(player, response);
+        activeState(response);
     }
 
-    public boolean tryUseRageItem(int flag, ServerPlayer player) {
+    public boolean tryUseRageItem(int flag) {
         if (flag > 7) return false;
 
         if ((bitFlags & 1 << flag) == 0) {
             bitFlags = (byte) (bitFlags | 1 << flag);
             extraTick += 20;
             mutableTick += 20;
-            IDataPackResponse response = (IDataPackResponse) CalamityItems.SHATTERED_COMMUNITY.get();
+            IDataPackResponse response = CalamityItems.SHATTERED_COMMUNITY.asPackHandler();
             response.getPack().putByte("count", getRageItemCount());
             response.sendToClient(player);
             return true;
@@ -71,7 +76,7 @@ public class Rage implements BaseCap<Rage> {
         return count;
     }
 
-    public void activeState(ServerPlayer player, IDataPackResponse response) {
+    public void activeState(IDataPackResponse response) {
         if (active) {
             DelayRunnable.conditionsLoop(() -> {
                 if (--mutableTick <= 0 && --rageValue <= 0) {
@@ -94,11 +99,7 @@ public class Rage implements BaseCap<Rage> {
         return active;
     }
 
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean offOrOn, ServerPlayer player, IDataPackResponse response) {
+    public void setEnabled(boolean offOrOn, IDataPackResponse response) {
         if (enabled != offOrOn) {
             CompoundTag pack = response.getPack();
             enabled = offOrOn;
@@ -113,7 +114,7 @@ public class Rage implements BaseCap<Rage> {
         }
     }
 
-    public void playAnimation(ServerPlayer player, IDataPackResponse response) {
+    public void playAnimation(IDataPackResponse response) {
         if (MAX_VALUE == rageValue && !active && canPlay) {
             canPlay = false;
             response.getPack().putByte("play", (byte) 0);
@@ -125,8 +126,8 @@ public class Rage implements BaseCap<Rage> {
         attenuation = canAttenuation;
     }
 
-    public void syncData(ServerPlayer player) {
-        IDataPackResponse response = (IDataPackResponse) CalamityItems.SHATTERED_COMMUNITY.get();
+    public void syncData() {
+        IDataPackResponse response = CalamityItems.SHATTERED_COMMUNITY.asPackHandler();
         CompoundTag pack = response.getPack();
         pack.putFloat("value", rageValue);
         pack.putBoolean("state", enabled);
@@ -137,7 +138,7 @@ public class Rage implements BaseCap<Rage> {
         response.sendToClient(player);
     }
 
-    public void addLevelUpProgress(int value, ServerPlayer player, IDataPackResponse response) {
+    public void addLevelUpProgress(int value, IDataPackResponse response) {
         //if (!active) return;
         currentDamage += value;
         CompoundTag pack = response.getPack();
@@ -150,14 +151,18 @@ public class Rage implements BaseCap<Rage> {
         response.sendToClient(player);
     }
 
-    public void deathActivation(Rage rage, ServerPlayer player) {
+    @Override
+    @SuppressWarnings("ConstantConditions")
+    public void onClone(Player old, boolean isDeath) {
+        Rage rage = old.Calamity$Player.rage;
         shatteredLevel = rage.shatteredLevel;
         currentDamage = rage.currentDamage;
         levelUpDamage = rage.levelUpDamage;
         bitFlags = rage.bitFlags;
-        IDataPackResponse response = (IDataPackResponse) CalamityItems.SHATTERED_COMMUNITY.get();
+        IDataPackResponse response = CalamityItems.SHATTERED_COMMUNITY.asPackHandler();
         CompoundTag pack = response.getPack();
-        pack.putBoolean("state", false);
+        pack.putBoolean("state", enabled);
+        rageValue = isDeath ? 0 : rage.rageValue;
         pack.putFloat("value", rageValue);
         response.sendToClient(player);
     }

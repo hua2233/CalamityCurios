@@ -1,10 +1,11 @@
 package hua223.calamity.integration.curios.item;
 
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.integration.curios.listeners.HurtListener;
-import hua223.calamity.net.C2SPacket.DataPackActive;
+import hua223.calamity.events.listeners.HurtListener;
+import hua223.calamity.net.packets.DataPackActive;
 import hua223.calamity.net.NetMessages;
-import hua223.calamity.register.effects.Bounding;
+import hua223.calamity.register.Items.CalamityItems;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.register.keys.IKeyDataPackResponse;
 import hua223.calamity.util.CMLangUtil;
@@ -12,6 +13,7 @@ import hua223.calamity.util.IDataPackResponse;
 import hua223.calamity.util.delaytask.DelayRunnable;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -29,7 +31,7 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 
-public class GravistarSabaton extends BaseCurio implements IKeyDataPackResponse, IDataPackResponse {
+public class GravistarSabaton extends BaseCurio implements IKeyDataPackResponse {
     @OnlyIn(Dist.CLIENT)
     public static float impactSpeed;
 
@@ -46,26 +48,22 @@ public class GravistarSabaton extends BaseCurio implements IKeyDataPackResponse,
     @Override
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
         setKeyMapping(player, true);
-        getPack().putFloat("gravistar_sabaton", 0.3f);
-        sendToClient(player);
+        IDataPackResponse response = CalamityItems.BOUNDING.asPackHandler();
+        response.getPack().putFloat("gravistar_sabaton", 0.3f);
+        response.sendToClient(player);
     }
 
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
         setKeyMapping(player, false);
-        getPack().putFloat("gravistar_sabaton", -0.3f);
-        sendToClient(player);
+        IDataPackResponse response = CalamityItems.BOUNDING.asPackHandler();
+        response.getPack().putFloat("gravistar_sabaton", -0.3f);
+        response.sendToClient(player);
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
-    public void onClientResponse(CompoundTag tag) {
-        Bounding.jumpPower += tag.getFloat("gravistar_sabaton");
-    }
-
-    @Override
-    public void onServerResponse(ServerPlayer player) {
-        float r = getDeserializationStream(player).getFloat("radius");
+    public void onServerResponse(ServerPlayer player, CompoundTag tag) {
+        float r = tag.getFloat("radius");
         player.getCooldowns().addCooldown(this, (int) Math.min(r * 40, 260));
         double x = player.getX();
         double y = player.getY();
@@ -96,16 +94,17 @@ public class GravistarSabaton extends BaseCurio implements IKeyDataPackResponse,
     @OnlyIn(Dist.CLIENT)
     @SuppressWarnings("ConstantConditions")
     public boolean accept(Minecraft minecraft) {
+        LocalPlayer player = minecraft.player;
         if (notInCooling(minecraft) && DelayRunnable.addUniqueLoopTask(() -> {
-            if (minecraft.player.onGround()) {
-                Bounding.jumpPower += 1f;
-                DelayRunnable.addRunTask(40, () -> Bounding.jumpPower -= 1f);
+            if (player.isAlive() && player.onGround()) {
+                player.Calamity$Player.jumpPower += 1f;
+                DelayRunnable.addRunTask(40, () -> player.Calamity$Player.jumpPower -= 1f);
                 NetMessages.sendToServer(new DataPackActive(this));
 
                 return true;
             } else {
-                Vec3 v = minecraft.player.getDeltaMovement();
-                minecraft.player.setDeltaMovement(v.x, impactSpeed -= 0.05f, v.z);
+                Vec3 v = player.getDeltaMovement();
+                player.setDeltaMovement(v.x, impactSpeed -= 0.05f, v.z);
                 return false;
             }
         }, 1, GravistarSabaton.class)) impactSpeed = 0;

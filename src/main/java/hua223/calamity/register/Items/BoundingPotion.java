@@ -1,6 +1,6 @@
 package hua223.calamity.register.Items;
 
-import hua223.calamity.register.effects.Bounding;
+import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.IDataPackResponse;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -17,6 +17,6 @@ public class BoundingPotion extends CalamityPotion implements IDataPackResponse 
     @Override
     @OnlyIn(Dist.CLIENT)
     public void onClientResponse(CompoundTag tag) {
-        Bounding.jumpPower += tag.getFloat("bounding");
+        CalamityHelp.getClientCalamity().jumpPower += tag.getFloat("bounding");
     }
 }

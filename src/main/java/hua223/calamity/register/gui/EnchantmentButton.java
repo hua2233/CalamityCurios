@@ -2,7 +2,7 @@ package hua223.calamity.register.gui;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import hua223.calamity.main.CalamityCurios;
-import hua223.calamity.net.C2SPacket.CurseEnchantmentPack;
+import hua223.calamity.net.packets.CurseEnchantmentPack;
 import hua223.calamity.net.NetMessages;
 import hua223.calamity.util.delaytask.DelayRunnable;
 import net.minecraft.client.gui.GuiGraphics;
@@ -67,7 +67,7 @@ public class EnchantmentButton extends AbstractWidget {
         return mouseX >= 182 && mouseY >= 36 && mouseX < 194 && mouseY < 49;
     }
 
-    public static void afterMainTextureLoad(TextureAtlas atlas) {
+    static void afterMainTextureLoad(TextureAtlas atlas) {
         BUTTON = atlas.getSprite(CalamityCurios.ModResource("calamity_curse_button"));
         HOVER = atlas.getSprite(CalamityCurios.ModResource("button_hovered"));
         CLICK = atlas.getSprite(CalamityCurios.ModResource("button_clicked"));

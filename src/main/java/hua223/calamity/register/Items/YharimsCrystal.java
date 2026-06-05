@@ -11,12 +11,12 @@ import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
@@ -26,9 +26,6 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -106,33 +103,35 @@ public class YharimsCrystal extends Item {
         }
 
         Vec3[] dir = CalamityHelp.makeBasisFromDirection(YharimsCrystal.yRotDir(player));
-        Vec3 startPos = player.position().add(0, player.getEyeHeight() * 0.7, 0).add(dir[2]);
+        Vec3 startPos = player.position().add(0, player.getEyeHeight() * 0.7, 0);
 
-        ServerLevel serverLevel = client ? null : (ServerLevel) level;
         DamageSource source = null;
         float baseAttack = 0;
-        for (int i = 0; i < endPos.length; i++) {
-            double angle = circleStartAngle + (2 * Math.PI * i / 6);
+        for (int i = 0; i < 6; i++) {
+            double angle = circleStartAngle + 2 * Math.PI * (i / 6F);
             Vec3 target = startPos.add(dir[2].scale(20f)).add(dir[0].scale(
                 radius * Math.cos(angle)).add(dir[1].scale(radius * Math.sin(angle))));
+            //rayResultEndPos
+            target = player.level().clip(new ClipContext(startPos, target,
+                ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player)).getLocation();
+            Vec3 ray = target.subtract(startPos);
 
             if (client) {
-                BlockHitResult hit = player.level().clip(new ClipContext(startPos, target,
-                    ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player));
-                endPos[i] = (hit.getType() != HitResult.Type.MISS ? hit.getLocation() : target).subtract(startPos);
-
+                endPos[i] = ray;
                 if (isTriggerTime) level.playLocalSound(player.getX(), player.getY(), player.getZ(),
                     CalamitySounds.PRISM.get(), SoundSource.AMBIENT, 1f, 1f, false);
             } else {
-                for (LivingEntity entity : serverLevel.getEntitiesOfClass(LivingEntity.class, new AABB(startPos, target))) {
-                    if (entity.calamity$IsPlayer || !entity.isAlive() || entity.isAlliedTo(player)) continue;
+                //FIXME Unresolved gaze detection issues
+                for (Entity entity : level.getEntities(player, player.getBoundingBox().expandTowards(ray)
+                    , entity -> entity.isPickable() && entity.isAlive() && entity instanceof LivingEntity && !entity.isAlliedTo(player))) {
+                    if (entity.getBoundingBox().clip(startPos, target).isPresent()) {
+                        if (source == null) {
+                            source = CalamityDamageSource.source(CalamityDamageTypes.PRISM, entity);
+                            baseAttack = (float) player.getAttributeValue(Attributes.ATTACK_DAMAGE);
+                        }
 
-                    if (source == null) {
-                        source = CalamityDamageSource.source(CalamityDamageTypes.PRISM, entity);
-                        baseAttack = (float) player.getAttributeValue(Attributes.ATTACK_DAMAGE);
+                        entity.hurt(source, baseAttack);
                     }
-
-                    entity.hurt(source, baseAttack);
                 }
             }
         }

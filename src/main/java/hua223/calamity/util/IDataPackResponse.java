@@ -1,13 +1,13 @@
 package hua223.calamity.util;
 
 import hua223.calamity.net.NetMessages;
-import hua223.calamity.net.S2CPacket.ItemResponsePack;
+import hua223.calamity.net.packets.ItemResponsePack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Data pack response interface for handling server-to-client (Item) packet communication.
@@ -24,20 +24,13 @@ public interface IDataPackResponse {
      * Sends a data packet containing NBT tag to the specified client player.
      *
      * @param player The target server player (receiver).
-     * @param tag The NBT tag data to send, null if no additional data.
-     */
-    default void sendToClient(ServerPlayer player, CompoundTag tag) {
-        NetMessages.sendToClient(new ItemResponsePack((Item) this, tag), player);
-    }
-
-    /**
-     * Sends a data packet to the specified client player using data stored in PACK.
-     * Sends null if PACK is empty.
-     *
-     * @param player The target server player (receiver).
      */
     default void sendToClient(ServerPlayer player) {
-        sendToClient(player, PACK);
+        NetMessages.sendToClient(new ItemResponsePack((Item) this, PACK), player);
+    }
+
+    default void sendToAllClient() {
+        NetMessages.sendToAllClient(new ItemResponsePack((Item) this, PACK));
     }
 
     /**
@@ -49,6 +42,16 @@ public interface IDataPackResponse {
     default CompoundTag getPack() {
         PACK.tags.clear();
         return PACK;
+    }
+
+    default void writeVec3(String key, Vec3 vec3) {
+        PACK.putDouble(key, (int) vec3.x);
+        PACK.putDouble(key + 'y', (int) vec3.y);
+        PACK.putDouble(key + 'z', (int) vec3.z);
+    }
+
+    default Vec3 readVec3(String key, CompoundTag tag) {
+        return new Vec3(tag.getDouble(key), tag.getDouble(key + 'y'), tag.getDouble(key + 'z'));
     }
 
     /**

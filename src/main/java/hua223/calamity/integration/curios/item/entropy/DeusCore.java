@@ -1,15 +1,12 @@
 package hua223.calamity.integration.curios.item.entropy;
 
 import com.google.common.collect.Multimap;
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.integration.curios.listeners.DeathListener;
-import hua223.calamity.integration.curios.listeners.HurtListener;
-import hua223.calamity.integration.curios.listeners.PlayerAttackListener;
-import hua223.calamity.integration.curios.listeners.PlayerHealListener;
-import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.ICuriosStorage;
-import hua223.calamity.util.IDataPackResponse;
-import hua223.calamity.util.RenderUtil;
+import hua223.calamity.events.listeners.HurtListener;
+import hua223.calamity.events.listeners.PlayerAttackListener;
+import hua223.calamity.events.listeners.PlayerHealListener;
+import hua223.calamity.util.*;
 import hua223.calamity.util.damage.CalamityDamageSource;
 import hua223.calamity.util.damage.CalamityDamageTypes;
 import net.minecraft.ChatFormatting;
@@ -103,25 +100,10 @@ public class DeusCore extends BaseCurio implements ICuriosStorage , IDataPackRes
         }
     }
 
-    @ApplyEvent
-    public final void onDeath(DeathListener listener) {
-        if (listener.isPlayerDeath) {
-            getCount(listener.player)[1] = 0;
-            getPack().putInt("v", 0);
-            sendToClient(listener.player);
-        }
-    }
-
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public void onLogOut(Player player) {
-        if (player.isLocalPlayer()) RenderUtil.astrAmount = 0;
-    }
-
     @Override
     @OnlyIn(Dist.CLIENT)
     public void onClientResponse(CompoundTag tag) {
-        RenderUtil.astrAmount = tag.getInt("v");
+        CalamityHelp.getClientCalamity().setAstrHeart(tag.getInt("v"));
     }
 
     @Override

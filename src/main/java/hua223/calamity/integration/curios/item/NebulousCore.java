@@ -1,14 +1,18 @@
 package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.integration.curios.listeners.DeathListener;
+import hua223.calamity.events.listeners.DeathListener;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.entity.projectiles.Nebula;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.ICuriosStorage;
+import hua223.calamity.util.IDataPackResponse;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -25,7 +29,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 import java.util.UUID;
 
-public class NebulousCore extends BaseCurio implements ICuriosStorage {
+public class NebulousCore extends BaseCurio implements ICuriosStorage, IDataPackResponse {
     public NebulousCore(Properties properties) {
         super(properties);
     }
@@ -46,6 +50,15 @@ public class NebulousCore extends BaseCurio implements ICuriosStorage {
                 if (entity != null && entity.isAlive()) entity.discard();
             }
         }
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    @SuppressWarnings("ConstantConditions")
+    public void onClientResponse(CompoundTag tag) {
+        Entity entity = Minecraft.getInstance().level.getEntity(tag.getInt("id"));
+        if (entity instanceof LivingEntity living)
+            living.calamity$GodSlayerFlames = tag.getBoolean("flag");
     }
 
     @Override

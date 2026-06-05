@@ -1,8 +1,7 @@
 package hua223.calamity.net;
 
 import hua223.calamity.main.CalamityCurios;
-import hua223.calamity.net.C2SPacket.*;
-import hua223.calamity.net.S2CPacket.*;
+import hua223.calamity.net.packets.*;
 import net.jodah.typetools.TypeResolver;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -12,20 +11,13 @@ import net.minecraftforge.network.simple.SimpleChannel;
 
 import java.util.function.Function;
 
-import static net.minecraftforge.network.NetworkDirection.PLAY_TO_CLIENT;
-import static net.minecraftforge.network.NetworkDirection.PLAY_TO_SERVER;
-
 public class NetMessages {
     private static SimpleChannel INSTANCE;
-    private static int packetId = 0;
-
-    private static int getPacketId() {
-        return packetId++;
-    }
 
     public static void registerNetPack() {
         final String PROTOCOL_VERSION = "1.0";
 
+        //initialization
         INSTANCE = NetworkRegistry.ChannelBuilder
             .named(CalamityCurios.ModResource("calamity_channel"))
             .networkProtocolVersion(() -> PROTOCOL_VERSION)
@@ -33,40 +25,23 @@ public class NetMessages {
             .serverAcceptedVersions(PROTOCOL_VERSION::equals)
             .simpleChannel();
 
-        registerC2SPacket(ApplySprint::new);
-
-        registerS2CPacket(ApplyKeyEvent::new);
-
-        registerC2SPacket(CurseEnchantmentPack::new);
-
-        registerC2SPacket(SpellTypeSync::new);
-
-        registerS2CPacket(PersistentCurseFontSync::new);
-
-        registerC2SPacket(OpenEnchantGui::new);
-
-        registerS2CPacket(FatigueDataSync::new);
-
-        registerC2SPacket(ClientLongPressTrigger::new);
-
-        registerS2CPacket(PlayerFreeze::new);
-
-        registerC2SPacket(DataPackActive::new);
-
-        registerS2CPacket(ItemResponsePack::new);
-
-        registerS2CPacket(ReduceCooldown::new);
-
-        registerS2CPacket(EffectSync::new);
-
-        registerS2CPacket(OutlineDetected::new);
+        //Am I too lazy?...
+        registerPack(ApplySprint::new, ApplyKeyEvent::new, CurseEnchantmentPack::new,
+            SpellTypeSync::new, PersistentCurseFontSync::new, OpenEnchantGui::new,
+            FatigueDataSync::new, ClientLongPressTrigger::new, DataPackActive::new,
+            ItemResponsePack::new, ReduceCooldown::new, OutlineDetected::new,
+            EffectSync::new);
     }
 
-    public static <T extends S2C> void registerS2CPacket(Function<FriendlyByteBuf, T> decoder) {
-        INSTANCE.messageBuilder(getPackType(decoder), getPacketId(), PLAY_TO_CLIENT)
-            .decoder(decoder)
-            .encoder(T::toBytes)
-            .consumerMainThread(T::processOnClient).add();
+    @SafeVarargs
+    private static <T extends DataPack> void registerPack(Function<FriendlyByteBuf, T>... decoders) {
+        for (int i = 0; i < decoders.length; i++) {
+            Class<T> pack = getPackType(decoders[i]);
+            INSTANCE.messageBuilder(pack, i, pack.getAnnotation(CommunicationDirection.class).value())
+                .decoder(decoders[i])
+                .encoder(T::toBytes)
+                .consumerMainThread(T::processOnSide).add();
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -76,13 +51,6 @@ public class NetMessages {
 
         CalamityCurios.LOGGER.error("Failed to resolve data pack type for \"{}\"", decoder);
         throw new IllegalStateException("Failed to parse illegal packet types");
-    }
-
-    public static <T extends C2S> void registerC2SPacket(Function<FriendlyByteBuf, T> decoder) {
-        INSTANCE.messageBuilder(getPackType(decoder), getPacketId(), PLAY_TO_SERVER)
-            .decoder(decoder)
-            .encoder(T::toBytes)
-            .consumerMainThread(T::processOnServer).add();
     }
 
     public static <MSG> void sendToServer(MSG messages) {

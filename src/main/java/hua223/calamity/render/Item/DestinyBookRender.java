@@ -12,6 +12,7 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.NotNull;
 
 @OnlyIn(Dist.CLIENT)
 public class DestinyBookRender extends BlockEntityWithoutLevelRenderer {
@@ -21,8 +22,9 @@ public class DestinyBookRender extends BlockEntityWithoutLevelRenderer {
     }
 
     @Override
-    public void renderByItem(ItemStack stack, ItemDisplayContext displayContext,
-                             PoseStack poseStack, MultiBufferSource buffer, int packedLight, int packedOverlay) {
+    @SuppressWarnings("deprecation")
+    public void renderByItem(@NotNull ItemStack stack, @NotNull ItemDisplayContext displayContext,
+                             PoseStack poseStack, @NotNull MultiBufferSource buffer, int packedLight, int packedOverlay) {
         ItemRenderer renderer = Minecraft.getInstance().getItemRenderer();
         BakedModel model = renderer.getModel(stack, null, null, 0);
 
@@ -33,7 +35,7 @@ public class DestinyBookRender extends BlockEntityWithoutLevelRenderer {
         poseStack.popPose();
 
         if (displayContext == ItemDisplayContext.GUI) {
-            ItemStack overlay = ((DestinyBook) stack.getItem()).getOverlayStack(stack);
+            ItemStack overlay = DestinyBook.getOverlayStack(stack);
 
             if (overlay != null && !overlay.isEmpty()) {
                 BakedModel overlayModel = renderer.getModel(overlay, null, null, 0);

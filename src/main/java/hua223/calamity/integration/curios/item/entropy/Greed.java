@@ -5,7 +5,6 @@ import hua223.calamity.integration.curios.Card;
 import hua223.calamity.register.Items.CalamityItems;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.CalamityHelp;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
@@ -28,13 +27,12 @@ public class Greed extends Card {
 
     @Override
     protected void setAttributeModifiers(UUID uuid, ItemStack stack, Multimap<Attribute, AttributeModifier> modifier, LivingEntity equipped) {
+        final float amplifier = equipped.calamity$Player.Calamity$Player.cardDeck ? 0.03f : 0.02f;
         CuriosApi.getCuriosInventory(equipped).ifPresent(modifiable -> {
             double amount = 0;
-            double amplifier = CalamityHelp.getCalamityFlag(equipped, 10) ? 0.03f : 0.02f;
             for (int i = 0; i < modifiable.getSlots(); i++) {
                 IItemHandlerModifiable handler = modifiable.getEquippedCurios();
                 for (int j = 0; j < handler.getSlots(); j++) {
-                    ItemStack curio = handler.getStackInSlot(j);
                     if (!handler.getStackInSlot(i).isEmpty())
                         amount += amplifier;
                 }

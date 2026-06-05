@@ -1,10 +1,10 @@
 package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.SprintCurio;
-import hua223.calamity.integration.curios.listeners.EffectListener;
+import hua223.calamity.events.listeners.EffectListener;
 import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.ConflictChain;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -29,13 +29,13 @@ public class AsgardValor extends OrnateShield {
     @Override
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
         super.equipHandle(player, stack);
-        CalamityHelp.setCalamityFlag(player, 7, true);
+        player.Calamity$Player.fireImmune = true;
     }
 
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
         super.unEquipHandle(player, stack);
-        CalamityHelp.setCalamityFlag(player, 7, false);
+        player.Calamity$Player.fireImmune = false;
     }
 
     @ApplyEvent

@@ -8,6 +8,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageSources;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -25,6 +26,16 @@ public class CalamityDamageSource extends DamageSource {
 
     protected CalamityDamageSource(@NotNull ResourceKey<DamageType> type, @NotNull Level level, Entity directEntity, Entity causingEntity) {
         super(getHolder(level, type), directEntity, causingEntity);
+    }
+
+    @SuppressWarnings("ALL")
+    public static DamageSource getCustomizeDeathMessages(Component text, DamageSources damageSources) {
+        return new DamageSource(damageSources.genericKill().typeHolder()) {
+            @Override
+            public @NotNull Component getLocalizedDeathMessage(@NotNull LivingEntity entity) {
+                return text;
+            }
+        };
     }
 
     private static Holder<DamageType> getHolder(Level level, ResourceKey<DamageType> key) {

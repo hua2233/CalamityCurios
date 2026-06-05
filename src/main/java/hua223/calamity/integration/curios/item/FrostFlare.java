@@ -1,10 +1,11 @@
 package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.integration.curios.listeners.HurtListener;
-import hua223.calamity.integration.curios.listeners.PlayerAttackListener;
-import hua223.calamity.integration.curios.listeners.PlayerHealListener;
+import hua223.calamity.events.listeners.HurtListener;
+import hua223.calamity.events.listeners.PlayerAttackListener;
+import hua223.calamity.events.listeners.PlayerHealListener;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.GlobalCuriosStorage;
 import hua223.calamity.util.ICuriosStorage;

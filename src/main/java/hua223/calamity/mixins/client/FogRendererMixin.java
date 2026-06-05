@@ -1,6 +1,5 @@
 package hua223.calamity.mixins.client;
 
-import hua223.calamity.util.CalamityHelp;
 import net.minecraft.client.renderer.FogRenderer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -13,7 +12,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class FogRendererMixin {
     @Inject(method = "getPriorityFogFunction", at = @At("RETURN"), cancellable = true)
     private static void canStoppedByRadiation(Entity entity, float p_234167_, CallbackInfoReturnable<?> cir) {
-        if (cir.getReturnValue() != null && entity instanceof Player player && CalamityHelp.getCalamityFlag(player, 0))
-            cir.setReturnValue(null);
+        if (cir.getReturnValue() != null && entity instanceof Player player
+            && player.Calamity$Player.hasRadianceEffect) cir.setReturnValue(null);
     }
+
 }

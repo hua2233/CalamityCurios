@@ -1,7 +1,8 @@
 package hua223.calamity.integration.curios.item;
 
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.integration.curios.listeners.ProjectileHitListener;
+import hua223.calamity.events.listeners.ProjectileHitListener;
 import hua223.calamity.util.CMLangUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -31,6 +32,6 @@ public class DaawnlightSpiritOrigin extends BaseCurio {
         CMLangUtil.batchColorTexts(tooltips, ChatFormatting.GOLD, "daawnlight", 2, 3);
         tooltips.add(CMLangUtil.blankLine());
         tooltips.add(CMLangUtil.getTranslatable("daawnlight", 1).withStyle(ChatFormatting.AQUA));
-        return super.getSlotsTooltip(tooltips, stack);
+        return tooltips;
     }
 }

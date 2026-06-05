@@ -3,70 +3,76 @@ package hua223.calamity.capability;
 import hua223.calamity.integration.curios.item.Calamity;
 import hua223.calamity.register.Items.CalamityItems;
 import hua223.calamity.util.IDataPackResponse;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
 
-import java.util.*;
+import java.util.List;
 
-public class CalamityCap implements BaseCap<CalamityCap> {
-    private static final Set<UUID> CURSE_PLAYERS = new ObjectOpenHashSet<>();
+public class CalamityCap implements BaseCap {
+    private static int curseCount;
+    private final ServerPlayer player;
+    private boolean isCursePlayer;
     private byte curseFlags;
 
-    public CalamityCap() {
-        curseFlags = 0;
+    public CalamityCap(ServerPlayer player) {
+        this.player = player;
     }
 
-    public static boolean isInverted(CurseType curseType, ICapabilityProvider player) {
-        Optional<CalamityCap> optional = CalamityCapProvider.CALAMITY.getCapabilityFrom(player).resolve();
-        return optional.filter(calamityCap -> (calamityCap.curseFlags & 1 << curseType.getBit()) != 0).isPresent();
+    public void setCursePlayer(boolean cursePlayer) {
+        if (isCursePlayer != cursePlayer) {
+            isCursePlayer = cursePlayer;
+            curseCount += (isCursePlayer ? 1 : -1);
+        }
     }
 
-    public static void curseInverted(CurseType curseType, ServerPlayer player, Calamity calamity) {
-        if (isCalamity(player)) {
-            CalamityCapProvider.CALAMITY.getCapabilityFrom(player).ifPresent(
-                cap -> {
-                    cap.curseFlags = (byte) (cap.curseFlags | 1 << curseType.getBit());
-                    calamity.getPack().putByte(curseType.name(), (byte) 0);
-                    calamity.sendToClient(player);
-                });
+    public boolean isCursePlayer() {
+        return isCursePlayer;
+    }
+
+    public boolean isInverted(CurseType type) {
+        return (curseFlags & 1 << type.getBit()) != 0;
+    }
+
+    public void curseInverted(CurseType curseType, Calamity calamity) {
+        if (isCursePlayer) {
+            curseFlags = (byte) (curseFlags | 1 << curseType.getBit());
+            calamity.getPack().putByte(curseType.name(), curseFlags);
+            calamity.sendToClient(player);
         }
     }
 
     public static boolean notHasCalamity() {
-        return CURSE_PLAYERS.isEmpty();
+        return curseCount == 0;
     }
 
-    public static Set<UUID> getCalamityList() {
-        return CURSE_PLAYERS;
+    public static int getCalamityPlayerCount() {
+        return curseCount;
     }
 
-    public void syncData(ServerPlayer player) {
-        IDataPackResponse response = (IDataPackResponse) CalamityItems.CALAMITY.get();
+    @SuppressWarnings("ConstantConditions")
+    public List<ServerPlayer> getRestCalamity() {
+        List<ServerPlayer> players = player.getServer().getPlayerList().getPlayers();
+        players.removeIf(p -> p == player || !p.Calamity$Player.calamityCap.isCursePlayer);
+        return players;
+    }
+
+    @Override
+    @SuppressWarnings("ConstantConditions")
+    public void onClone(Player old, boolean isDeath) {
+        curseFlags = old.Calamity$Player.calamityCap.curseFlags;
+    }
+
+    @Override
+    public void syncData() {
+        IDataPackResponse response = CalamityItems.CALAMITY.asPackHandler();
         CompoundTag tag = response.getPack();
         for (CurseType type : CurseType.values())
-            if (type.reversed) tag.putByte(type.name(), (byte) 0);
+            if (type.reversed) tag.putByte(type.name(), curseFlags);
 
-       if (!tag.isEmpty()) response.sendToClient(player);
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public static void reSet() {
-        for (CurseType type : CurseType.values())
-            type.reversed = false;
-    }
-
-    public static boolean isCalamity(LivingEntity player) {
-        return CURSE_PLAYERS.contains(player.getUUID());
-    }
-
-    public static void setCalamity(LivingEntity player, boolean calamity) {
-        if (calamity) CURSE_PLAYERS.add(player.getUUID());
-        else CURSE_PLAYERS.remove(player.getUUID());
+        if (!tag.isEmpty()) response.sendToClient(player);
     }
 
     @Override
@@ -77,12 +83,6 @@ public class CalamityCap implements BaseCap<CalamityCap> {
     @Override
     public void load(CompoundTag tag) {
         curseFlags = tag.getByte("curse");
-    }
-
-    @Override
-    public void deathActivation(CalamityCap old, ServerPlayer _new) {
-        CalamityCapProvider.CALAMITY.getCapabilityFrom(_new).ifPresent(
-            cap -> cap.curseFlags = old.curseFlags);
     }
 
     public enum CurseType {
@@ -97,11 +97,16 @@ public class CalamityCap implements BaseCap<CalamityCap> {
         CurseType() {}
 
         private byte getBit() {
-            CurseType[] types = CurseType.values();
+            CurseType[] types = values();
             for (int i = 0; i < types.length; i++)
                 if (this == types[i]) return (byte) i;
 
             throw new IllegalStateException("Non-existent enumeration object!");
+        }
+
+        @OnlyIn(Dist.CLIENT)
+        public static void reSet() {
+            for (CurseType type : values()) type.reversed = false;
         }
     }
 }

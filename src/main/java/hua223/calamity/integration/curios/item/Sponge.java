@@ -1,9 +1,10 @@
 package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.integration.curios.listeners.DeathListener;
-import hua223.calamity.integration.curios.listeners.HurtListener;
+import hua223.calamity.events.listeners.DeathListener;
+import hua223.calamity.events.listeners.HurtListener;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.render.hud.SpongeHud;
 import hua223.calamity.util.CMLangUtil;
@@ -34,8 +35,11 @@ public class Sponge extends BaseCurio implements ICuriosStorage, IDataPackRespon
     @Override
     protected void setAttributeModifiers(UUID uuid, ItemStack stack, Multimap<Attribute, AttributeModifier> modifier, LivingEntity equipped) {
         if (!equipped.level().isClientSide) getUUID(equipped)[0] = uuid;
-        modifier.put(Attributes.ARMOR, new VariableAttributeModifier(uuid, "sponge", 15, AttributeModifier.Operation.ADDITION));
-        modifier.put(CalamityAttributes.INJURY_OFFSET.get(), new VariableAttributeModifier(uuid, "sponge", 0.1, AttributeModifier.Operation.MULTIPLY_BASE));
+        modifier.put(Attributes.ARMOR, new VariableAttributeModifier(uuid, "sponge",
+            15, AttributeModifier.Operation.ADDITION));
+
+        modifier.put(CalamityAttributes.INJURY_OFFSET.get(), new VariableAttributeModifier(uuid, "sponge",
+            0.1, AttributeModifier.Operation.MULTIPLY_BASE));
     }
 
     @Override
@@ -68,6 +72,7 @@ public class Sponge extends BaseCurio implements ICuriosStorage, IDataPackRespon
     }
 
     @ApplyEvent(120)
+    @SuppressWarnings("ConstantConditions")
     public final void onHurt(HurtListener listener) {
         var memory = getMemory(listener.player);
         float[] count = memory.count;
@@ -84,8 +89,10 @@ public class Sponge extends BaseCurio implements ICuriosStorage, IDataPackRespon
             if (count[0] <= 0) {
                 count[0] = 0;
                 count[3] = 1;
-                VariableAttributeModifier.updateModifierInInstance(listener.player.getAttribute(CalamityAttributes.INJURY_OFFSET.get()), memory.uuids[0], 0);
-                VariableAttributeModifier.updateModifierInInstance(listener.player.getAttribute(Attributes.ARMOR), memory.uuids[0], 0);
+                VariableAttributeModifier.updateModifierInInstance(
+                    listener.player.getAttribute(CalamityAttributes.INJURY_OFFSET.get()), memory.uuids[0], 0);
+                VariableAttributeModifier.updateModifierInInstance(
+                    listener.player.getAttribute(Attributes.ARMOR), memory.uuids[0], 0);
             }
             getPack().putFloat("value", count[0]);
             sendToClient(listener.player);
@@ -99,6 +106,7 @@ public class Sponge extends BaseCurio implements ICuriosStorage, IDataPackRespon
     }
 
     @Override
+    @SuppressWarnings("ConstantConditions")
     protected void onPlayerTick(Player player) {
         var memory = getMemory(player);
         if (memory.count[2] == 1 && --memory.count[1] <= 0) {
@@ -109,8 +117,10 @@ public class Sponge extends BaseCurio implements ICuriosStorage, IDataPackRespon
                 if (memory.count[3] == 1) {
                     memory.count[3] = 0;
                     UUID uuid = memory.uuids[0];
-                    VariableAttributeModifier.updateModifierInInstance(player.getAttribute(Attributes.ARMOR), uuid, 15);
-                    VariableAttributeModifier.updateModifierInInstance(player.getAttribute(CalamityAttributes.INJURY_OFFSET.get()), uuid, 0.1);
+                    VariableAttributeModifier.updateModifierInInstance(
+                        player.getAttribute(Attributes.ARMOR), uuid, 15);
+                    VariableAttributeModifier.updateModifierInInstance(
+                        player.getAttribute(CalamityAttributes.INJURY_OFFSET.get()), uuid, 0.1);
                 }
             } else memory.count[1] = 20;
 

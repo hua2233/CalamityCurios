@@ -7,8 +7,10 @@ import hua223.calamity.util.delaytask.DelayRunnable;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.player.Player;
 
-public class Adrenaline implements BaseCap<Adrenaline> {
+public class Adrenaline implements BaseCap {
+    private final ServerPlayer player;
     private static final int MAX = 30;
     private int value;
     private boolean isNanoMachinesMode = true;
@@ -19,7 +21,11 @@ public class Adrenaline implements BaseCap<Adrenaline> {
     private boolean canPlay = true;
     private byte bitFlags;
 
-    public void addValue(ServerPlayer player, IDataPackResponse response) {
+    public Adrenaline(ServerPlayer player) {
+        this.player = player;
+    }
+
+    public void addValue(IDataPackResponse response) {
         if (!enabled || active || isMax()) return;
         CompoundTag pack = response.getPack();
         pack.putInt("value", ++value);
@@ -32,7 +38,7 @@ public class Adrenaline implements BaseCap<Adrenaline> {
         response.sendToClient(player);
     }
 
-    public void setEnabled(ServerPlayer player, boolean offOrOn, IDataPackResponse response) {
+    public void setEnabled(boolean offOrOn, IDataPackResponse response) {
         if (offOrOn != enabled) {
             enabled = offOrOn;
             if (enabled) {
@@ -61,21 +67,21 @@ public class Adrenaline implements BaseCap<Adrenaline> {
         return active;
     }
 
-    public void adrenalineActivate(ServerPlayer player, boolean isActive, IDataPackResponse response) {
+    public void adrenalineActivate(boolean isActive, IDataPackResponse response) {
         if (isActive && (!enabled || active || !isMax())) return;
         active = isActive;
         if (isActive) {
             if (isNanoMachinesMode) {
                 player.level().playSound(null, player, CalamitySounds.NANO_ACTIVATE.get(), SoundSource.PLAYERS, 1f, 1f);
-                startNanoRepair(player, response);
+                startNanoRepair(response);
             } else {
-                startAdrenalineMode(player, response);
+                startAdrenalineMode(response);
                 player.level().playSound(null, player, CalamitySounds.ADRENALINE_ACTIVATE.get(), SoundSource.PLAYERS, 1f, 1f);
             }
         }
     }
 
-    public void zero(ServerPlayer player, IDataPackResponse response) {
+    public void zero(IDataPackResponse response) {
         if (enabled) {
             value = 0;
             response.getPack().putInt("value", 0);
@@ -95,7 +101,7 @@ public class Adrenaline implements BaseCap<Adrenaline> {
         return value >= MAX;
     }
 
-    public void switchMode(ServerPlayer player, IDataPackResponse response) {
+    public void switchMode(IDataPackResponse response) {
         isNanoMachinesMode = !isNanoMachinesMode;
         value = 0;
         canPlay = true;
@@ -106,7 +112,7 @@ public class Adrenaline implements BaseCap<Adrenaline> {
         response.sendToClient(player);
     }
 
-    private void startNanoRepair(ServerPlayer player, IDataPackResponse response) {
+    private void startNanoRepair(IDataPackResponse response) {
         final float heal = player.getMaxHealth() * 0.3f;
 
         DelayRunnable.conditionsLoop(() -> {
@@ -127,7 +133,7 @@ public class Adrenaline implements BaseCap<Adrenaline> {
         }, 2);
     }
 
-    private void startAdrenalineMode(ServerPlayer player, IDataPackResponse response) {
+    private void startAdrenalineMode(IDataPackResponse response) {
         DelayRunnable.conditionsLoop(() -> {
             if (value <= 0) {
                 active = false;
@@ -141,14 +147,14 @@ public class Adrenaline implements BaseCap<Adrenaline> {
         }, 2);
     }
 
-    public boolean tryUseAdrenalineItem(int flag, ServerPlayer player) {
+    public boolean tryUseAdrenalineItem(int flag) {
         if (flag > 7) return false;
 
         if ((bitFlags & 1 << flag) == 0) {
             bitFlags = (byte) (bitFlags | 1 << flag);
             damageOffset += 0.05f;
             amplifier += 0.2f;
-            IDataPackResponse response = (IDataPackResponse) CalamityItems.DRAEDON_HEART.get();
+            IDataPackResponse response = CalamityItems.DRAEDON_HEART.asPackHandler();
             response.getPack().putByte("count", getAdrenalineItemCount());
             response.sendToClient(player);
             return true;
@@ -169,16 +175,19 @@ public class Adrenaline implements BaseCap<Adrenaline> {
         return count;
     }
 
-    public void deathActivation(Adrenaline adrenaline, ServerPlayer player) {
+    @SuppressWarnings("ConstantConditions")
+    public void onClone(Player old, boolean isDeath) {
+        Adrenaline adrenaline = old.Calamity$Player.adrenaline;
         isNanoMachinesMode = adrenaline.isNanoMachinesMode;
         amplifier = adrenaline.amplifier;
         damageOffset = adrenaline.damageOffset;
         bitFlags = adrenaline.bitFlags;
-        syncData(player);
+        value = isDeath ? 0 : adrenaline.value;
+        syncData();
     }
 
-    public void syncData(ServerPlayer player) {
-        IDataPackResponse response = (IDataPackResponse) CalamityItems.DRAEDON_HEART.get();
+    public void syncData() {
+        IDataPackResponse response = CalamityItems.DRAEDON_HEART.asPackHandler();
         CompoundTag tag = response.getPack();
         tag.putInt("value", value);
         tag.putBoolean("state", enabled);

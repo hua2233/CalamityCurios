@@ -1,7 +1,8 @@
 package hua223.calamity.register.entity;
 
+import hua223.calamity.register.Items.CalamityItems;
 import hua223.calamity.register.sounds.CalamitySounds;
-import hua223.calamity.util.CalamityHelp;
+import hua223.calamity.util.IDataPackResponse;
 import hua223.calamity.util.Vector2d;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
@@ -51,13 +52,18 @@ public class UniverseSplitterField extends Entity {
         noPhysics = true;
     }
 
-    public static void create(Level level, Player player, LivingEntity entity) {
+    @SuppressWarnings("ConstantConditions")
+    public static void create(Level level, IDataPackResponse response, Player player, LivingEntity entity) {
         Vec3 pos;
         UniverseSplitterField field = CalamityEntity.USF.get().create(level);
 
         if (entity != null) {
             pos = entity.position().add(0, entity.getBoundingBox().getYsize() / 2, 0);
-            CalamityHelp.setCalamityFlag(entity, 2, true);
+            CompoundTag tag = response.getPack();
+            entity.calamity$NoMoving = true;
+            tag.putBoolean("flag", true);
+            tag.putInt("id", entity.getId());
+            response.sendToAllClient();
         } else pos = player.getEyePosition().add(player.getLookAngle().normalize().scale(20));
 
         field.setPos(pos);
@@ -69,8 +75,8 @@ public class UniverseSplitterField extends Entity {
     @Override
     public void tick() {
         if (tickCount > TIME_LEFT) {
+            if (target != null && target.isAlive()) unLockEntity();
             discard();
-            if (target != null && target.isAlive()) CalamityHelp.setCalamityFlag(target, 2, false);
             return;
         }
 
@@ -84,7 +90,16 @@ public class UniverseSplitterField extends Entity {
     @Override
     public void kill() {
         super.kill();
-        if (target != null && target.isAlive()) CalamityHelp.setCalamityFlag(target, 2, false);
+        if (target != null && target.isAlive()) unLockEntity();
+    }
+
+    private void unLockEntity() {
+        IDataPackResponse response = CalamityItems.UNIVERSE_SPLITTER.asPackHandler();
+        CompoundTag tag = response.getPack();
+        target.calamity$NoMoving = false;
+        tag.putInt("id", target.getId());
+        tag.putBoolean("flag", false);
+        response.sendToAllClient();
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -159,6 +174,7 @@ public class UniverseSplitterField extends Entity {
         }
     }
 
+    @SuppressWarnings("ConstantConditions")
     private void spawnLasers() {
         // Create small beams sometimes
         if (tickCount > 40 &&
@@ -217,7 +233,7 @@ public class UniverseSplitterField extends Entity {
 
         @Override
         public @NotNull ResourceLocation getTextureLocation(@NotNull UniverseSplitterField universeSplitterField) {
-            return null;
+            throw new IllegalStateException("No Texture Entity Renderer");
         }
 
         @Override

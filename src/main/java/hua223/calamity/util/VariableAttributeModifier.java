@@ -6,6 +6,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -28,7 +29,7 @@ public class VariableAttributeModifier extends AttributeModifier {
     }
 
     @SuppressWarnings("ConstantConditions")
-    public static void readOldValuesOfDeath(ServerPlayer _new, ServerPlayer old) {
+    public static void readOldValuesOfDeath(ServerPlayer _new, Player old) {
         old.getAttributes().attributes.forEach((k, v) -> {
             AttributeInstance instance = _new.getAttribute(k);
             for (AttributeModifier modifier : v.permanentModifiers)
@@ -37,6 +38,7 @@ public class VariableAttributeModifier extends AttributeModifier {
         });
     }
 
+    @SuppressWarnings("ConstantConditions")
     public static void createOrIncrease(LivingEntity entity, Attribute attribute, UUID id, String name, double base, double max, Operation operation) {
         AttributeInstance instance = entity.getAttribute(attribute);
         if (instance != null) {

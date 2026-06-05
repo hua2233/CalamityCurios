@@ -1,7 +1,8 @@
 package hua223.calamity.integration.curios.item;
 
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.SprintCurio;
-import hua223.calamity.integration.curios.listeners.EffectListener;
+import hua223.calamity.events.listeners.EffectListener;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.CalamityHelp;
@@ -27,13 +28,13 @@ public class ElysianAegis extends SprintCurio {
     @Override
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
         super.equipHandle(player, stack);
-        CalamityHelp.setCalamityFlag(player, 7, true);
+        player.Calamity$Player.fireImmune = true;
     }
 
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
         super.unEquipHandle(player, stack);
-        CalamityHelp.setCalamityFlag(player, 7, false);
+        player.Calamity$Player.fireImmune = false;
     }
 
     @ApplyEvent

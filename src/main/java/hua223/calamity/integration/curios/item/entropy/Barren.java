@@ -1,7 +1,8 @@
 package hua223.calamity.integration.curios.item.entropy;
 
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.Card;
-import hua223.calamity.integration.curios.listeners.ProjectileSpawnListener;
+import hua223.calamity.events.listeners.ProjectileSpawnListener;
 import hua223.calamity.register.Items.CalamityItems;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.CalamityHelp;
@@ -29,7 +30,7 @@ public class Barren extends Card {
                 skull.shootFromRotation(listener.player, listener.player.getXRot(), listener.player.getYRot(),
                     0.0F, 2.0F, 1.0F);
                 if (listener.player.level().addFreshEntity(skull)) listener.player.getCooldowns().addCooldown(
-                    this, CalamityHelp.getCalamityFlag(listener.player, 10) ? 120 : 200);
+                    this, listener.player.Calamity$Player.cardDeck ? 120 : 200);
             }
         }
     }

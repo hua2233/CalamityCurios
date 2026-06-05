@@ -1,8 +1,9 @@
 package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.integration.curios.listeners.DeathListener;
+import hua223.calamity.events.listeners.DeathListener;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.util.*;
 import net.minecraft.ChatFormatting;
@@ -43,7 +44,7 @@ public class Community extends BaseCurio implements ICuriosStorage {
         CompoundTag tag = stack.getOrCreateTag();
         if (!tag.contains("heal")) init(tag);
         getCount(player)[1] = tag.getFloat("heal");
-        player.calamity$WingsExpand[2] += tag.getFloat("flyTime");
+        player.Calamity$Player.extraFlyTime += tag.getFloat("flyTime");
     }
 
     @Override
@@ -131,7 +132,7 @@ public class Community extends BaseCurio implements ICuriosStorage {
                 float original = tag.getFloat("flyTime");
                 float after = 0.05f + count * 0.02f;
                 tag.putFloat("flyTime", after);
-                player.calamity$WingsExpand[2] += (after - original);
+                player.Calamity$Player.extraFlyTime += (after - original);
             });
         }
     }

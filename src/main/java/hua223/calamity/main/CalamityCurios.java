@@ -10,14 +10,12 @@ import hua223.calamity.net.NetMessages;
 import hua223.calamity.register.RegisterList;
 import hua223.calamity.register.config.CalamityConfig;
 import hua223.calamity.register.particle.ParticleRegister;
-import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.damage.CalamityDamageTypes;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistrySetBuilder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
-import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.data.DatapackBuiltinEntriesProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
@@ -80,7 +78,6 @@ public class CalamityCurios {
     private void build(IEventBus bus) {
         RegisterList.build(bus);
         ParticleRegister.register(bus);
-        EntityDataSerializers.registerSerializer(CalamityHelp.SHORT);
         GlobalLootModifier.register(bus);
         NetMessages.registerNetPack();
         bus.addListener(this::gatherData);

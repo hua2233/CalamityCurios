@@ -1,13 +1,13 @@
 package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.SprintCurio;
-import hua223.calamity.integration.curios.listeners.EffectListener;
-import hua223.calamity.integration.curios.listeners.HurtListener;
+import hua223.calamity.events.listeners.EffectListener;
+import hua223.calamity.events.listeners.HurtListener;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.ConflictChain;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;

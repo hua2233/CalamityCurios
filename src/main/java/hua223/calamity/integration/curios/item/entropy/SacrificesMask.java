@@ -1,7 +1,8 @@
 package hua223.calamity.integration.curios.item.entropy;
 
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.integration.curios.listeners.PlayerAttackListener;
+import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.util.CMLangUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;

@@ -3,15 +3,19 @@ package hua223.calamity.register.Items;
 import hua223.calamity.register.entity.EternityHex;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.CalamityHelp;
+import hua223.calamity.util.IDataPackResponse;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellDataRegistryHolder;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.item.UniqueSpellBook;
 import io.redspace.ironsspellbooks.item.weapons.AttributeContainer;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
@@ -27,7 +31,7 @@ import top.theillusivec4.curios.api.SlotContext;
 import java.util.List;
 
 //The only thing in the world that is eternal and unchanging is change itself.....
-public class Eternity extends UniqueSpellBook {
+public class Eternity extends UniqueSpellBook implements IDataPackResponse {
     public Eternity() {
         super(SpellDataRegistryHolder.of(new SpellDataRegistryHolder(SpellRegistry.STARFALL_SPELL, 11),
             new SpellDataRegistryHolder(SpellRegistry.BLACK_HOLE_SPELL, 7),
@@ -47,11 +51,20 @@ public class Eternity extends UniqueSpellBook {
     }
 
     @Override
+    @OnlyIn(Dist.CLIENT)
+    @SuppressWarnings("ConstantConditions")
+    public void onClientResponse(CompoundTag tag) {
+        Entity entity = Minecraft.getInstance().level.getEntity(tag.getInt("id"));
+        if (entity instanceof LivingEntity living)
+            living.calamity$EternityLock = tag.getBoolean("flag");
+    }
+
+    @Override
     public @NotNull InteractionResultHolder<ItemStack> use(Level level, @NotNull Player player, @NotNull InteractionHand hand) {
         if (!level.isClientSide && !player.isUsingItem()) {
             LivingEntity entity = CalamityHelp.getSightDetectionEntityResult(player, level, 16);
             if (entity != null) {
-                EternityHex.create(player, level, entity);
+                EternityHex.create(player, this, level, entity);
                 player.startUsingItem(hand);
             }
         }

@@ -1,7 +1,7 @@
 package hua223.calamity.register.keys;
 
 import hua223.calamity.net.NetMessages;
-import hua223.calamity.net.S2CPacket.ApplyKeyEvent;
+import hua223.calamity.net.packets.ApplyKeyEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
@@ -9,8 +9,6 @@ import net.minecraft.world.item.Item;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.loading.FMLEnvironment;
-
-import java.util.Objects;
 
 
 /**
@@ -22,7 +20,7 @@ import java.util.Objects;
  * <p>
  * This interface provides methods for:
  * <ul>
- *   <li>Handling server responses through {@link #onServerResponse(ServerPlayer)}</li>
+ *   <li>Handling server responses through {@link #onServerResponse(ServerPlayer, CompoundTag)}</li>
  *   <li>Registering client-side key mappings via {@link #registerResponseKeyMapping()}</li>
  *   <li>Managing key codes and cooldown states</li>
  *   <li>Serializing and deserializing key ability data</li>
@@ -37,7 +35,7 @@ public interface IKeyDataPackResponse {
      *
      * @param player The server player that triggered the response, must not be null
      */
-    void onServerResponse(ServerPlayer player);
+    void onServerResponse(ServerPlayer player, CompoundTag tag);
 
     /**
      * Registers the key mapping response handler for client-side interaction
@@ -122,22 +120,5 @@ public interface IKeyDataPackResponse {
     @OnlyIn(Dist.CLIENT)
     default CompoundTag getSerializationStream() {
         return null;
-    }
-
-    /**
-     * Gets the serialization stream from the player's persistent data
-     * <p>
-     * Extracts and removes the CuriosKeyData compound tag from the player's
-     * persistent data storage. This method retrieves the serialized key ability
-     * data associated with the player and cleans up the stored data.
-     *
-     * @param player The server player whose persistent data contains the key ability data, must not be null
-     * @return A CompoundTag containing the extracted CuriosKeyData
-     */
-    default CompoundTag getDeserializationStream(ServerPlayer player) {
-        CompoundTag tag = player.getPersistentData();
-        CompoundTag component = (CompoundTag) Objects.requireNonNull(tag.get("CuriosKeyData"));
-        tag.remove("CuriosKeyData");
-        return component;
     }
 }

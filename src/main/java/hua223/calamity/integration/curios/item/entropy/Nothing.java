@@ -1,7 +1,8 @@
 package hua223.calamity.integration.curios.item.entropy;
 
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.Card;
-import hua223.calamity.integration.curios.listeners.PlayerAttackListener;
+import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.register.Items.CalamityItems;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.util.CMLangUtil;
@@ -27,7 +28,7 @@ public class Nothing extends Card {
         MobEffect effect = CalamityEffects.VOID_TOUCH.get();
         MobEffectInstance instance = listener.entity.getEffect(effect);
         if (instance != null) {
-            boolean flag = CalamityHelp.getCalamityFlag(listener.player, 10);
+            boolean flag = listener.player.Calamity$Player.cardDeck;
             int amplifier = instance.getAmplifier();
             if (amplifier < 2 || (flag && amplifier < 4))
                 listener.entity.addEffect(new MobEffectInstance(effect, flag ? 100 : 60, amplifier + 1));

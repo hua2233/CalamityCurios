@@ -1,12 +1,11 @@
 package hua223.calamity.mixins;
 
 import hua223.calamity.capability.CalamityCap;
-import jdk.dynalink.Operation;
+import hua223.calamity.util.CalamityPlayer;
 import net.minecraft.util.Unit;
 import net.minecraft.util.valueproviders.IntProvider;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
-import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.BehaviorControl;
 import net.minecraft.world.entity.ai.behavior.declarative.BehaviorBuilder;
 import net.minecraft.world.entity.ai.behavior.warden.TryToSniff;
@@ -16,8 +15,6 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
-
-import java.util.Optional;
 
 @Mixin({TryToSniff.class})
 public class SniffMixin {
@@ -38,10 +35,18 @@ public class SniffMixin {
                               nearestAttackable, disturbanceLocation) ->
                 (level, entity, time) -> {
                 Warden warden = (Warden) entity;
-                Optional<LivingEntity> optional = warden.getBrain().getMemory(MemoryModuleType.NEAREST_ATTACKABLE);
                 sniffCooldown.setWithExpiry(Unit.INSTANCE, SNIFF_COOLDOWN.sample(level.getRandom()));
-                if (optional.isPresent() && CalamityCap.isCalamity(optional.get())
-                    && CalamityCap.isInverted(CalamityCap.CurseType.SILVA, optional.get())) return false;
+                if (warden.getBrain().getMemory(MemoryModuleType.NEAREST_ATTACKABLE).filter(e -> {
+                        if (e.calamity$IsPlayer) {
+                            CalamityCap cap = e.calamity$Player.Calamity$Player.calamityCap;
+                            return cap.isCursePlayer() && cap.isInverted(CalamityCap.CurseType.SILVA);
+                        }
+
+                        return false;
+                    }).isPresent()
+                ) return false;
+
+
                 isSniffing.set(Unit.INSTANCE);
                 walkTarget.erase();
                 entity.setPose(Pose.SNIFFING);

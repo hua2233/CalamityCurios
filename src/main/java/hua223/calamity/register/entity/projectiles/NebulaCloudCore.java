@@ -3,7 +3,10 @@ package hua223.calamity.register.entity.projectiles;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import hua223.calamity.util.damage.DamageTags;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import hua223.calamity.main.CalamityCurios;
 import hua223.calamity.register.entity.CalamityEntity;
@@ -69,6 +72,7 @@ public class NebulaCloudCore extends Projectile {
 
     private LivingEntity target;
     private LivingEntity player;
+    private DamageSource source;
     private byte hurtCount;
     private float scale = 0.4f;
 
@@ -76,6 +80,7 @@ public class NebulaCloudCore extends Projectile {
         super(entityType, level);
     }
 
+    @SuppressWarnings("ConstantConditions")
     public static void create(LivingEntity player) {
         Level level = player.level();
         LivingEntity target = CalamityHelp.getClosestTarget(player, 14, player.position());
@@ -86,13 +91,15 @@ public class NebulaCloudCore extends Projectile {
             core.setPos(player.getEyePosition().add(look.scale(0.5)));
             core.target = target;
             core.player = player;
+            core.source = CalamityDamageSource.source(DamageTypes.MOB_PROJECTILE,
+                core, player).addDamageTag(DamageTags.CALAMITY_MAGIC.tag);
             core.height = target.getBbHeight() * 0.7f;
             level.addFreshEntity(core);
         }
     }
 
     @Override
-    public EntityDimensions getDimensions(Pose pose) {
+    public @NotNull EntityDimensions getDimensions(@NotNull Pose pose) {
         return EntityDimensions.scalable(scale, scale);
     }
 
@@ -155,7 +162,7 @@ public class NebulaCloudCore extends Projectile {
             if (trigger)
                 for (Entity entity : level().getEntities(this, this.getBoundingBox(), entity ->
                     entity.isPickable() && entity.isAlive() && entity != player && entity instanceof LivingEntity)) {
-                    entity.hurt(CalamityDamageSource.source(DamageTypes.MOB_PROJECTILE, this, player), 6f);
+                    entity.hurt(source, 6f);
                 }
 
             Vec3 endPos = target.position().add(0, height, 0);
@@ -163,7 +170,7 @@ public class NebulaCloudCore extends Projectile {
                 setPos(position().add(endPos.subtract(position()).normalize().scale(0.25)));
             } else if (trigger) {
                 //Is this a bite in a sense?
-                target.hurt(CalamityDamageSource.source(DamageTypes.MOB_PROJECTILE, this, player), 12f);
+                target.hurt(source, 12f);
                 if (++hurtCount >= 6) onKill();
             }
         }
@@ -242,6 +249,7 @@ public class NebulaCloudCore extends Projectile {
         return false;
     }
 
+    @SuppressWarnings("ConstantConditions")
     private void onKill() {
         if (isAlive()) {
             int totalProjectiles = random.nextInt(6, 9);
@@ -256,6 +264,7 @@ public class NebulaCloudCore extends Projectile {
                 nova.setPos(pos.x + random.nextDouble() * 0.6 - 0.3, pos.y, pos.z + random.nextDouble() * 0.6 - 0.3);
                 nova.setDeltaMovement(velocity2.x, 0, velocity2.y);
                 nova.centerY = pos.y;
+                nova.source = CalamityDamageSource.source(DamageTypes.MOB_PROJECTILE, nova, player).addDamageTag(DamageTags.CALAMITY_MAGIC.tag);
                 nova.owner = player;
                 level().addFreshEntity(nova);
             }
@@ -266,6 +275,7 @@ public class NebulaCloudCore extends Projectile {
 
     @Override
     @OnlyIn(Dist.CLIENT)
+    @SuppressWarnings("ConstantConditions")
     public void onClientRemoval() {
         Vec3 pos = position().add(0, scale / 2, 0);
         Vec3[] axis = CalamityHelp.makeBasisFromDirection(Minecraft.getInstance().player.getLookAngle());
@@ -409,7 +419,7 @@ public class NebulaCloudCore extends Projectile {
         }
 
         @Override
-        public ResourceLocation getTextureLocation(NebulaCloudCore nebulaCloudCore) {
+        public @NotNull ResourceLocation getTextureLocation(@NotNull NebulaCloudCore nebulaCloudCore) {
             return NEBULA_CORE;
         }
     }

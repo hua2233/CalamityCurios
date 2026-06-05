@@ -15,9 +15,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 
 public class Bounding extends CalamityEffect implements IEffectsCallBack {
-    @OnlyIn(Dist.CLIENT)
-    public static float jumpPower = 1f;
-
     public Bounding(MobEffectCategory category, int color) {
         super(category, color);
     }
@@ -29,7 +26,7 @@ public class Bounding extends CalamityEffect implements IEffectsCallBack {
             entity.getEffect(this).getAmplifier() < effect.getAmplifier())) {
             //It must require a specific Item object as the data processing carrier
             //We are unable to process deserializing the IdMap table
-            IDataPackResponse response = (IDataPackResponse) CalamityItems.BOUNDING.get();
+            IDataPackResponse response = CalamityItems.BOUNDING.asPackHandler();
             response.getPack().putFloat("bounding", 0.3f * Math.min(3, effect.getAmplifier() + 1));
             response.sendToClient((ServerPlayer) entity);
         }
@@ -38,7 +35,7 @@ public class Bounding extends CalamityEffect implements IEffectsCallBack {
     @Override
     public void onRemove(MobEffectInstance effect, LivingEntity entity) {
         if (entity.calamity$IsPlayer) {
-            IDataPackResponse response = (IDataPackResponse) CalamityItems.BOUNDING.get();
+            IDataPackResponse response = CalamityItems.BOUNDING.asPackHandler();
             response.getPack().putFloat("bounding", -0.3f * Math.min(3, effect.getAmplifier() + 1));
             response.sendToClient((ServerPlayer) entity);
         }

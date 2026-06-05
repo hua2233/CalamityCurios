@@ -18,12 +18,12 @@ public class AeroStone extends BaseCurio {
 
     @Override
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
-        player.calamity$WingsExpand[1] += 80;
+        player.Calamity$Player.extraFlyTime += 80;
     }
 
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
-        player.calamity$WingsExpand[1] -= 80;
+        player.Calamity$Player.extraFlyTime -= 80;
     }
 
     @OnlyIn(Dist.CLIENT)

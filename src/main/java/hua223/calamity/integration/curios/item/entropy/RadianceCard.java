@@ -1,7 +1,8 @@
 package hua223.calamity.integration.curios.item.entropy;
 
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.Card;
-import hua223.calamity.integration.curios.listeners.PlayerHealListener;
+import hua223.calamity.events.listeners.PlayerHealListener;
 import hua223.calamity.loots.ApplyGlobalLoot;
 import hua223.calamity.loots.EntitiesLootContext;
 import hua223.calamity.loots.GlobalLoot;

@@ -1,8 +1,10 @@
 package hua223.calamity.integration.curios.item;
 
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.integration.curios.listeners.CriticalHitCheckListener;
-import hua223.calamity.integration.curios.listeners.PlayerAttackListener;
+import hua223.calamity.events.listeners.CriticalHitCheckListener;
+import hua223.calamity.events.listeners.PlayerAttackListener;
+import hua223.calamity.register.Items.CalamityItems;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.ConflictChain;
@@ -21,12 +23,12 @@ public class DarkMatterSheath extends BaseCurio {
 
     @Override
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
-        CalamityHelp.setCalamityFlag(player, 9, true);
+        ((RuinMedallion) CalamityItems.RUIN_MEDALLION.get()).equipHandle(player, stack);
     }
 
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
-        CalamityHelp.setCalamityFlag(player, 9, false);
+        ((RuinMedallion) CalamityItems.RUIN_MEDALLION.get()).unEquipHandle(player, stack);
     }
 
     @ApplyEvent

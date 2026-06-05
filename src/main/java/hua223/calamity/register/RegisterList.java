@@ -141,7 +141,7 @@ public class RegisterList {
 
         @Override
         public @NotNull Ingredient getRepairIngredient() {
-            return Ingredient.of(Items.NETHERITE_INGOT);
+            return Ingredient.of(CalamityItems.SHADOW_SPEC_BAR.get());
         }
 
         @Override

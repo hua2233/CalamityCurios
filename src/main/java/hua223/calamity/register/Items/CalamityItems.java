@@ -6,6 +6,7 @@ import hua223.calamity.register.Items.edible.*;
 import hua223.calamity.register.RegisterList;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.util.CalamityHelp;
+import hua223.calamity.util.IDataPackResponse;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -21,7 +22,7 @@ import java.util.function.Supplier;
 
 import static hua223.calamity.register.RegisterList.*;
 
-public enum CalamityItems implements EnumRegister<Item>/*, IExtensibleEnum */ {
+public enum     CalamityItems implements EnumRegister<Item>/*, IExtensibleEnum */ {
     //Curios
     YHARIM_GIFT("yharim_gift", () -> new YharimGift(CURIOS_UNCOMMON)),
     RADIANCE("radiance", () -> new Radiance(CURIOS_EPIC)),
@@ -102,6 +103,7 @@ public enum CalamityItems implements EnumRegister<Item>/*, IExtensibleEnum */ {
     DEEP_DIVER("deep_diver", () -> new DeepDiver(CURIOS_RARE)),
     ORNATE_SHIELD("ornate_shield", () -> new OrnateShield(CURIOS_UNCOMMON)),
     ANGEL_TREADS("angel_treads", () -> new AngelTreads(CURIOS_UNCOMMON)),
+    MOON_WALKERS("moon_walkers", () -> new MoonWalkers(CURIOS_RARE)),
     ASGARD_VALOR("asgard_valor", () -> new AsgardValor(CURIOS_RARE)),
     LEVIATHAN_AMBERGRIS("leviathan_ambergris", () -> new LeviathanAmbergris(CURIOS_RARE)),
     GRAVISTAR_SABATON("gravistar_sabaton", () -> new GravistarSabaton(CURIOS_UNCOMMON)),
@@ -177,6 +179,7 @@ public enum CalamityItems implements EnumRegister<Item>/*, IExtensibleEnum */ {
     ODINS_REFUGE("odins_refuge", () -> new OdinsRefuge(CURIOS_EPIC)),
     SILVAS_CROWN("silvas_crown", () -> new SilvasCrown(CURIOS_UNCOMMON)),
     NIHILITY_SHELL("nihility_shell", () -> new NihilityShell(CURIOS_EPIC)),
+    AZURE_ABYSS_TALISMAN("azure_abyss_talisman", () -> new AzureAbyssTalisman(CURIOS_RARE)),
 
     //Item
     COMET_SHARD(() -> new MagicItem(RARE_ONE, 0), "comet_shard"),
@@ -317,6 +320,12 @@ public enum CalamityItems implements EnumRegister<Item>/*, IExtensibleEnum */ {
 
     DEMON_SHADE_BOOTS("demon_shade_boots", () -> new DemonShade(ArmorItem.Type.BOOTS)),
 
+    SHADOW_SPEC_BAR("shadow_spec_bar", () -> new TooltipItem(
+        new Item.Properties().stacksTo(64).fireResistant()
+            .rarity(RegisterList.CALAMITY), "shadow_spec_bar", 1)),
+
+    TERMINUS("terminus", Terminus::new),
+
     //SwordAndTool
     ETERNITY("eternity", () -> {
         setUniqueProperties(EPIC_ONE);
@@ -367,6 +376,10 @@ public enum CalamityItems implements EnumRegister<Item>/*, IExtensibleEnum */ {
 
     public ResourceLocation getId() {
         return value.getId();
+    }
+
+    public IDataPackResponse asPackHandler() {
+        return (IDataPackResponse) getValue().get();
     }
 
     @Override

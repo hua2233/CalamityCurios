@@ -4,14 +4,15 @@ import com.google.common.collect.Multimap;
 import hua223.calamity.register.RegisterList;
 import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.ICuriosStorage;
+import hua223.calamity.util.IDataPackResponse;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.ChatFormatting;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -25,7 +26,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-public abstract class Decks extends BaseCurio {
+public abstract class Decks extends BaseCurio implements IDataPackResponse {
     private final Set<Card> subCards = new ObjectOpenHashSet<>(9);
 
     protected Decks() {
@@ -37,7 +38,11 @@ public abstract class Decks extends BaseCurio {
         super.onEquip(slotContext, prevStack, stack);
         if(slotContext.entity() instanceof ServerPlayer player) {
             boolean unsealing = isUnsealing(stack);
-            if (unsealing) CalamityHelp.setCalamityFlag(player, 10, true);
+            if (unsealing) {
+                player.Calamity$Player.cardDeck = true;
+                getPack().putBoolean("flag", true);
+                sendToClient(player);
+            }
 
             for (Card subCard : getCards()) {
                 if (unsealing) subCard.onEquip(slotContext, prevStack, stack);
@@ -51,14 +56,24 @@ public abstract class Decks extends BaseCurio {
     public void onUnequip(SlotContext slotContext, ItemStack newStack, ItemStack stack) {
         super.onUnequip(slotContext, newStack, stack);
         if (slotContext.entity() instanceof ServerPlayer player) {
-            CalamityHelp.setCalamityFlag(slotContext.entity(), 10, false);
             boolean unsealing = isUnsealing(stack);
+            if (unsealing) {
+                player.Calamity$Player.cardDeck = false;
+                getPack().putBoolean("flag", false);
+                sendToClient(player);
+            }
+
             for (Card subCard : getCards()) {
                 if (unsealing) subCard.onUnequip(slotContext, newStack, stack);
                 if (subCard instanceof ICuriosStorage storage)
                     storage.removeStorage(player);
             }
         }
+    }
+
+    @Override
+    public void onClientResponse(CompoundTag tag) {
+        CalamityHelp.getClientCalamity().cardDeck = tag.getBoolean("flag");
     }
 
     @Override
@@ -135,13 +150,4 @@ public abstract class Decks extends BaseCurio {
     }
 
     public abstract Item getUnsealingRope();
-
-//    @Override
-//    //The default does not have storage attributes, it is only for the correct creation of storage mappings for the deck cards
-//    public void addToStorage(Player player) {
-//        if (getCountSize() != 0) ICuriosStorage.super.addToStorage(player);
-//        for (Card subCard : getCards())
-//            if (subCard instanceof ICuriosStorage storage)
-//                storage.addToStorage(player);
-//    }
 }

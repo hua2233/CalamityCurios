@@ -8,6 +8,7 @@ import hua223.calamity.util.*;
 import hua223.calamity.util.delaytask.DelayRunnable;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -17,7 +18,6 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Abilities;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -29,7 +29,7 @@ import java.util.UUID;
 @ConflictChain(Wings.class)
 public class AscendantInsignia extends Wings implements IKeyDataPackResponse {
     public AscendantInsignia(Properties properties) {
-        super(properties, 300, 1.75f, 1);
+        super(properties);
     }
 
     @Override
@@ -39,16 +39,31 @@ public class AscendantInsignia extends Wings implements IKeyDataPackResponse {
     }
 
     @Override
+    protected float getFlySpeedAmplifier() {
+        return 1.14f;
+    }
+
+    @Override
+    protected int getFlyTime() {
+        return 300;
+    }
+
+    @Override
+    protected float getVerticalSpeed() {
+        return 1.1f;
+    }
+
+    @Override
     @SuppressWarnings("ConstantConditions")
-    public void onServerResponse(ServerPlayer player) {
+    public void onServerResponse(ServerPlayer player, CompoundTag tag) {
         ServerLevel level = player.serverLevel();
         level.playSound(player, player.blockPosition(), CalamitySounds.ASCENDANT_ACTIVATE.get(), SoundSource.AMBIENT);
         float[] count = getMemory(player).count;
 
-        count[4] = 1;
+        count[2] = 1;
         player.getCooldowns().addCooldown(this, 800);
         DelayRunnable.addRunTask(160, () -> {
-            count[4] = 0;
+            count[2] = 0;
             level.playSound(player, player.blockPosition(), CalamitySounds.ASCENDANT_OFF.get(), SoundSource.AMBIENT);
         });
     }
@@ -67,40 +82,24 @@ public class AscendantInsignia extends Wings implements IKeyDataPackResponse {
 
     @Override
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
+        super.equipHandle(player, stack);
         setKeyMapping(player, true);
     }
 
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
+        super.unEquipHandle(player, stack);
         setKeyMapping(player, false);
     }
 
     @Override
-    protected void onPlayerTick(Player player) {
-        if (player.isCreative() || player.isSpectator()) return;
-        Abilities abilities = player.getAbilities();
-        float[] count = getCount(player);
-
-        if (abilities.flying) {
-            if (count[4] != 1 && count[0]-- <= 0) {
-                count[1] = 0;
-                abilities.setFlyingSpeed(0.05f);
-                abilities.mayfly = false;
-                abilities.flying = false;
-                player.onUpdateAbilities();
-            }
-        } else if (count[1] == 0 && player.onGround()) {
-            count[1] = 1;
-            count[0] = getFlyTime(player);
-            abilities.setFlyingSpeed(0.05f * flySpeedAmplifier);
-            abilities.mayfly = true;
-            player.onUpdateAbilities();
-        }
+    protected boolean cancelFlight(Abilities abilities, float[] count) {
+        return abilities.flying && count[2] != 1 && count[0]-- < 1;
     }
 
     @Override
     public int getCountSize() {
-        return 5;
+        return 3;
     }
 
     @Override

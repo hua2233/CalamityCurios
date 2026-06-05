@@ -7,6 +7,7 @@ import net.minecraft.world.damagesource.DamageType;
 
 public enum DamageTags {
     NOT_TRIGGER_EVENT("not_trigger_event"),
+    CALAMITY_MAGIC("calamity_magic"),
     NO_DECAY("no_decay");
     public final TagKey<DamageType> tag;
 

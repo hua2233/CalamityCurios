@@ -2,7 +2,6 @@ package hua223.calamity.register.entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import hua223.calamity.main.CalamityCurios;
-import hua223.calamity.mixed.ICalamityMagicExpand;
 import hua223.calamity.register.Items.CalamityItems;
 import hua223.calamity.register.particle.ParticleRegister;
 import hua223.calamity.register.sounds.CalamitySounds;
@@ -12,7 +11,6 @@ import hua223.calamity.util.damage.CalamityDamageTypes;
 import hua223.calamity.util.delaytask.DelayRunnable;
 import hua223.calamity.util.primitive.PrimitiveRenderer;
 import hua223.calamity.util.primitive.PrimitiveSettings;
-import io.redspace.ironsspellbooks.api.magic.MagicData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -46,7 +44,6 @@ public class EternityHex extends Entity {
     private static final int LIFE_TIME = 206;
     private LivingEntity target;
     private Player owner;
-    private ICalamityMagicExpand expand;
     private float yOffset;
     private DamageSource source;
 
@@ -110,18 +107,16 @@ public class EternityHex extends Entity {
         }
     }
 
-    public static void create(Player player, Level level, LivingEntity target) {
-        ICalamityMagicExpand expand = (ICalamityMagicExpand) MagicData.getPlayerMagicData(player);
-        if (expand.calamity$GetMana() > 30) {
+    public static void create(Player player, IDataPackResponse response, Level level, LivingEntity target) {
+        if (player.Calamity$Player.data.getMana() > 30) {
             EternityHex hex = CalamityEntity.ETERNITY_HEX.get().create(level);
             if (hex != null) {
                 hex.yOffset = target.getBbHeight() / 2;
-                hex.expand = expand;
                 hex.setPos(target.position().add(0, hex.yOffset, 0));
                 hex.owner = player;
                 hex.target = target;
                 hex.source = CalamityDamageSource.source(CalamityDamageTypes.ETERNITY_HEX, hex, player);
-                CalamityHelp.setCalamityFlag(target, 3, true);
+                hex.updateLock(response, true);
                 level.addFreshEntity(hex);
             }
         } else player.stopUsingItem();
@@ -133,7 +128,6 @@ public class EternityHex extends Entity {
             if (hex != null) {
                 hex.yOffset = yOffset;
                 hex.source = source;
-                hex.expand = expand;
                 hex.setPos(target.position().add(0, yOffset, 0));
                 hex.owner = owner;
                 hex.target = target;
@@ -171,7 +165,7 @@ public class EternityHex extends Entity {
 
             if (tickCount % 10 == 0) {
                 float amount = (float) (owner.getAttributeValue(Attributes.ATTACK_DAMAGE));
-                if (expand.calamity$ConsumeMana(Math.min(50f, amount * 10))) {
+                if (owner.Calamity$Player.consumeMana(Math.min(50f, amount * 10))) {
                     amount += target.getMaxHealth() * 0.03f;
                     target.hurt(source, amount);
                     if (target.isDeadOrDying()) death(reSpawn());
@@ -199,6 +193,14 @@ public class EternityHex extends Entity {
         }
     }
 
+    private void updateLock(IDataPackResponse response, boolean effect) {
+        CompoundTag tag = response.getPack();
+        target.calamity$EternityLock = effect;
+        tag.putBoolean("flag", effect);
+        tag.putInt("id", target.getId());
+        response.sendToAllClient();
+    }
+
     private boolean canAlive() {
         return owner != null && owner.isAlive() && owner.isUsingItem()
             && owner.getUseItem().is(CalamityItems.ETERNITY.get());
@@ -208,7 +210,7 @@ public class EternityHex extends Entity {
         LivingEntity newTarget = CalamityHelp.getClosestTarget(owner, 16, owner.position());
         if (newTarget != null) {
             target = newTarget;
-            CalamityHelp.setCalamityFlag(target, 3, true);
+            unLockTarget();
             yOffset = target.getBbHeight() / 2;
             return true;
         }
@@ -226,8 +228,8 @@ public class EternityHex extends Entity {
     }
 
     private void unLockTarget() {
-        if (target != null && target.isAlive())
-            CalamityHelp.setCalamityFlag(target, 3, false);
+        if (target != null && target.isAlive()) updateLock(
+            CalamityItems.ETERNITY.asPackHandler(), false);
     }
 
     @OnlyIn(Dist.CLIENT)

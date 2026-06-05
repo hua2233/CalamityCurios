@@ -1,7 +1,6 @@
 package hua223.calamity.register.entity;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
 import hua223.calamity.render.CalamityCelestialBodyShader;
 import hua223.calamity.util.CalamityHelp;
@@ -10,7 +9,6 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -27,7 +25,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -150,37 +147,24 @@ public class BlackHolePet extends Entity implements OwnableEntity {
             poseStack.mulPose(Axis.ZP.rotation(entity.rotation));
 
             Matrix4f matrix4f = poseStack.last().pose();
-            Matrix3f normal = poseStack.last().normal();
             consumer.vertex(matrix4f, -0.75f, -0.75f, 0)
                 .color(255, 255, 255, 255)
                 .uv(1, 1)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(15728880)
-                .normal(normal, 0, 1, 0)
                 .endVertex();
 
             consumer.vertex(matrix4f, -0.75f, 0.75f, 0)
                 .color(255, 255, 255, 255)
                 .uv(1, 0)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(15728880)
-                .normal(normal, 0, 1, 0)
                 .endVertex();
 
             consumer.vertex(matrix4f, 0.75f, 0.75f, 0)
                 .color(255, 255, 255, 255)
                 .uv(0, 0)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(15728880)
-                .normal(normal, 0, 1, 0)
                 .endVertex();
 
             consumer.vertex(matrix4f, 0.75f, -0.75f, 0)
                 .color(255, 255, 255, 255)
                 .uv(0, 1)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(15728880)
-                .normal(normal, 0, 1, 0)
                 .endVertex();
         }
 

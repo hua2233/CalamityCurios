@@ -4,10 +4,7 @@ import hua223.calamity.capability.CalamityCap;
 import hua223.calamity.register.effects.CalamityEffects;
 import it.unimi.dsi.fastutil.HashCommon;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializer;
+import net.minecraft.client.Minecraft;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
@@ -28,7 +25,6 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.ForgeMod;
 import org.jetbrains.annotations.ApiStatus;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
@@ -40,13 +36,10 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 public class CalamityHelp {
+    public static final String FONT_FLAG = "CF";
     public static final Vec3 UNIT_X = new Vec3(1, 0, 0);
     public static final Vec3 UNIT_Y = new Vec3(0, 1, 0);
     public static final Vec3 UNIT_Z = new Vec3(0, 0, 1);
-
-    public static final EntityDataSerializer<Short> SHORT = EntityDataSerializer.simple((buf, value) ->
-        buf.writeShort(value), FriendlyByteBuf::readShort);
-    public static EntityDataAccessor<Short> CALAMITY_DATA_SHARED_FLAGS;
 
     private CalamityHelp() {
     }
@@ -77,6 +70,7 @@ public class CalamityHelp {
                     ItemStack stack = dynamicHandler.getStackInSlot(i);
                     if (stack.getItem() == item) {
                         stackConsumer.accept(stack);
+                        //Mixin it may bring some negative impacts
                         //Ensure that it does not reignite storage calculations, avoid inexplicable anomalies
                         dynamicHandler.setPreviousStackInSlot(i, stack);
                         return;
@@ -86,35 +80,9 @@ public class CalamityHelp {
         }
     }
 
-    public static void setCalamityFlag(LivingEntity entity, int bit, boolean flag) {
-        short b = entity.getEntityData().get(CALAMITY_DATA_SHARED_FLAGS);
-        entity.getEntityData().set(CALAMITY_DATA_SHARED_FLAGS, (short) (flag ? b | 1 << bit : b & ~(1 << bit)));
-    }
-
-    //0 equip Radiance, 1 sneakingSpeedBonus, 2 field Lock, 3 eternityHex Lock 4 exhausted
-    //5 purple Flames 6 Chalice attack 7 fire Immune 8 fluid Stand 9 Sprint CriticalHit
-    //10 equip From Deck
-    public static boolean getCalamityFlag(LivingEntity entity, int bit) {
-        return (entity.getEntityData().get(CALAMITY_DATA_SHARED_FLAGS) & 1 << bit) != 0;
-    }
-
-//    public static boolean getCalamityFlags(LivingEntity entity, int... bits) {
-//        byte data = entity.getEntityData().get(CALAMITY_DATA_SHARED_FLAGS);
-//        for (int i : bits) if ((data & 1 << i) == 0) return false;
-//        return true;
-//    }
-
     public static int getDebuffCount(Player player) {
         return (int) player.getActiveEffectsMap().keySet()
             .stream().filter(effect -> !effect.isBeneficial()).count();
-    }
-
-    public static boolean hasDebuff(Player player) {
-        for (MobEffect effect : player.getActiveEffectsMap().keySet()) {
-            if (!effect.isBeneficial()) return true;
-        }
-
-        return false;
     }
 
     public static void addIfDoesNotExist(LivingEntity target, int duration, int amplifier, MobEffect... effects) {
@@ -137,7 +105,8 @@ public class CalamityHelp {
 
     @SuppressWarnings("ConstantConditions")
     public static boolean silent(Player player) {
-        if (CalamityCap.isCalamity(player) && CalamityCap.isInverted(CalamityCap.CurseType.SILVA, player))
+        CalamityCap cap = player.Calamity$Player.calamityCap;
+            if (cap.isCursePlayer() && cap.isInverted(CalamityCap.CurseType.SILVA))
             return true;
         else if (player.hasEffect(CalamityEffects.ANECHOIC_COATING.get())) {
             float silence = 0.5f + player.getEffect(CalamityEffects.ANECHOIC_COATING.get()).getAmplifier() * 0.15f;
@@ -148,23 +117,14 @@ public class CalamityHelp {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static void applyFluidWalk(Player player) {
-        if (player.getEyeInFluidType() == ForgeMod.EMPTY_TYPE.get()) {
-            BlockPos pos = player.blockPosition();
-            Level level = player.level();
-            if (level.getFluidState(pos.above()).isEmpty() && canWalkInFluid(level.getFluidState(pos))) {
-                Vec3 motion = player.getDeltaMovement();
-                player.setDeltaMovement(motion.x, Math.max(0.0, motion.y), motion.z);
-                player.setOnGround(true);
-                float distance = Math.min(0.1f, (float) motion.horizontalDistance());
-                player.bob += (distance - player.bob) * 0.4F;
-            }
-        }
+    private static boolean canWalkInFluid(FluidState state) {
+        return state.is(FluidTags.LAVA) || state.is(FluidTags.WATER);
     }
 
     @OnlyIn(Dist.CLIENT)
-    private static boolean canWalkInFluid(FluidState state) {
-        return state.is(FluidTags.LAVA) || state.is(FluidTags.WATER);
+    @SuppressWarnings("ConstantConditions")
+    public static CalamityPlayer getClientCalamity() {
+        return Minecraft.getInstance().player.Calamity$Player;
     }
 
     /**
@@ -317,10 +277,9 @@ public class CalamityHelp {
     }
 
     public static LivingEntity getClosestTarget(Entity entity, int scope, Vec3 cutterPos) {
-        return (LivingEntity) entity.level().getEntities(entity, entity.getBoundingBox().inflate(scope))
-            .stream().filter(target -> target.isPickable() && target.isAlive() && target.isAttackable()
-                && !target.isAlliedTo(entity) && target instanceof Enemy).min(Comparator.comparingDouble(
-                    target -> target.distanceToSqr(cutterPos))).orElse(null);
+        return (LivingEntity) entity.level().getEntities(entity, entity.getBoundingBox().inflate(scope), target ->
+                target.isPickable() && target.isAlive() && target.isAttackable() && !target.isAlliedTo(entity) && target instanceof Enemy)
+                .stream().min(Comparator.comparingDouble(target -> target.distanceToSqr(cutterPos))).orElse(null);
     }
 
     public static float cosineInterpolation(float start, float end, float time) {
@@ -330,7 +289,8 @@ public class CalamityHelp {
 
     public static Vec3[] makeBasisFromDirection(Vec3 direction) {
         Vec3 zAxis = direction.normalize();
-        Vec3 ref = Math.abs(zAxis.x) > Math.abs(zAxis.z) ? CalamityHelp.UNIT_Z : CalamityHelp.UNIT_X;
+        Vec3 ref = Math.abs(zAxis.x) > Math.abs(zAxis.z) ?
+            CalamityHelp.UNIT_Z : CalamityHelp.UNIT_X;
 
         Vec3 xAxis = zAxis.cross(ref).normalize();
         Vec3 yAxis = zAxis.cross(xAxis);

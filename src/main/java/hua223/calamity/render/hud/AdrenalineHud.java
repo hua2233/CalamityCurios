@@ -36,7 +36,6 @@ public class AdrenalineHud implements IGuiOverlay {
     private static short lastNanoTick;
     private static byte tick;
     private static short lastTick;
-
     private static void renderDisplay(GuiGraphics guiGraphics, PoseStack stack, int count, int x, int y) {
         float u = DISPLAY.getU0();
         float v = DISPLAY.getV0();

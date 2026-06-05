@@ -59,49 +59,6 @@ public class YharimsCrystalRenderer {
         }
     }
 
-//    @SuppressWarnings("ConstantConditions")
-//    public static void update(LivingEntity player) {
-//        System.arraycopy(endPos, 0, lastEndPos, 0, endPos.length);
-//        float chargeRatio = Mth.clamp(tick++ / 60f, 0f, 1f);
-//        float radius;
-//        if (chargeRatio < 1) {
-//            radius = Mth.lerp(chargeRatio, 16, 0.05f);
-//            scale = Mth.lerp(chargeRatio, 0.05f, 0.2f);
-//
-//            if (chargeRatio <= 0.66f) {
-//                float phaseRatio = chargeRatio * 1.5f;
-//                spinRate = Mth.lerp(phaseRatio, 0, 16f);
-//            } else {
-//                float phaseRatio = (chargeRatio - 0.66f) * 3f;
-//                spinRate = Mth.lerp(phaseRatio, 8, 40f);
-//            }
-//        } else radius = player.getRandom().nextFloat() * 0.05f;
-//
-//        lastRotateAngle = rotateAngle;
-//        if ((rotateAngle += spinRate) > 180) rotateAngle -= 360;
-//
-//        if ((circleStartAngle += (float) Math.toRadians(spinRate)) > Mth.TWO_PI)
-//            circleStartAngle -= Mth.TWO_PI;
-//
-//        Vec3[] dir = CalamityHelp.makeBasisFromDirection(YharimsCrystal.yRotDir(player));
-//        Vec3 startPos = player.position().add(0, player.getEyeHeight() * 0.7, 0)
-//            .add(dir[2]);
-//
-//        for (int i = 0; i < endPos.length; i++) {
-//            double angle = circleStartAngle + (2 * Math.PI * i / 6);
-//
-//            Vec3 offset = dir[0].scale(radius * Math.cos(angle))
-//                .add(dir[1].scale(radius * Math.sin(angle)));
-//
-//            Vec3 target = startPos.add(dir[2].scale(20f)).add(offset);
-//
-//            BlockHitResult hit = player.level().clip(new ClipContext(startPos, target,
-//                ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player));
-//
-//            endPos[i] = (hit.getType() != HitResult.Type.MISS ? hit.getLocation() : target).subtract(startPos);
-//        }
-//    }
-
     @SuppressWarnings("deprecation")
     public static BakedModel updateModelTransform(PoseStack pose, BakedModel model, ItemDisplayContext type) {
         ItemTransform transform = model.getTransforms().getTransform(type);
@@ -116,10 +73,11 @@ public class YharimsCrystalRenderer {
 
         Player player = event.getEntity();
         float partialTick = event.getPartialTick();
-
         Vec3 forward = YharimsCrystal.yRotDir(player);
         pose.translate(forward.x, forward.y + player.getEyeHeight() * 0.7f, forward.z);
 
+        float uv = RenderUtil.getLocalTick() * 0.3f;
+        RenderType type = RenderType.energySwirl(CrusherRender.TEXTURE, uv, uv);
         for (int i = 0; i < endPos.length; i++) {
             pose.pushPose();
             PoseStack.Pose last = pose.last();
@@ -128,9 +86,7 @@ public class YharimsCrystalRenderer {
             Vec3 pos = RenderUtil.slerp(lastEndPos[i], endPos[i], partialTick);
             pose.mulPose(RenderUtil.directionToQuaternion(pos));
             pose.mulPose(Axis.ZP.rotationDegrees(Mth.rotLerp(partialTick, lastRotateAngle, rotateAngle)));
-            float uv = RenderUtil.getLocalTick() * 0.3f;
-            VertexConsumer consumer = event.getMultiBufferSource().getBuffer(
-                RenderType.energySwirl(CrusherRender.TEXTURE, uv, uv));
+            VertexConsumer consumer = event.getMultiBufferSource().getBuffer(type);
 
             int index = i * 3;
             int r = color[index];
@@ -147,23 +103,6 @@ public class YharimsCrystalRenderer {
 
         pose.popPose();
     }
-
-    //My math is hopeless
-//    private static Vec3 setTranslateFromAxis(Vec3[] dir, PoseStack pose, LivingEntity player) {
-//        Vec3 left = dir[0].scale( 1.2 + -player.yBodyRot * 0.015f);
-//        Vec3 up = dir[1].scale(0.03);
-//        Vec3 forward = dir[2].scale(1.2 + -player.yBodyRot * 0.06f);
-//        if (pose != null) {
-//            pose.translate(left.x + up.x + forward.x,
-//                left.y + up.y + forward.y,
-//                left.z + up.z + forward.z);
-//            return null;
-//        }
-//
-//        return player.position().add(left.x + up.x + forward.x,
-//            left.y + up.y + forward.y,
-//            left.z + up.z + forward.z);
-//    }
 
     //Something in the range of red to yellow
     private static void setColor() {

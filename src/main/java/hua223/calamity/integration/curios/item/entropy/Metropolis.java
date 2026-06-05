@@ -7,7 +7,9 @@ import hua223.calamity.loots.GlobalLoot;
 import hua223.calamity.register.Items.CalamityItems;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.CalamityHelp;
+import hua223.calamity.util.IDataPackResponse;
 import net.minecraft.ChatFormatting;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
@@ -17,7 +19,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.List;
 
-public class Metropolis extends Card {
+public class Metropolis extends Card implements IDataPackResponse {
     public Metropolis(Properties properties) {
         super(properties);
         GlobalLoot.mountTo(this);
@@ -25,12 +27,20 @@ public class Metropolis extends Card {
 
     @Override
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
-        CalamityHelp.setCalamityFlag(player, 2, true);
+        getPack().putBoolean("flag", true);
+        sendToAllClient();
     }
 
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
-        CalamityHelp.setCalamityFlag(player, 2, false);
+        getPack().putBoolean("flag", false);
+        sendToAllClient();
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void onClientResponse(CompoundTag tag) {
+        CalamityHelp.getClientCalamity().sneakingSpeedBonus = tag.getBoolean("flag");
     }
 
     @ApplyGlobalLoot

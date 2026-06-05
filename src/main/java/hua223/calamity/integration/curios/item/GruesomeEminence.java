@@ -6,6 +6,7 @@ import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.register.keys.IKeyDataPackResponse;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -32,7 +33,7 @@ public class GruesomeEminence extends BaseCurio implements IKeyDataPackResponse 
     }
 
     @Override
-    public void onServerResponse(ServerPlayer player) {
+    public void onServerResponse(ServerPlayer player, CompoundTag tag) {
         player.getCooldowns().addCooldown(this, 1200);
         player.addEffect(new MobEffectInstance(CalamityEffects.GRUESOME_EVIL_SPIRITS.get(), 300));
     }

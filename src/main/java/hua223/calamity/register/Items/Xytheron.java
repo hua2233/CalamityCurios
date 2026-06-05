@@ -1,6 +1,7 @@
 package hua223.calamity.register.Items;
 
 import com.google.common.collect.ImmutableMultimap;
+
 import hua223.calamity.register.RegisterList;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.effects.CalamityEffects;
@@ -20,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 //From StarlessNight Up
 public class Xytheron extends SwordItem {

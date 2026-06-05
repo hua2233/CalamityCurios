@@ -1,11 +1,11 @@
 package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.integration.curios.listeners.HurtListener;
-import hua223.calamity.integration.curios.listeners.PlayerAttackListener;
+import hua223.calamity.events.listeners.HurtListener;
+import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.FriendlyEffectCloudBuilder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;

@@ -1,12 +1,12 @@
 package hua223.calamity.integration.curios.item.entropy;
 
 import com.google.common.collect.Multimap;
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.Card;
-import hua223.calamity.integration.curios.listeners.PlayerHealListener;
+import hua223.calamity.events.listeners.PlayerHealListener;
 import hua223.calamity.register.Items.CalamityItems;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.CalamityHelp;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
@@ -28,12 +28,12 @@ public class Sacrifice extends Card {
     @Override
     protected void setAttributeModifiers(UUID uuid, ItemStack stack, Multimap<Attribute, AttributeModifier> modifier, LivingEntity equipped) {
         modifier.put(CalamityAttributes.DAMAGE_UP.get(), new AttributeModifier(
-            uuid, "sacrifice", CalamityHelp.getCalamityFlag(equipped, 10) ? 0.22 : 0.15, AttributeModifier.Operation.MULTIPLY_BASE));
+            uuid, "sacrifice",  equipped.calamity$Player.Calamity$Player.cardDeck ? 0.22 : 0.15, AttributeModifier.Operation.MULTIPLY_BASE));
     }
 
     @ApplyEvent
     public final void onHeal(PlayerHealListener listener) {
-        listener.amplification -= CalamityHelp.getCalamityFlag(listener.player, 10) ? 0.25f : 0.3f;
+        listener.amplification -= listener.player.Calamity$Player.cardDeck ? 0.25f : 0.3f;
     }
 
     @Override

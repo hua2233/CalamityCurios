@@ -1,7 +1,8 @@
 package hua223.calamity.integration.curios.item;
 
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.integration.curios.listeners.HurtListener;
+import hua223.calamity.events.listeners.HurtListener;
 import hua223.calamity.register.entity.JewelSpike;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.delaytask.DelayRunnable;

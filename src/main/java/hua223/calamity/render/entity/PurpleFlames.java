@@ -4,7 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import hua223.calamity.main.CalamityCurios;
-import hua223.calamity.util.CalamityHelp;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Sheets;
@@ -22,7 +21,7 @@ public class PurpleFlames {
 
     public static void renderFlame(RenderLivingEvent.Post<?, ?> event) {
         LivingEntity entity = event.getEntity();
-        if (CalamityHelp.getCalamityFlag(entity, 5)) {
+        if (entity.calamity$GodSlayerFlames) {
             PoseStack matrixStack = event.getPoseStack();
             MultiBufferSource buffer = event.getMultiBufferSource();
             //This is a trap that should not be released, or rather it implements the AutoCloseable interface and is not meant to be released for you.

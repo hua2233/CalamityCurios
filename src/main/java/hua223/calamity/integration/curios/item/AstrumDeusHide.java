@@ -1,10 +1,11 @@
 package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.integration.curios.listeners.EffectListener;
-import hua223.calamity.integration.curios.listeners.HurtListener;
-import hua223.calamity.integration.curios.listeners.PlayerAttackListener;
+import hua223.calamity.events.listeners.EffectListener;
+import hua223.calamity.events.listeners.HurtListener;
+import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.register.entity.projectiles.Meteor;
@@ -61,7 +62,7 @@ public class AstrumDeusHide extends BaseCurio implements ICuriosStorage {
 
     @ApplyEvent
     public final void onAttack(PlayerAttackListener listener) {
-        if (listener.projectile != null) return;
+        if (listener.isFarAttack()) return;
 
         ItemCooldowns cooldowns = listener.player.getCooldowns();
         if (!cooldowns.isOnCooldown(this)) {
@@ -87,7 +88,6 @@ public class AstrumDeusHide extends BaseCurio implements ICuriosStorage {
                 player.level().explode(player, player.getX(), player.getY(), player.getZ(),
                     2f, Level.ExplosionInteraction.NONE);
                 cooldowns.addCooldown(this, 400);
-
 
                 int tick = Math.min((int) listener.baseAmount * 3, 200);
                 AttributeInstance instance = player.getAttribute(CalamityAttributes.CLOSE_RANGE.get());

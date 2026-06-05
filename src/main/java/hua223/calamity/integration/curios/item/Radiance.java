@@ -4,6 +4,7 @@ import com.google.common.collect.Multimap;
 import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.util.*;
 import net.minecraft.ChatFormatting;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
@@ -15,26 +16,42 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.UUID;
 
 @ConflictChain(value = Radiance.class, isRoot = true)
-public class Radiance extends BaseCurio implements ICuriosStorage {
+public class Radiance extends BaseCurio implements ICuriosStorage, IDataPackResponse {
     public Radiance(Properties properties) {
         super(properties);
     }
 
     @Override
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
-        CalamityHelp.setCalamityFlag(player, 0, true);
+        getPack().putBoolean("flag", player.Calamity$Player.hasRadianceEffect = true);
+        sendToClient(player);
         syncHealth(player);
     }
 
     @Override
+    public @NotNull ItemStack getDefaultInstance() {
+        ItemStack stack = super.getDefaultInstance();
+        stack.getOrCreateTag().putInt(CalamityHelp.FONT_FLAG, 2);
+        return stack;
+    }
+
+    @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
-        CalamityHelp.setCalamityFlag(player, 0, false);
+        getPack().putBoolean("flag", player.Calamity$Player.hasRadianceEffect = false);
+        sendToClient(player);
         syncHealth(player);
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void onClientResponse(CompoundTag tag) {
+        CalamityHelp.getClientCalamity().hasRadianceEffect = tag.getBoolean("flag");
     }
 
     @Override
@@ -64,6 +81,7 @@ public class Radiance extends BaseCurio implements ICuriosStorage {
         if (addCount(player, 1) >= 100) healLogic(player);
     }
 
+    @SuppressWarnings("ConstantConditions")
     private void calculationLogic(Player player) {
         var memory = getMemory(player);
         float[] floats = memory.count;

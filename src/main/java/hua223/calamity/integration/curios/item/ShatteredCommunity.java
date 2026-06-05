@@ -1,9 +1,10 @@
 package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
-import hua223.calamity.capability.CalamityCapProvider;
+import hua223.calamity.capability.Rage;
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.integration.curios.listeners.PlayerAttackListener;
+import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.keys.IKeyDataPackResponse;
 import hua223.calamity.render.hud.RageHud;
@@ -36,35 +37,30 @@ public class ShatteredCommunity extends BaseCurio implements
     //Calculate the trigger line for later events
     @ApplyEvent(1200)
     public final void onAttack(PlayerAttackListener listener) {
-        final float amount = Math.min(3, listener.baseAmount / 7);
-        CalamityCapProvider.RAGE.getCapabilityFrom(listener.player).ifPresent(rage -> {
-            rage.addValue(amount, listener.player, this);
-            if (rage.isActive()) {
-                listener.amplifier += rage.getLevelBonus();
-                rage.addLevelUpProgress((int) listener.getCorrectionValue(), listener.player, this);
-            }
-        });
+        Rage rage = listener.player.Calamity$Player.rage;
+        rage.addValue(Math.min(3, listener.baseAmount / 7), this);
+        if (rage.isActive()) {
+            listener.amplifier += rage.getLevelBonus();
+            rage.addLevelUpProgress((int) listener.getCorrectionValue(), this);
+        }
     }
 
     @Override
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
         setKeyMapping(player, true);
-        CalamityCapProvider.RAGE.getCapabilityFrom(player).ifPresent(rage ->
-            rage.setEnabled(true, player, this));
+        player.Calamity$Player.rage.setEnabled(true, this);
     }
 
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
         setKeyMapping(player, false);
-        CalamityCapProvider.RAGE.getCapabilityFrom(player).ifPresent(rage ->
-            rage.setEnabled(false, player, this));
+        player.Calamity$Player.rage.setEnabled(false, this);
         syncHealth(player);
     }
 
     @Override
-    public void onServerResponse(ServerPlayer player) {
-        CalamityCapProvider.RAGE.getCapabilityFrom(player).ifPresent(
-            rage -> rage.activeRage(player, this));
+    public void onServerResponse(ServerPlayer player, CompoundTag tag) {
+        player.Calamity$Player.rage.activeRage(this);
     }
 
     @Override

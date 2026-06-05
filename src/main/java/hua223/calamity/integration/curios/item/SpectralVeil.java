@@ -1,8 +1,9 @@
 package hua223.calamity.integration.curios.item;
 
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.integration.curios.listeners.CriticalHitCheckListener;
-import hua223.calamity.integration.curios.listeners.HurtListener;
+import hua223.calamity.events.listeners.CriticalHitCheckListener;
+import hua223.calamity.events.listeners.HurtListener;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.register.keys.IKeyDataPackResponse;
 import hua223.calamity.util.*;
@@ -12,6 +13,7 @@ import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -26,6 +28,8 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.common.capabilities.ICapabilityProvider;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
@@ -65,8 +69,13 @@ public class SpectralVeil extends BaseCurio implements ICuriosStorage, IKeyDataP
     }
 
     @Override
+    public @Nullable ICapabilityProvider initCapabilities(ItemStack stack, @Nullable CompoundTag nbt) {
+        return super.initCapabilities(stack, nbt);
+    }
+
+    @Override
     @SuppressWarnings("ConstantConditions")
-    public void onServerResponse(ServerPlayer player) {
+    public void onServerResponse(ServerPlayer player, CompoundTag tag) {
         float[] count = getMemory(player).count;
         Vec3 startPos = player.getEyePosition();
         ServerLevel level = player.serverLevel();

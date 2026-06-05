@@ -1,7 +1,5 @@
 package hua223.calamity.register.Items.edible;
 
-import hua223.calamity.mixed.ICalamityMagicExpand;
-import io.redspace.ironsspellbooks.api.magic.MagicData;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
@@ -29,9 +27,9 @@ public class EnchantedStarfish extends Item {
     }
 
     @Override
-    public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity entity) {
+    public @NotNull ItemStack finishUsingItem(@NotNull ItemStack stack, @NotNull Level level, LivingEntity entity) {
         if (entity.calamity$IsPlayer && !level.isClientSide) {
-            ((ICalamityMagicExpand) MagicData.getPlayerMagicData(entity)).calamity$TryUseEnchantedStarfish(entity);
+            entity.calamity$Player.Calamity$Player.tryUseEnchantedStarfish();
             stack.shrink(1);
         }
         return stack;

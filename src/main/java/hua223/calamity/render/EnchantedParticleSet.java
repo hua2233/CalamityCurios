@@ -24,35 +24,29 @@ public class EnchantedParticleSet {
     private static final float INTERPOLATION_SPEED = 0.2f;
     private static final int EDGE_OFFSET = 18;
     private static final int PARTICLE_LIFETIME = 17;
-    public static boolean canUpdate;
     public static byte count;
     public static boolean isInventory;
     private static Queue<GuiEnchantedParticle> active;
     private static Queue<GuiEnchantedParticle> pool;
-    private static Matrix4f transientMatrix;
     private static RenderType type;
     private static Random random;
 
     public static void update() {
-        if (canUpdate) {
-            //Spawn new particles if time remains
-            for (byte i = 0; i < 4; i++) getNext();
+        //Spawn new particles if time remains
+        for (byte i = 0; i < 4; i++) getNext();
 
-            //Update and increment the time of all particles
-            Iterator<GuiEnchantedParticle> iterator = active.iterator();
-            while (iterator.hasNext()) {
-                GuiEnchantedParticle particle = iterator.next();
+        //Update and increment the time of all particles
+        Iterator<GuiEnchantedParticle> iterator = active.iterator();
+        while (iterator.hasNext()) {
+            GuiEnchantedParticle particle = iterator.next();
 
-                particle.time++;
-                if (particle.time < PARTICLE_LIFETIME) {
-                    particle.update();
-                } else {
-                    pool.offer(particle);
-                    iterator.remove();
-                }
+            particle.time++;
+            if (particle.time < PARTICLE_LIFETIME) {
+                particle.update();
+            } else {
+                pool.offer(particle);
+                iterator.remove();
             }
-
-            canUpdate = false;
         }
     }
 
@@ -63,7 +57,7 @@ public class EnchantedParticleSet {
             stack.pushPose();
             stack.translate(x + 8, y + 8, 0);
             Matrix4f sourceMatrix = stack.last().pose();
-
+            Matrix4f transientMatrix = RenderUtil.TRANSIENT_MATRIX;
             for (GuiEnchantedParticle particle : active) {
                 //Using preset matrices to avoid creating a large number of duplicate matrix objects
                 transientMatrix.set(sourceMatrix);
@@ -93,6 +87,7 @@ public class EnchantedParticleSet {
                     .uv(1, 0)
                     .endVertex();
             }
+
             stack.popPose();
         }
     }
@@ -102,7 +97,6 @@ public class EnchantedParticleSet {
             active = new ArrayDeque<>(80);
             pool = new ArrayDeque<>(100);
             random = new Random();
-            transientMatrix = new Matrix4f();
             type = RenderUtil.Shaders.getEnchanmentRenderType(
                 CalamityCurios.ModResource("textures/calamity_gui/light.png"));
         }
@@ -126,7 +120,6 @@ public class EnchantedParticleSet {
                 random = null;
                 count = 0;
                 type = null;
-                transientMatrix = null;
             }
         });
     }

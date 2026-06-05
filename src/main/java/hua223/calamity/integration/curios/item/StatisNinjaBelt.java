@@ -1,8 +1,8 @@
 package hua223.calamity.integration.curios.item;
 
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.SprintCurio;
-import hua223.calamity.integration.curios.listeners.HurtListener;
-import hua223.calamity.register.effects.Bounding;
+import hua223.calamity.events.listeners.HurtListener;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.ConflictChain;
@@ -83,7 +83,7 @@ public class StatisNinjaBelt extends SprintCurio implements IDataPackResponse {
         if (tag.contains("statis_ninja_belt")) {
             Minecraft minecraft = Minecraft.getInstance();
             boolean isApply = tag.getBoolean("statis_ninja_belt");
-            Bounding.jumpPower += isApply ? 0.32f : -0.32f;
+            minecraft.player.Calamity$Player.jumpPower += isApply ? 0.32f : -0.32f;
             OptionInstance<Boolean> option = minecraft.options.autoJump();
             if (isApply) {
                 autoJump = option.get();
@@ -95,6 +95,7 @@ public class StatisNinjaBelt extends SprintCurio implements IDataPackResponse {
 
     @Override
     @OnlyIn(Dist.CLIENT)
+    @SuppressWarnings("deprecation")
     public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
         CMLangUtil.batchColorTexts(tooltips, stack.getRarity().color, "statis_ninja_belt", 1,
             immuneFall ? 6 : 2, 3, 4, 5);

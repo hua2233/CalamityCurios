@@ -1,7 +1,8 @@
 package hua223.calamity.integration.curios.item;
 
-import hua223.calamity.integration.curios.listeners.EffectListener;
-import hua223.calamity.integration.curios.listeners.PlayerAttackListener;
+import hua223.calamity.events.ApplyEvent;
+import hua223.calamity.events.listeners.EffectListener;
+import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.util.ConflictChain;
 import net.minecraft.world.effect.MobEffectInstance;

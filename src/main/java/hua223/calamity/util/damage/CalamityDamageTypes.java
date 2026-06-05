@@ -23,21 +23,22 @@ public enum CalamityDamageTypes {
         DamageTypeTags.BYPASSES_ARMOR, DamageTypeTags.BYPASSES_COOLDOWN, DamageTypeTags.BYPASSES_RESISTANCE, DamageTypeTags.NO_IMPACT),
 
     ASTRAL_INJECTION("astral_injection", ChatFormatting.AQUA, DamageTags.NOT_TRIGGER_EVENT.tag, DamageTypeTags.BYPASSES_ARMOR),
+
     ASTR_EROSION("astr_erosion", ChatFormatting.AQUA, DamageTypeTags.BYPASSES_ARMOR, DamageTypeTags.BYPASSES_ENCHANTMENTS,
         DamageTypeTags.BYPASSES_EFFECTS, DamageTypeTags.BYPASSES_COOLDOWN, DamageTypeTags.BYPASSES_RESISTANCE,
         DamageTags.NO_DECAY.tag, DamageTags.NOT_TRIGGER_EVENT.tag),
 
-    BLAZING_CORE("blazing_core", ChatFormatting.RED, DamageTags.NOT_TRIGGER_EVENT.tag),
+    BLAZING_CORE("blazing_core", ChatFormatting.RED, DamageTags.NO_DECAY.tag),
 
-    UNIVERSE_SPLITTER_BEAM("universe_splitter_beam", ChatFormatting.LIGHT_PURPLE,
-        DamageTags.NOT_TRIGGER_EVENT.tag, DamageTags.NO_DECAY.tag, DamageTypeTags.BYPASSES_ARMOR),
+    UNIVERSE_SPLITTER_BEAM("universe_splitter_beam", ChatFormatting.LIGHT_PURPLE, DamageTags.NO_DECAY.tag, DamageTypeTags.BYPASSES_ARMOR),
 
-    ETERNITY_HEX("eternity", ChatFormatting.LIGHT_PURPLE, DamageTags.NOT_TRIGGER_EVENT.tag,
-        DamageTags.NO_DECAY.tag, DamageTypeTags.BYPASSES_ARMOR, DamageTypeTags.BYPASSES_COOLDOWN),
+    ETERNITY_HEX("eternity", ChatFormatting.LIGHT_PURPLE, DamageTags.NO_DECAY.tag,
+        DamageTypeTags.BYPASSES_ARMOR, DamageTypeTags.BYPASSES_COOLDOWN, DamageTags.CALAMITY_MAGIC.tag),
 
     HOLY_FLAMES("holy_flames", ChatFormatting.GOLD, DamageTypeTags.BYPASSES_ARMOR,
-        DamageTypeTags.BYPASSES_ENCHANTMENTS, DamageTypeTags.BYPASSES_EFFECTS, DamageTypeTags.BYPASSES_COOLDOWN,
-        DamageTypeTags.BYPASSES_RESISTANCE, DamageTypeTags.IS_FIRE, DamageTags.NOT_TRIGGER_EVENT.tag),
+        DamageTypeTags.BYPASSES_ENCHANTMENTS, DamageTypeTags.BYPASSES_EFFECTS,
+        DamageTypeTags.BYPASSES_COOLDOWN, DamageTypeTags.BYPASSES_RESISTANCE,
+        DamageTypeTags.IS_FIRE),
 
     DRAGON_FIRE("dragon_fire", ChatFormatting.GOLD, DamageTypeTags.BYPASSES_ARMOR, DamageTypeTags.IS_FIRE),
 
@@ -48,7 +49,9 @@ public enum CalamityDamageTypes {
     MAGIC_PROJECTILE("magic_projectile", ChatFormatting.AQUA,
         DamageTypeTags.IS_PROJECTILE, DamageTypeTags.BYPASSES_ARMOR, DamageTags.NOT_TRIGGER_EVENT.tag),
 
-    PRISM("prism", ChatFormatting.GOLD, DamageTypeTags.BYPASSES_ARMOR, DamageTypeTags.BYPASSES_COOLDOWN);
+    PRISM("prism", ChatFormatting.GOLD, DamageTypeTags.BYPASSES_ARMOR,
+        DamageTypeTags.BYPASSES_COOLDOWN, DamageTags.CALAMITY_MAGIC.tag);
+
     public final ResourceKey<DamageType> type;
     @SuppressWarnings("rawtypes")
     public final TagKey[] tags;

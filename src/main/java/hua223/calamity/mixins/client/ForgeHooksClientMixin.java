@@ -1,11 +1,11 @@
 package hua223.calamity.mixins.client;
 
 import com.mojang.datafixers.util.Either;
-import hua223.calamity.capability.EnchantmentProvider;
-import hua223.calamity.render.CurseFont;
-import hua223.calamity.render.CurseTooltipExtensions;
+import hua223.calamity.render.CalamityTooltipExtensions;
+import hua223.calamity.util.CalamityHelp;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
@@ -27,12 +27,11 @@ public class ForgeHooksClientMixin {
     @Inject(method = "gatherTooltipComponentsFromElements", at = @At(value = "RETURN"))
     private static void setCuresText(ItemStack stack, List<Either<FormattedText, TooltipComponent>> elements, int mouseX, int screenWidth,
                                      int screenHeight, Font fallbackFont, CallbackInfoReturnable<List<ClientTooltipComponent>> cir) {
-        if (stack.hasTag()) {
-            String tag = stack.getTag().getString(EnchantmentProvider.FONT_FLAG);
-            if (!tag.isEmpty()) {
-                elements.get(0).left().ifPresent(formattedText -> cir.getReturnValue().set(0,
-                    CurseTooltipExtensions.setContent(formattedText.getString(), tag, CurseFont.setOrCreateFormat(stack))));
-            }
+        CompoundTag tag = stack.getTag();
+        if (tag != null) {
+            int i = tag.getInt(CalamityHelp.FONT_FLAG);
+            if (i != 0) elements.get(0).left().ifPresent(formattedText ->
+                    cir.getReturnValue().set(0, CalamityTooltipExtensions.fromTypeSetting(formattedText.getString(), tag, i, stack)));
         }
     }
 

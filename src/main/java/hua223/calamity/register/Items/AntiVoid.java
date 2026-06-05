@@ -4,11 +4,13 @@ import hua223.calamity.register.RegisterList;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.util.*;
 import hua223.calamity.util.damage.CalamityDamageSource;
+import hua223.calamity.util.damage.DamageTags;
 import io.redspace.ironsspellbooks.api.item.weapons.MagicSwordItem;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellDataRegistryHolder;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
+import io.redspace.ironsspellbooks.damage.SpellDamageSource;
 import io.redspace.ironsspellbooks.particle.EnderSlashParticleOptions;
 import io.redspace.ironsspellbooks.registries.MobEffectRegistry;
 import net.minecraft.ChatFormatting;
@@ -75,7 +77,7 @@ public class AntiVoid extends MagicSwordItem {
                         ServerPlayer serverPlayer = (ServerPlayer) player;
 
                         Vec3 up = CalamityHelp.UNIT_Y;
-                        if (forward.dot(up) > 0.999) up = new Vec3(1.0, 0.0, 0.0);
+                        if (forward.dot(up) > 0.999) up = CalamityHelp.UNIT_X;
                         Vec3 right = up.cross(forward);
                         Vec3 particlePos = entity.position().add(forward);
                         MagicManager.spawnParticles(level, new EnderSlashParticleOptions((float) forward.x, (float)forward.y, (float)forward.z,
@@ -86,8 +88,8 @@ public class AntiVoid extends MagicSwordItem {
                         if (serverPlayer.isPassenger()) serverPlayer.dismountTo(endPos.x, endPos.y, endPos.z);
                         else serverPlayer.teleportTo(endPos.x, endPos.y, endPos.z);
                         serverPlayer.lookAt(EntityAnchorArgument.Anchor.EYES, entity, EntityAnchorArgument.Anchor.EYES);
-                        entity.hurt(CalamityDamageSource.source(DamageTypes.FELL_OUT_OF_WORLD, serverPlayer),
-                            (float) (serverPlayer.getAttributeValue(Attributes.ATTACK_DAMAGE) * 2));
+                        entity.hurt(CalamityDamageSource.source(DamageTypes.FELL_OUT_OF_WORLD, serverPlayer).addDamageTag(
+                            DamageTags.CALAMITY_MAGIC.tag), (float) (serverPlayer.getAttributeValue(Attributes.ATTACK_DAMAGE) * 2));
                         player.getCooldowns().addCooldown(this, 600);
                     }
 

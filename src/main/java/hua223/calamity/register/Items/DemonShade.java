@@ -47,7 +47,7 @@ public class DemonShade extends ArmorItem implements IKeyDataPackResponse, IEqui
             int stillTime = tag.getInt("Still");
 
             if (player.walkDist == player.walkDistO) {
-                if (stillTime > 100 && player.getHealth() < player.getMaxHealth())
+                if (stillTime > 100 && stillTime % 20 == 0 && player.getHealth() < player.getMaxHealth())
                     player.heal(stillTime > 300 ? 34f : (float) (34 * (1 - Math.exp(-0.023 * (stillTime - 100)))));
                 tag.putInt("Still", stillTime + 1);
             } else if (stillTime != 0) tag.putInt("Still",  0);
@@ -132,7 +132,7 @@ public class DemonShade extends ArmorItem implements IKeyDataPackResponse, IEqui
     }
 
     @Override
-    public void onServerResponse(ServerPlayer player) {
+    public void onServerResponse(ServerPlayer player, CompoundTag tag) {
         List<LivingEntity> entities = player.serverLevel().getEntitiesOfClass(LivingEntity.class, player.getBoundingBox().inflate(15));
         if (entities.isEmpty()) return;
 

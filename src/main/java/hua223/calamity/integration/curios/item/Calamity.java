@@ -2,15 +2,14 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.capability.CalamityCap;
+import hua223.calamity.capability.CalamityCap.CurseType;
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.integration.curios.listeners.HurtListener;
-import hua223.calamity.integration.curios.listeners.PlayerAttackListener;
+import hua223.calamity.events.listeners.HurtListener;
+import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.main.CalamityCurios;
 import hua223.calamity.register.sounds.CalamitySounds;
-import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.ICuriosStorage;
-import hua223.calamity.util.IDataPackResponse;
-import hua223.calamity.util.VariableAttributeModifier;
+import hua223.calamity.util.*;
 import hua223.calamity.util.damage.CalamityDamageSource;
 import hua223.calamity.util.damage.CalamityDamageTypes;
 import hua223.calamity.util.delaytask.DelayRunnable;
@@ -20,7 +19,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.players.PlayerList;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffects;
@@ -52,13 +50,13 @@ public class Calamity extends BaseCurio implements ICuriosStorage, IDataPackResp
             sulfurFireCurse(listener, listener.player);
 
         if (listener.isTriggerByLiving &&
-            !CalamityCap.isInverted(CalamityCap.CurseType.SILVA, listener.player))
+            !listener.player.Calamity$Player.calamityCap.isInverted(CurseType.SILVA))
             listener.amplifier += 0.3f;
     }
 
     @ApplyEvent
     public final void onAttack(PlayerAttackListener listener) {
-        if (!CalamityCap.isInverted(CalamityCap.CurseType.SILVA, listener.player))
+        if (!listener.player.Calamity$Player.calamityCap.isInverted(CurseType.SILVA))
             listener.amplifier -= 0.3f;
 
         abyssAttackCurse(listener.player);
@@ -78,7 +76,7 @@ public class Calamity extends BaseCurio implements ICuriosStorage, IDataPackResp
     @Override
     public void onLogOut(Player player) {
         if (!player.isLocalPlayer())
-            CalamityCap.setCalamity(player, false);
+            player.Calamity$Player.calamityCap.setCursePlayer(false);
     }
 
     //Global logic, triggered only when others are injured
@@ -86,12 +84,13 @@ public class Calamity extends BaseCurio implements ICuriosStorage, IDataPackResp
     public static void sunkCurse(HurtListener listener) {
         if (CalamityCap.notHasCalamity()) return;
         ServerPlayer player = listener.player;
+        CalamityCap cap = player.Calamity$Player.calamityCap;
 
-        if (CalamityCap.isCalamity(player)) {
-            if (CalamityCap.isInverted(CalamityCap.CurseType.SUNK, player)) {
+        if (cap.isCursePlayer()) {
+            if (cap.isInverted(CurseType.SUNK)) {
                 listener.amplifier -= 0.3f;
                 return;
-            } else if (CalamityCap.getCalamityList().size() == 1) {
+            } else if (CalamityCap.getCalamityPlayerCount() == 1) {
                 listener.amplifier *= 2f;
                 return;
             }
@@ -99,22 +98,16 @@ public class Calamity extends BaseCurio implements ICuriosStorage, IDataPackResp
 
         final float hurt = listener.baseAmount * 0.45f;
         DamageSource source = null;
-        UUID safe = listener.player.getUUID();
-        PlayerList list = listener.player.getServer().getPlayerList();
-        for (UUID id : CalamityCap.getCalamityList()) {
-            if (id != safe) {
-                ServerPlayer curseTarget = list.getPlayer(id);
-                if (!CalamityCap.isInverted(CalamityCap.CurseType.SUNK, curseTarget))
-                    curseTarget.hurt(source == null ? source = CalamityDamageSource.source(CalamityDamageTypes.ABYSS, player.level()) : source, hurt);
-            }
-
+        for (ServerPlayer curseTarget : cap.getRestCalamity()) {
+            if (curseTarget.Calamity$Player.calamityCap.isCursePlayer())
+                curseTarget.hurt(source == null ? source = CalamityDamageSource.source(CalamityDamageTypes.ABYSS, player.level()) : source, hurt);
         }
     }
 
     @SuppressWarnings("ConstantConditions")
     private static void sulfurFireCurse(HurtListener listener, ServerPlayer player) {
         boolean isOnFire = player.isOnFire();
-        if (CalamityCap.isInverted(CalamityCap.CurseType.SULFUR_FIRE, player)) {
+        if (listener.player.Calamity$Player.calamityCap.isInverted(CurseType.SULFUR_FIRE)) {
             if (isOnFire) {
                 float healAmount = player.getRemainingFireTicks() / 20.0F;
                 player.heal(healAmount);
@@ -139,11 +132,12 @@ public class Calamity extends BaseCurio implements ICuriosStorage, IDataPackResp
         }
     }
 
+    @SuppressWarnings("ConstantConditions")
     private void abyssAttackCurse(ServerPlayer player) {
         AttributeInstance attackSpeed = player.getAttribute(Attributes.ATTACK_SPEED);
         AttributeInstance speed = player.getAttribute(Attributes.MOVEMENT_SPEED);
 
-        boolean isBeneficial = CalamityCap.isInverted(CalamityCap.CurseType.ABYSS, player);
+        boolean isBeneficial = player.Calamity$Player.calamityCap.isInverted(CurseType.ABYSS);
         int count = DelayRunnable.getIterableCount(attackSpeed);
 
         if (count != -1) {
@@ -166,6 +160,7 @@ public class Calamity extends BaseCurio implements ICuriosStorage, IDataPackResp
         }
     }
 
+    @SuppressWarnings("ConstantConditions")
     private static void abyssCurse(Player player, AttributeInstance instance, UUID uuid, boolean isDark, boolean isInverted) {
         VariableAttributeModifier modifier = (VariableAttributeModifier) instance.getModifier(uuid);
         if (isDark) {
@@ -199,12 +194,12 @@ public class Calamity extends BaseCurio implements ICuriosStorage, IDataPackResp
 
     @Override
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
-        CalamityCap.setCalamity(player, true);
+        player.Calamity$Player.calamityCap.setCursePlayer(true);
     }
 
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
-        CalamityCap.setCalamity(player, false);
+        player.Calamity$Player.calamityCap.setCursePlayer(false);
     }
 
     @Override
@@ -219,7 +214,7 @@ public class Calamity extends BaseCurio implements ICuriosStorage, IDataPackResp
     public void onClientResponse(CompoundTag tag) {
         for (String type : tag.getAllKeys()) {
             try {
-                CalamityCap.CurseType.valueOf(type).reversed = true;
+                CurseType.valueOf(type).reversed = true;
             } catch (IllegalArgumentException e) {
                 CalamityCurios.LOGGER.error("Unable to find the corresponding curse type: {}", type, e);
             }
@@ -232,12 +227,13 @@ public class Calamity extends BaseCurio implements ICuriosStorage, IDataPackResp
     }
 
     @Override
+    @SuppressWarnings("ConstantConditions")
     protected void onPlayerTick(Player player) {
-        if (addCount(player, 0) > 10) {
-            var memory = getMemory(player);
+        var memory = getMemory(player);
+        if (++memory.count[0]> 10) {
             memory.count[0] = 0;
             abyssCurse(player, player.getAttribute(Attributes.ARMOR), memory.uuids[0], isPlayerInDark(player),
-                CalamityCap.isInverted(CalamityCap.CurseType.ABYSS, player));
+                player.Calamity$Player.calamityCap.isInverted(CurseType.ABYSS));
         }
     }
 
@@ -251,24 +247,24 @@ public class Calamity extends BaseCurio implements ICuriosStorage, IDataPackResp
     public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
         if (Screen.hasShiftDown()) {
             Style style = Style.EMPTY.withColor(ChatFormatting.GOLD);
-            tooltips.add(CMLangUtil.getTranslatable(CalamityCap.CurseType.SUNK.reversed
+            tooltips.add(CMLangUtil.getTranslatable(CurseType.SUNK.reversed
                 ? "sunk_inverted" : "calamity_sunk").setStyle(style));
 
-            tooltips.add(CMLangUtil.getTranslatable(CalamityCap.CurseType.SULFUR_FIRE.reversed
+            tooltips.add(CMLangUtil.getTranslatable(CurseType.SULFUR_FIRE.reversed
                 ? "fire_inverted" : "calamity_fire").setStyle(style));
 
-            tooltips.add(CMLangUtil.getTranslatable(CalamityCap.CurseType.SILVA.reversed
+            tooltips.add(CMLangUtil.getTranslatable(CurseType.SILVA.reversed
                 ? "silva_inverted" : "calamity_silva").setStyle(style));
 
-            tooltips.add(CMLangUtil.getTranslatable(CalamityCap.CurseType.ABYSS.reversed
+            tooltips.add(CMLangUtil.getTranslatable(CurseType.ABYSS.reversed
                 ? "abyss_inverted" : "calamity_abyss").setStyle(style));
 
-            tooltips.add(CMLangUtil.getTranslatable(CalamityCap.CurseType.DESERT.reversed
+            tooltips.add(CMLangUtil.getTranslatable(CurseType.DESERT.reversed
                 ? "desert_inverted" : "calamity_desert").setStyle(style));
         } else {
             tooltips.add(CMLangUtil.getTranslatable("calamity").withStyle(ChatFormatting.DARK_RED));
             tooltips.add(CMLangUtil.blankLine());
-            tooltips.add(CMLangUtil.getView());
+            tooltips.add(CMLangUtil.getView().withStyle(ChatFormatting.GOLD));
         }
         return tooltips;
     }

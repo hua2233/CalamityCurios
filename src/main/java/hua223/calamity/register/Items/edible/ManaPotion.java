@@ -1,9 +1,7 @@
 package hua223.calamity.register.Items.edible;
 
-import hua223.calamity.mixed.ICalamityMagicExpand;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.util.CMLangUtil;
-import io.redspace.ironsspellbooks.api.magic.MagicData;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -43,16 +41,16 @@ public class ManaPotion extends Item implements Comparable<ManaPotion> {
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {
+    public @NotNull InteractionResultHolder<ItemStack> use(Level level, @NotNull Player player, @NotNull InteractionHand usedHand) {
         if (level.isClientSide) return InteractionResultHolder.fail(player.getItemInHand(usedHand));
         player.startUsingItem(usedHand);
         return InteractionResultHolder.success(player.getItemInHand(usedHand));
     }
 
     @Override
-    public @NotNull ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity entity) {
+    public @NotNull ItemStack finishUsingItem(@NotNull ItemStack stack, Level level, @NotNull LivingEntity entity) {
         if (!level.isClientSide && entity.calamity$IsPlayer) {
-            apply(((ICalamityMagicExpand) MagicData.getPlayerMagicData(entity)), true, entity.calamity$Player);
+            apply(true, entity.calamity$Player);
             stack.shrink(1);
         }
         return stack;
@@ -73,8 +71,8 @@ public class ManaPotion extends Item implements Comparable<ManaPotion> {
         return potion.manaValue - manaValue;
     }
 
-    public void apply(ICalamityMagicExpand data, boolean sync, Player player) {
-        data.calamity$ChangeMana(manaValue, sync);
+    public void apply(boolean sync, Player player) {
+        player.Calamity$Player.changeMana(manaValue, sync);
 
         if (addManaSickness) {
             MobEffect effect = CalamityEffects.MANA_SICKNESS.get();

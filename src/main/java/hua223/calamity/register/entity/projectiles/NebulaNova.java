@@ -4,8 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import hua223.calamity.main.CalamityCurios;
 import hua223.calamity.register.sounds.CalamitySounds;
-import hua223.calamity.util.damage.CalamityDamageSource;
-import hua223.calamity.util.damage.CalamityDamageTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -13,12 +11,14 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 
 import java.util.List;
@@ -26,6 +26,8 @@ import java.util.List;
 public class NebulaNova extends Projectile {
     public double centerY;
     public LivingEntity owner;
+    public DamageSource source;
+
     @OnlyIn(Dist.CLIENT)
     private final float[] frame = new float[]{0f, 0.5f, 0f, 0.1428f};
     @OnlyIn(Dist.CLIENT)
@@ -46,7 +48,7 @@ public class NebulaNova extends Projectile {
     }
 
     @Override
-    public EntityDimensions getDimensions(Pose pose) {
+    public @NotNull EntityDimensions getDimensions(@NotNull Pose pose) {
         return EntityDimensions.scalable(scale, scale);
     }
 
@@ -67,8 +69,7 @@ public class NebulaNova extends Projectile {
 
                 if (!entities.isEmpty()) {
                     for (Entity entity : entities)
-                        entity.hurt(CalamityDamageSource.source(CalamityDamageTypes.MAGIC_PROJECTILE,
-                            owner, this), 9f);
+                        entity.hurt(source, 9f);
                 }
             }
         }

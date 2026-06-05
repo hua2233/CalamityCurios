@@ -1,8 +1,9 @@
 package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.integration.curios.listeners.PlayerAttackListener;
+import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.ICuriosStorage;
 import hua223.calamity.util.VariableAttributeModifier;
@@ -30,7 +31,7 @@ public class ManaPolarizer extends BaseCurio implements ICuriosStorage {
 
     @ApplyEvent
     public final void onAttack(PlayerAttackListener listener) {
-        if (!listener.isSpell) return;
+        if (!listener.isSpell()) return;
 
         float[] count = getCount(listener.player);
         if (count[1] > 0) {

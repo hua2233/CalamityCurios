@@ -27,6 +27,7 @@ public class CalamityCelestialBodyShader {
     public static final ResourceLocation WAVY_BLOTCH_NOISE = CalamityCurios.ModResource("textures/effect/wavy_blotch_noise.png");
     public static final ResourceLocation PSYCHEDELIC = CalamityCurios.ModResource("textures/effect/psychedelic.png");
     public static final ResourceLocation DENDRITIC_NOISE = CalamityCurios.ModResource("textures/effect/dendritic_noise.png");
+    public static final ResourceLocation PERLIN = CalamityCurios.ModResource("textures/effect/perlin.png");
 
     private static BlackHoleShader BLACK_HOLE_INSTANCE;
     private static SunShader SUN_INSTANCE;
@@ -50,6 +51,7 @@ public class CalamityCelestialBodyShader {
             setLinearWrap(manager, WAVY_BLOTCH_NOISE);
             setLinearWrap(manager, PSYCHEDELIC);
             setLinearWrap(manager, DENDRITIC_NOISE);
+            setLinearWrap(manager, PERLIN);
             GlStateManager._bindTexture(0);
 
             Map<String, Uniform> map = uniforms.stream().collect(Collectors.toMap(Uniform::getName, uniform -> uniform));

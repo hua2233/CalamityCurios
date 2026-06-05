@@ -1,9 +1,10 @@
 package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.integration.curios.listeners.DeathListener;
-import hua223.calamity.integration.curios.listeners.PlayerAttackListener;
+import hua223.calamity.events.listeners.DeathListener;
+import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.main.CalamityCurios;
 import hua223.calamity.render.Item.DestinyBookRender;
 import hua223.calamity.util.CMLangUtil;
@@ -152,7 +153,7 @@ public class DestinyBook extends BaseCurio implements ICuriosStorage {
 
     @OnlyIn(Dist.CLIENT)
     @SuppressWarnings("ConstantConditions")
-    public ItemStack getOverlayStack(ItemStack stack) {
+    public static ItemStack getOverlayStack(ItemStack stack) {
         CompoundTag tag = stack.getTag();
         return tag != null && tag.contains("egg") ? ForgeRegistries.ITEMS.getValue(
             CalamityCurios.resource(tag.getString("egg"))).getDefaultInstance() : null;
@@ -161,8 +162,7 @@ public class DestinyBook extends BaseCurio implements ICuriosStorage {
     @Override
     @OnlyIn(Dist.CLIENT)
     public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
-        tooltips.add(CMLangUtil.getTranslatable("destiny", 2).withStyle(ChatFormatting.GOLD));
-        tooltips.add(CMLangUtil.getTranslatable("destiny", 3).withStyle(ChatFormatting.GOLD));
+        CMLangUtil.batchColorTexts(tooltips, ChatFormatting.GOLD, "destiny", 2, 3);
         tooltips.add(CMLangUtil.blankLine());
         tooltips.add(CMLangUtil.getTranslatable("destiny", 1).withStyle(ChatFormatting.DARK_PURPLE));
         return tooltips;

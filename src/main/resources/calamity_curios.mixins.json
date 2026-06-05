@@ -12,10 +12,10 @@
     "EffectMixin",
     "EffectMixin$EffectInstance",
     "EnchantmentMixin",
+    "EntityMixin",
     "EventMixin",
     "LivingEntityMixin",
     "LootPoolEntryContainerMixin",
-    "MagicDataMixin",
     "NaturalSpawnerMixin",
     "NaturalSpawnerMixin$LocalMobCapMixin",
     "NaturalSpawnerMixin$StateMixin",
@@ -25,9 +25,12 @@
     "ServerPlayerMixin",
     "SniffMixin",
     "SpellBookMixin",
-    "SpellMixin"
+    "SpellDamageMixin",
+    "SpellMixin",
+    "WorldBorderMixin"
   ],
   "client": [
+    "client.ClientLevelMixin",
     "client.ClientPacketListenerMixin",
     "client.ClientPacketMixin",
     "client.EffectTooltipsMixin",
@@ -35,11 +38,13 @@
     "client.ForgeHooksClientMixin",
     "client.GameRendererMixin",
     "client.GuiMixin",
-    "client.InventoryMixin",
+    "client.GuiMixin$CalamityHeartType",
     "client.InventoryScreenMixin",
+    "client.LevelRenderMixin",
     "client.LightTextureMixin",
     "client.MinecraftMixin",
-    "client.MobEffectPacketMixin"
+    "client.MobEffectPacketMixin",
+    "client.TooltipRenderMixin"
   ],
   "injectors": {
     "defaultRequire": 1

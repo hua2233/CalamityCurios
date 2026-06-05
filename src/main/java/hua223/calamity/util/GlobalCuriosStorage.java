@@ -1,9 +1,7 @@
 package hua223.calamity.util;
 
-import hua223.calamity.integration.curios.BaseCurio;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 
@@ -11,112 +9,69 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
-/**
- * Global storage manager for Curios items across all players.
- * Maintains a mapping between player UUIDs and their associated Curios memory data,
- * providing methods to add, remove, and query curios storage information.
- */
 public class GlobalCuriosStorage {
     /**
-     * Static map storing Curios memory data indexed by player UUID.
-     * Each entry maps a player's UUID to a set of their equipped curios memories.
-     */
-    private static final Map<UUID, ObjectOpenHashSet<CuriosMemory>> STORAGES =
-        new Object2ObjectOpenHashMap<>(2);
-
-    /**
-     * Retrieves the Curios memory associated with a specific storage interface for a living entity.
-     *
-     * @param storage The curios storage interface to look up
-     * @param player The living entity whose curios memory is being queried
-     * @return The CuriosMemory instance if found, null otherwise
+     * Retrieves the Curios memory object for the specified player
+     * 
+     * @param storage The Curios storage interface instance to query
+     * @param player The target player entity
+     * @return CuriosMemory object if the corresponding storage memory exists, otherwise null
      */
     public static CuriosMemory getStorage(ICuriosStorage storage, LivingEntity player) {
-        ObjectOpenHashSet<CuriosMemory> map = STORAGES.get(player.getUUID());
-
+        ObjectOpenHashSet<CuriosMemory> map = player.calamity$Player.Calamity$Player.curiosStorage;
         return map != null ? map.get(storage) : null;
     }
 
     /**
-     * Safely removes a curios storage entry from an entity's storage without throwing exceptions.
-     * If the storage set becomes empty after removal, the entire entry is cleaned up.
-     *
-     * @param entity The entity from which to remove the storage
-     * @param storage The curios storage interface to remove
+     * Safely removes Curios storage from the player
+     * When the storage is successfully removed and the mapping set becomes empty,
+     * the player's curiosStorage reference is set to null
+     * 
+     * @param entity The target living entity
+     * @param storage The Curios storage interface instance to remove
      */
     @SuppressWarnings("ALL")
-    public static void unEquipSafeRemove(Entity entity, ICuriosStorage storage) {
-        UUID uuid = entity.getUUID();
-        if (STORAGES.containsKey(uuid)) {
-            ObjectOpenHashSet<CuriosMemory> set = STORAGES.get(uuid);
-            set.remove(storage);
-            if (set.isEmpty()) STORAGES.remove(uuid);
-        }
+    public static void unEquipSafeRemove(LivingEntity entity, ICuriosStorage storage) {
+        ObjectOpenHashSet<CuriosMemory> map = entity.calamity$Player.Calamity$Player.curiosStorage;
+        if (map != null && map.remove(storage) && map.isEmpty())
+            entity.calamity$Player.Calamity$Player.curiosStorage = null;
     }
 
     /**
-     * Retrieves the count array from storages for a given entity and storage object.
-     * The storage object must implement the ICuriosStorage interface.
-     *
-     * @param player The entity whose storage counts are being queried
-     * @param storage The storage object (must implement ICuriosStorage)
-     * @return The float array containing storage counts, or null if not found
+     * Gets the count array from the player's Curios storage
+     * 
+     * @param player The target player entity
+     * @param storage The storage object to query
+     * @return The count array if storage exists, otherwise null
      */
-    public static float[] getCountStorages(Entity player, Object storage) {
-        UUID id = player.getUUID();
-        if (STORAGES.containsKey(id)) {
-            CuriosMemory memory = STORAGES.get(player.getUUID()).get(storage);
-            if (memory != null) return memory.count;
-        }
-        return null;
+    @SuppressWarnings("ALL")
+    public static float[] getCountStorages(LivingEntity player, Object storage) {
+        ObjectOpenHashSet<CuriosMemory> map = player.calamity$Player.Calamity$Player.curiosStorage;
+        return map == null ? null : map.contains(storage) ? map.get(storage).count : null;
     }
 
     /**
-     * Removes all storage data associated with a specific player.
-     *
-     * @param player The player whose storage data should be removed
+     * Adds Curios storage to the player
+     * In the vast majority of cases, each storage will only be placed once.
+     * To prevent accidental overwriting, addOrGet is used to avoid duplicate placement
+     * 
+     * @param player The target player
+     * @param storage The Curios storage interface instance to add
      */
-    public static void removePlayerStorage(Player player) {
-        STORAGES.remove(player.getUUID());
-    }
-
-    /**
-     * Adds a new curios storage entry for a player, or retrieves the existing one if already present.
-     * Uses computeIfAbsent to prevent accidental overwriting in cases where multiple additions occur.
-     * In most cases, each curios will only be added once.
-     *
-     * @param player The player to whom the curios storage belongs
-     * @param storage The curios storage interface to add
-     */
-    //In the vast majority of cases, it will only be placed once.
-    //To prevent accidental overwriting, addOrGet is used to cancel the placement again
     public static void addCurioStorage(Player player, ICuriosStorage storage) {
-        STORAGES.computeIfAbsent(player.getUUID(), k ->
-            CalamityHelp.createMappingSet()).addOrGet(new CuriosMemory(storage));
+        CalamityPlayer calamityExpand = player.Calamity$Player;
+        if (calamityExpand.curiosStorage == null)
+            calamityExpand.curiosStorage = CalamityHelp.createMappingSet();
+        calamityExpand.curiosStorage.addOrGet(new CuriosMemory(storage));
     }
 
-    /**
-     * Removes a specific curios storage entry from a player's storage set.
-     *
-     * @param player The player whose storage should be modified
-     * @param storage The curios storage interface to remove
-     */
-    @SuppressWarnings("ALL")
-    public static void removeCurioStorage(Player player, ICuriosStorage storage) {
-        STORAGES.get(player.getUUID()).remove(storage);
-    }
-
-    /**
-     * Represents the memory state of a single curios item, including its storage data,
-     * type mappings, and associated metadata such as counts and UUIDs.
-     */
     public static class CuriosMemory {
 
         /**
          * The BaseCurio instance that owns this memory record.
          * Used for equality checks and hash code computation to identify the associated curios item.
          */
-        private final BaseCurio ownerCurio;
+        private final ICuriosStorage ownerCurio;
         /** Array storing count values for this curios */
         public final float[] count;
         /** Array storing UUID references for this curios */
@@ -137,7 +92,7 @@ public class GlobalCuriosStorage {
          * @param storage The curios storage interface that owns this memory
          */
         private CuriosMemory(ICuriosStorage storage) {
-            ownerCurio = (BaseCurio) storage;
+            ownerCurio = storage;
             int countSize = storage.getCountSize();
             Class<?>[] multipleStorageTypes = storage.defineStorageType();
             if (storage.storageCount()) count = new float[countSize];

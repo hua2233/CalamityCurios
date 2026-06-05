@@ -1,38 +1,46 @@
 package hua223.calamity.register.gui;
 
-import hua223.calamity.capability.CurseEnchantment;
-import hua223.calamity.capability.EnchantmentProvider;
-import hua223.calamity.integration.curios.EventTypes;
-import hua223.calamity.integration.curios.listeners.BaseListener;
-import hua223.calamity.integration.curios.listeners.HurtListener;
+import hua223.calamity.events.ApplyEvent;
+import hua223.calamity.events.EventTypes;
+import hua223.calamity.events.listeners.DeathListener;
+import hua223.calamity.events.listeners.HurtListener;
+import hua223.calamity.events.listeners.PlayerAttackListener;
+import hua223.calamity.events.listeners.ProjectileSpawnListener;
+import hua223.calamity.integration.curios.item.RecklessnessGlove;
 import hua223.calamity.main.CalamityCurios;
 import hua223.calamity.net.NetMessages;
-import hua223.calamity.net.S2CPacket.FatigueDataSync;
+import hua223.calamity.net.packets.FatigueDataSync;
+import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.register.entity.DemonGate;
 import hua223.calamity.util.CalamityHelp;
+import hua223.calamity.util.damage.CalamityDamageSource;
+import hua223.calamity.util.damage.CalamityDamageTypes;
 import hua223.calamity.util.delaytask.DelayRunnable;
+import io.redspace.ironsspellbooks.api.item.weapons.MagicSwordItem;
+import io.redspace.ironsspellbooks.item.CastingItem;
+import io.redspace.ironsspellbooks.item.SpellBook;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.Entity;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ProjectileWeaponItem;
 import net.minecraft.world.item.SwordItem;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.event.entity.living.LivingEquipmentChangeEvent;
-import net.minecraftforge.eventbus.api.Event;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public enum SpellType {
     AFLAME {
@@ -41,15 +49,10 @@ public enum SpellType {
             return Predicate.SWORD_CLASS.getResult(stack);
         }
 
-        @Override
-        public void getTriggerTypes() {
-            APPLICABLE_TYPE.add(TriggerType.PLAYER_ATTACK);
-        }
-
-        @Override
-        public void onTrigger(TriggerType type) {
-            CalamityHelp.addIfDoesNotExist(type.getListener(HurtListener.class).entity,
-                80, 0, CalamityEffects.VULNERABILITY_HEX.get());
+        @ApplyEvent
+        public final void onAttack(PlayerAttackListener listener) {
+            CalamityHelp.addIfDoesNotExist(listener.player.getRandom().nextFloat() > 0.7 ?
+                    listener.entity : listener.player, 80, 0, CalamityEffects.VULNERABILITY_HEX.get());
         }
     },
 
@@ -60,57 +63,28 @@ public enum SpellType {
         }
 
         @Override
-        public void getTriggerTypes() {
-            APPLICABLE_TYPE.add(TriggerType.PLAYER_ATTACK);
-            APPLICABLE_TYPE.add(TriggerType.MAIN_HAND_ITEM_CHANGE);
+        public void onMainHandChange(boolean to, ItemStack stack, ServerPlayer player) {
+            super.onMainHandChange(to, stack, player);
+            int[] args = player.Calamity$Player.getSpellData().fatigueSlot;
+            if (to) {
+                args[1] = 1;
+                if (args[0] < 100) startRecover(player, args);
+            } else args[1] = 0;
+
+            NetMessages.sendToClient(new FatigueDataSync().setRender(to), player);
         }
 
-        @Override
-        @SuppressWarnings("ConstantConditions")
-        public void onTrigger(TriggerType type) {
-            switch (type) {
-                case MAIN_HAND_ITEM_CHANGE -> {
-                    LivingEquipmentChangeEvent event = type.getListener(LivingEquipmentChangeEvent.class);
-                    LazyOptional<CurseEnchantment> optional = event.getTo().getCapability(EnchantmentProvider.CURSE_ENCHANTMENT);
-
-                    ServerPlayer player = (ServerPlayer) event.getEntity();
-                    if (optional.isPresent()) setRender(player, optional.orElse(null).getRunes() == this);
-                    else setRender(player, false);
-                }
-
-                case PLAYER_ATTACK -> {
-                    HurtListener listener = type.getListener(HurtListener.class);
-                    listener.amplifier += getAmplifier(listener.player);
-                }
-            }
-        }
-
-        private float getAmplifier(ServerPlayer player) {
-            SPELL_TYPE_DATA_MAP.get(player.getUUID());
-            int[] args = getData(player).fatigueSlot;
+        @ApplyEvent
+        public final void onAttack(PlayerAttackListener listener) {
+            int[] args = listener.player.Calamity$Player.getSpellData().fatigueSlot;
             int value = args[0];
 
             if (value > 5) args[0] = (value - 5);
             else args[0] = 0;
-            NetMessages.sendToClient(new FatigueDataSync().setProgress(args[0]), player);
+            NetMessages.sendToClient(new FatigueDataSync().setProgress(args[0]), listener.player);
 
-            startRecover(player, args);
-            return (float) (Math.pow(2, value / 100f) - 1f) * 0.49f - 0.23f;// + 0.77 - 1f;
-        }
-
-        private void setRender(ServerPlayer player, boolean render) {
-            int[] args = getData(player).fatigueSlot;
-            if (render) {
-                if (args[1] == 0) {
-                    args[1] = 1;
-                    NetMessages.sendToClient(new FatigueDataSync().setRender(true), player);
-                }
-            } else {
-                if (args[1] == 1) {
-                    args[1] = 0;
-                    NetMessages.sendToClient(new FatigueDataSync().setRender(false), player);
-                }
-            }
+            startRecover(listener.player, args);
+            listener.amplifier += (float) (Math.pow(2, value / 100f) - 1f) * 0.49f - 0.23f;// + 0.77 - 1f;
         }
 
         @SuppressWarnings("ConstantConditions")
@@ -121,8 +95,7 @@ public enum SpellType {
                 FatigueDataSync pack = new FatigueDataSync();
                 DelayRunnable.conditionsLoop(() -> {
                     if (player.isDeadOrDying() || player.hasDisconnected()) return true;
-                    LazyOptional<CurseEnchantment> optional = player.getMainHandItem().getCapability(EnchantmentProvider.CURSE_ENCHANTMENT);
-                    if (!optional.isPresent() || optional.orElse(null).getRunes() != this) {
+                    if (args[1] == 0) {
                         args[2] = 0;
                     } else {
                         NetMessages.sendToClient(pack.setProgress(args[0] += 2), player);
@@ -141,30 +114,20 @@ public enum SpellType {
             return Predicate.SWORD_CLASS.getResult(stack) || Predicate.PROJECTILE_CLASS.getResult(stack);
         }
 
-        @Override
-        public void getTriggerTypes() {
-            APPLICABLE_TYPE.add(TriggerType.PLAYER_HURT);
-            APPLICABLE_TYPE.add(TriggerType.PLAYER_ATTACK);
+        @ApplyEvent
+        public final void onHurt(HurtListener listener) {
+            LivingEntity player = listener.player;
+            float[] args = listener.player.Calamity$Player.getSpellData().lg;
+            if (args[2] == 1) return;
+
+            player.heal((float) (Math.pow(args[0], 5f / 3f) * 0.1f));
+            args[0] = 0;
+            CalamityHelp.addIfDoesNotExist(player, 360, 0, CalamityEffects.APOPTOSIS.get());
         }
 
-        @Override
-        public void onTrigger(TriggerType type) {
-            switch (type) {
-                case PLAYER_HURT -> {
-                    LivingEntity player = type.getListener(HurtListener.class).player;
-                    float[] args = getData(player).lg;
-                    if (args[2] == 1) return;
-
-                    player.heal((float) (Math.pow(args[0], 5f / 3f) * 0.1f));
-                    args[0] = 0;
-                    CalamityHelp.addIfDoesNotExist(player, 360, 0, CalamityEffects.APOPTOSIS.get());
-                }
-
-                case PLAYER_ATTACK -> {
-                    HurtListener listener = type.getListener(HurtListener.class);
-                    getData(listener.player).lg[0] += listener.getCorrectionValue();
-                }
-            }
+        @ApplyEvent
+        public final void onAttack(PlayerAttackListener listener) {
+            listener.player.Calamity$Player.getSpellData().lg[0] += listener.getCorrectionValue();
         }
     },
 
@@ -174,15 +137,9 @@ public enum SpellType {
             return Predicate.PROJECTILE_CLASS.getResult(stack);
         }
 
-        @Override
-        public void getTriggerTypes() {
-            APPLICABLE_TYPE.add(TriggerType.PLAYER_ATTACK);
-        }
-
-        @Override
+        @ApplyEvent
         @SuppressWarnings("ConstantConditions")
-        public void onTrigger(TriggerType type) {
-            HurtListener listener = type.getListener(HurtListener.class);
+        public final void onHurt(HurtListener listener) {
             if (listener.isTriggerByLiving && listener.isFarAttack()) {
                 listener.amplifier += Mth.lerp(Mth.clamp((float) listener.player.position().distanceToSqr(
                     listener.entity.position()), 9f, 225f), -0.25f, 0.75f);
@@ -196,15 +153,9 @@ public enum SpellType {
             return Predicate.PROJECTILE_CLASS.getResult(stack);
         }
 
-        @Override
-        public void getTriggerTypes() {
-            APPLICABLE_TYPE.add(TriggerType.PLAYER_ATTACK);
-        }
-
-        @Override
+        @ApplyEvent
         @SuppressWarnings("ConstantConditions")
-        public void onTrigger(TriggerType type) {
-            HurtListener listener = type.getListener(HurtListener.class);
+        public final void onHurt(HurtListener listener) {
             if (listener.isTriggerByLiving && listener.isFarAttack()) {
                 listener.amplifier += Mth.lerp(Mth.clamp((float) listener.player.position().distanceToSqr(
                     listener.entity.position()), 9f, 225f), 0.75f, -0.25f);
@@ -220,15 +171,9 @@ public enum SpellType {
             return Predicate.SWORD_CLASS.getResult(stack);
         }
 
-        @Override
-        public void getTriggerTypes() {
-            APPLICABLE_TYPE.add(TriggerType.PLAYER_ATTACK);
-        }
-
-        @Override
+        @ApplyEvent
         @SuppressWarnings("ConstantConditions")
-        public void onTrigger(TriggerType type) {
-            HurtListener listener = type.getListener(HurtListener.class);
+        public final void onHurt(HurtListener listener) {
             int tick = listener.player.getServer().getTickCount();
             if (listener.isFarAttack() || globalCooling >= tick) return;
             globalCooling = tick + 3600;
@@ -239,28 +184,76 @@ public enum SpellType {
     LECHEROUS {
         @Override
         public boolean canApply(ItemStack stack) {
-            return Predicate.SWORD_CLASS.getResult(stack);
+            return Predicate.PROJECTILE_CLASS.getResult(stack);
+        }
+        @ApplyEvent
+        public final void onProjectileShoot(ProjectileSpawnListener listener) {
+            RecklessnessGlove.offsetProjectile(listener.projectile, 20);
         }
 
-        @Override
-        public void getTriggerTypes() {
-            APPLICABLE_TYPE.add(TriggerType.PROJECTILE);
+        @ApplyEvent(300)
+        @SuppressWarnings("ConstantConditions")
+        public final void onDeath(DeathListener listener) {
+            if (!listener.isPlayerDeath && !listener.isCanceled()
+                && listener.source.is(DamageTypeTags.IS_PROJECTILE)) {
+                float maxHealth = listener.player.getMaxHealth();
+                if (listener.player.getHealth() < maxHealth)
+                    listener.player.heal(Math.min(listener.entity.getMaxHealth() * 0.4f, maxHealth * 0.4f));
+            }
         }
-
-
     },
 
     TAINTED {
         @Override
+        public void onMainHandChange(boolean to, ItemStack stack, ServerPlayer player) {
+            SpellData data = player.Calamity$Player.getSpellData();
+            if (to && stack.isEnchanted()) {
+                int count = (int) stack.getAllEnchantments().keySet().stream().filter(Enchantment::isCurse).count();
+                if (count > 0) {
+                    super.onMainHandChange(true, stack, player);
+                    data.taintedCurseAmplifier = count * 0.1f;
+                }
+            } else if (!to && data.taintedCurseAmplifier > 0)
+                super.onMainHandChange(false, stack, player);
+        }
+
+        @Override
         public boolean canApply(ItemStack stack) {
-            return false;
+            return Predicate.SWORD_CLASS.getResult(stack);
+        }
+
+        @ApplyEvent
+        public final void onAttack(PlayerAttackListener listener) {
+            listener.amplifier += listener.player.Calamity$Player.getSpellData().taintedCurseAmplifier;
         }
     },
 
     OBLATORY {
         @Override
+        @SuppressWarnings("ConstantConditions")
+        public void onMainHandChange(boolean to, ItemStack stack, ServerPlayer player) {
+            super.onMainHandChange(to, stack, player);
+            player.Calamity$Player.getSpellData().oblatorySource = to ? CalamityDamageSource.source(
+                CalamityDamageTypes.POLARIZER_HURT, player) : null;
+            UUID id = UUID.nameUUIDFromBytes(name().getBytes());
+            AttributeInstance instance = player.getAttribute(CalamityAttributes.MAGIC_REDUCTION.get());
+            if (to) instance.addTransientModifier(new AttributeModifier(id,
+                name(), 0.3, AttributeModifier.Operation.ADDITION));
+            else instance.removeModifier(id);
+        }
+
+        @Override
         public boolean canApply(ItemStack stack) {
-            return false;
+            return Predicate.SPELL_CLASS.getResult(stack);
+        }
+
+        @ApplyEvent(0)
+        public final void onAttack(PlayerAttackListener listener) {
+            if (listener.isSpell()) {
+                listener.amplifier += 0.25f;
+                if (listener.player.getRandom().nextFloat() <= 0.3f) listener.player.hurt(
+                    listener.player.Calamity$Player.getSpellData().oblatorySource, listener.player.getMaxHealth() * 0.08f);
+            }
         }
     },
 
@@ -292,8 +285,7 @@ public enum SpellType {
         }
     };
 
-    private static final Map<UUID, SpellTypeData> SPELL_TYPE_DATA_MAP = new Object2ObjectOpenHashMap<>(2);
-    private static final EnumSet<SpellType.TriggerType> APPLICABLE_TYPE = EnumSet.noneOf(SpellType.TriggerType.class);
+    private static final Map<UUID, SpellData> SPELL_TYPE_DATA_MAP = new Object2ObjectOpenHashMap<>(2);
 
     @OnlyIn(Dist.CLIENT)
     private static final EnumSet<SpellType> AVAILABILITY = EnumSet.noneOf(SpellType.class);
@@ -308,11 +300,8 @@ public enum SpellType {
     @OnlyIn(Dist.CLIENT)
     private static int tail;
 
-    SpellType() {
-    }
-
-    protected final SpellTypeData getData(Entity player) {
-        return SPELL_TYPE_DATA_MAP.get(player.getUUID());
+    public void onMainHandChange(boolean to, ItemStack stack, ServerPlayer player) {
+        EventTypes.applyEvent(this, player, to);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -321,10 +310,10 @@ public enum SpellType {
         //pre
         AVAILABILITY.clear();
         isCanSwitch = false;
+        Predicate.resetCache();
 
         for (SpellType type : SpellType.values())
             if (type.canApply(stack)) AVAILABILITY.add(type);
-        Predicate.resetCache();
 
         if (AVAILABILITY.isEmpty()) {
             return null;
@@ -375,10 +364,6 @@ public enum SpellType {
         return "calamity_curios.spell.type." + name().toLowerCase();
     }
 
-    public static boolean anyMatch(ItemStack stack) {
-        return Arrays.stream(SpellType.values()).anyMatch(spellType -> spellType.canApply(stack));
-    }
-
     public String getDescription() {
         return "calamity_curios.spell.description." + name().toLowerCase();
     }
@@ -398,98 +383,11 @@ public enum SpellType {
         return Component.translatable(getType());
     }
 
-    public static Set<SpellType> getAllMatch(ItemStack stack) {
-        Set<SpellType> set = Arrays.stream(SpellType.values()).filter(spellType -> spellType.canApply(stack)).collect(Collectors.toSet());
-        Predicate.resetCache();
-        return set;
-    }
-
     public abstract boolean canApply(ItemStack stack);
-
-    public void onTrigger(TriggerType type) {
-    }
-
-    public static void init(Player player) {
-        SPELL_TYPE_DATA_MAP.put(player.getUUID(), new SpellTypeData());
-    }
-
-    public void delete(ServerPlayer player) {
-        SPELL_TYPE_DATA_MAP.remove(player.getUUID());
-    }
 
     public static void afterMainTextureLoad(TextureAtlas atlas) {
         for (SpellType type : SpellType.values())
             type.sprite = atlas.getSprite(CalamityCurios.ModResource(type.name().toLowerCase()));
-    }
-
-    public final boolean canApplyEvent(TriggerType type) {
-        APPLICABLE_TYPE.clear();
-        getTriggerTypes();
-        return APPLICABLE_TYPE.contains(type);
-    }
-
-    public void getTriggerTypes() {}
-
-    public enum TriggerType {
-        MAIN_HAND_ITEM_CHANGE,
-        PLAYER_ATTACK,
-        PROJECTILE,
-        PLAYER_HURT;
-
-        private static CurseEnchantment enchantment;
-        private static SpellType.TriggerType type;
-        private Object listener;
-        private EventTypes<?> build;
-
-        @SuppressWarnings("all")
-        public static boolean canTriggerEnchant(Player player, SpellType.TriggerType type) {
-            LazyOptional<CurseEnchantment> optional = player.getMainHandItem().getCapability(EnchantmentProvider.CURSE_ENCHANTMENT);
-            if (optional.isPresent()) {
-                CurseEnchantment curseEnchantment = optional.orElse(null);
-                if (curseEnchantment.isEffective() && curseEnchantment.getRunes().canApplyEvent(type)) {
-                    TriggerType.type = type;
-                    enchantment = curseEnchantment;
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        @SuppressWarnings("unchecked")
-        public static <T extends BaseListener<?>> T listenerTriggerEnchant(EventTypes<T> types, Object... args) {
-            type.listener = args;
-            type.build = types;
-            enchantment.getRunes().onTrigger(type);
-            enchantment = null;
-            T listener = (T) type.listener;
-            type.listener = null;
-            type.build = null;
-            return listener;
-        }
-
-        public static void listenerTriggerEnchant(BaseListener<?> listener) {
-            type.listener = listener;
-            enchantment.getRunes().onTrigger(type);
-            enchantment = null;
-            type.listener = null;
-        }
-
-        public static void eventTriggerEnchant(Event event) {
-            type.listener = event;
-            enchantment.getRunes().onTrigger(type);
-            enchantment = null;
-            type.listener = null;
-        }
-
-        @SuppressWarnings("unchecked")
-        public final  <T> T getListener(Class<T> clazz) {
-            try {
-                return (T) (listener = (build != null ? build.builderEvent((Object[]) listener) : listener));
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
-            }
-        }
     }
 
     private enum Predicate {
@@ -497,6 +395,13 @@ public enum SpellType {
             @Override
             public boolean test(ItemStack stack) {
                 return stack.getItem() instanceof SwordItem || stack.canApplyAtEnchantingTable(Enchantments.SHARPNESS);
+            }
+        },
+        SPELL_CLASS {
+            @Override
+            public boolean test(ItemStack stack) {
+                Item item = stack.getItem();
+                return item instanceof SpellBook || item instanceof MagicSwordItem || item instanceof CastingItem;
             }
         },
         PROJECTILE_CLASS {
@@ -526,8 +431,10 @@ public enum SpellType {
         }
     }
 
-    protected static final class SpellTypeData {
+    public static final class SpellData {
         private final int[] fatigueSlot = new int[] {100, 0, 0};
         private final float[] lg = new float[3];
+        private float taintedCurseAmplifier;
+        private DamageSource oblatorySource;
     }
 }

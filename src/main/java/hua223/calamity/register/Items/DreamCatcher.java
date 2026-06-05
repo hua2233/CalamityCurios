@@ -3,7 +3,6 @@ package hua223.calamity.register.Items;
 import hua223.calamity.register.entity.projectiles.DreamCatcherHook;
 import hua223.calamity.util.CMLangUtil;
 import net.minecraft.ChatFormatting;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.sounds.SoundEvents;
@@ -31,7 +30,7 @@ public class DreamCatcher extends FishingRodItem {
     }
 
     @Override
-    public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player, @NotNull InteractionHand hand) {
+    public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player, @NotNull InteractionHand hand) {
         ItemStack itemstack = player.getItemInHand(hand);
         if (player.fishing != null) {
             if (!level.isClientSide) DreamCatcherHook.retrieve(player, itemstack);

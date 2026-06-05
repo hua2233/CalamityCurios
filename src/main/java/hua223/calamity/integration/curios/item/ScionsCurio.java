@@ -1,8 +1,9 @@
 package hua223.calamity.integration.curios.item;
 
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.integration.curios.listeners.EffectListener;
-import hua223.calamity.integration.curios.listeners.ProjectileHitListener;
+import hua223.calamity.events.listeners.EffectListener;
+import hua223.calamity.events.listeners.ProjectileHitListener;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.register.entity.projectiles.AcidicRain;
 import hua223.calamity.util.CMLangUtil;

@@ -1,10 +1,10 @@
 package hua223.calamity.integration.curios;
 
 import hua223.calamity.util.CMLangUtil;
+import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.ICuriosStorage;
 import hua223.calamity.util.IDataPackResponse;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -17,45 +17,46 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.List;
 
-public class Wings extends BaseCurio implements ICuriosStorage, IDataPackResponse {
-    protected final int flyTime;
-    protected final float flySpeedAmplifier;
-    protected final float verticalSpeed;
-
-    public Wings(Properties properties, int time, float amplifier, float vertical) {
+public abstract class Wings extends BaseCurio implements ICuriosStorage, IDataPackResponse  {
+    public Wings(Properties properties) {
         super(properties);
-        flySpeedAmplifier = amplifier;
-        flyTime = time;
-        verticalSpeed = vertical;
     }
 
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    @SuppressWarnings("ConstantConditions")
-    public final void onClientResponse(CompoundTag tag) {
-        //Only used as a parent class to pass data packets for processing
-        Minecraft.getInstance().player.calamity$WingsExpand[0] = tag.getFloat("speed");
-    }
+    protected abstract float getFlySpeedAmplifier();
+
+    protected abstract int getFlyTime();
+
+    protected abstract float getVerticalSpeed();
 
     @Override
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
-        getPack().putFloat("speed", verticalSpeed);
-        sendToClient(player);
         if (player.isCreative() || player.isSpectator()) return;
         Abilities abilities = player.getAbilities();
+        player.Calamity$Player.flySpeedAmplifier = getFlySpeedAmplifier();
+        getPack().putFloat("amplifier", getFlySpeedAmplifier());
+        sendToClient(player);
         abilities.mayfly = true;
+        abilities.setFlyingSpeed(0.05f * getVerticalSpeed());
         player.onUpdateAbilities();
     }
 
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
-        getPack().putFloat("speed", verticalSpeed);
-        sendToClient(player);
         if (player.isCreative() || player.isSpectator()) return;
         Abilities abilities = player.getAbilities();
+        player.Calamity$Player.flySpeedAmplifier = 0;
+        getPack().putFloat("amplifier", 0);
+        sendToClient(player);
         abilities.mayfly = false;
         abilities.flying = false;
+        abilities.setFlyingSpeed(0.05f);
         player.onUpdateAbilities();
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void onClientResponse(CompoundTag tag) {
+        CalamityHelp.getClientCalamity().flySpeedAmplifier = tag.getFloat("amplifier");
     }
 
     @Override
@@ -64,30 +65,37 @@ public class Wings extends BaseCurio implements ICuriosStorage, IDataPackRespons
         Abilities abilities = player.getAbilities();
         float[] count = getCount(player);
 
-        if (abilities.flying) {
-            if (count[0]-- <= 0) {
-                count[1] = 0;
-                abilities.setFlyingSpeed(0.05f);
-                abilities.mayfly = false;
-                abilities.flying = false;
-                player.onUpdateAbilities();
+        if (player.onGround()) {
+            float time = getFlyTime(player);
+            if (count[0] != time) {
+                count[0] = time;
+                if (count[1] == 1) {
+                    count[1] = 0;
+                    abilities.mayfly = true;
+                    abilities.setFlyingSpeed(0.05f * getVerticalSpeed());
+                    player.onUpdateAbilities();
+                }
             }
-        } else if (count[1] == 0 && player.onGround()) {
+        } else if (cancelFlight(abilities, count)) {
             count[1] = 1;
-            count[0] = getFlyTime(player);
-            abilities.setFlyingSpeed(0.05f * flySpeedAmplifier);
-            abilities.mayfly = true;
+            abilities.setFlyingSpeed(0.05f);
+            abilities.mayfly = false;
+            abilities.flying = false;
             player.onUpdateAbilities();
         }
     }
 
-    @Override
-    public int getCountSize() {
-        return 4;
+    protected boolean cancelFlight(Abilities abilities, float[] count) {
+        return abilities.flying && count[0]-- < 1;
     }
 
-    protected int getFlyTime(Player player) {
-        return (int) ((player.calamity$WingsExpand[1] + flyTime) * player.calamity$WingsExpand[2]);
+    @Override
+    public int getCountSize() {
+        return 2;
+    }
+
+    protected final int getFlyTime(Player player) {
+        return (int) ((player.Calamity$Player.extraFlyTime + getFlyTime()) * player.Calamity$Player.flyTimeAmplifier);
     }
 
     @Override
@@ -95,15 +103,15 @@ public class Wings extends BaseCurio implements ICuriosStorage, IDataPackRespons
     public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
         tooltips.add(CMLangUtil.blankLine());
         Style style = Style.EMPTY.withColor(ChatFormatting.GOLD);
-        tooltips.add(CMLangUtil.getDynamic("wings", 2, flyTime).setStyle(style));
+        tooltips.add(CMLangUtil.getDynamic("wings", 2, getFlyTime()).setStyle(style));
 
-        if (verticalSpeed > 1.6f)
+        if (getVerticalSpeed() > 4f)
             tooltips.add(CMLangUtil.getTranslatable("vertical", 3).withStyle(ChatFormatting.LIGHT_PURPLE));
-        else if (verticalSpeed > 1.3f)
+        else if (getVerticalSpeed() > 2.5f)
             tooltips.add(CMLangUtil.getTranslatable("vertical", 2).withStyle(ChatFormatting.AQUA));
         else tooltips.add(CMLangUtil.getTranslatable("vertical", 1).setStyle(style));
 
-        tooltips.add(CMLangUtil.getDynamic("wings", 1,flySpeedAmplifier).setStyle(style));
+        tooltips.add(CMLangUtil.getDynamic("wings", 1, getFlySpeedAmplifier()).setStyle(style));
         return tooltips;
     }
 }

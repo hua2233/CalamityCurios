@@ -21,6 +21,7 @@ import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -43,7 +44,7 @@ public class OddMushroom extends Item implements IDataPackResponse {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public UseAnim getUseAnimation(ItemStack stack) {
+    public @NotNull UseAnim getUseAnimation(@NotNull ItemStack stack) {
         return UseAnim.EAT;
     }
 
@@ -56,7 +57,7 @@ public class OddMushroom extends Item implements IDataPackResponse {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltips, TooltipFlag isAdvanced) {
+    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> tooltips, @NotNull TooltipFlag isAdvanced) {
         CMLangUtil.batchColorTexts(tooltips, ChatFormatting.LIGHT_PURPLE, "odd_mushroom", 1, 2);
         tooltips.add(CMLangUtil.getTranslatable("odd_mushroom", 3).withStyle(ChatFormatting.RED));
     }

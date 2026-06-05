@@ -28,7 +28,7 @@ public class Trippy extends CalamityEffect implements IEffectsCallBack {
     @Override
     public void onAdd(MobEffectInstance effect, LivingEntity entity, Entity source) {
         if (entity.calamity$IsPlayer)
-            ((IDataPackResponse) CalamityItems.ODD_MUSHROOM.get()).sendToClient((ServerPlayer) entity);
+            CalamityItems.ODD_MUSHROOM.asPackHandler().sendToClient((ServerPlayer) entity);
     }
 
     @Override

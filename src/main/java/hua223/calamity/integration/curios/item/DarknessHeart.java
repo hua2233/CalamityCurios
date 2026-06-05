@@ -1,6 +1,5 @@
 package hua223.calamity.integration.curios.item;
 
-import hua223.calamity.capability.CalamityCapProvider;
 import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.render.hud.RageHud;
 import hua223.calamity.util.CMLangUtil;
@@ -24,12 +23,12 @@ public class DarknessHeart extends BaseCurio implements ICuriosStorage, IDataPac
 
     @Override
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
-        CalamityCapProvider.RAGE.getCapabilityFrom(player).ifPresent(rage -> rage.setAttenuation(false));
+        player.Calamity$Player.rage.setAttenuation(false);
     }
 
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
-        CalamityCapProvider.RAGE.getCapabilityFrom(player).ifPresent(rage -> rage.setAttenuation(true));
+        player.Calamity$Player.rage.setAttenuation(true);
     }
 
     @Override
@@ -40,8 +39,7 @@ public class DarknessHeart extends BaseCurio implements ICuriosStorage, IDataPac
     @Override
     protected void onPlayerTick(Player player) {
         if (resetOrUpdate(player, 0, 20))
-            CalamityCapProvider.RAGE.getCapabilityFrom(player).ifPresent(rage ->
-                rage.addValue(2F, (ServerPlayer) player, this));
+            player.Calamity$Player.rage.addValue(2f, this);
     }
 
     @Override

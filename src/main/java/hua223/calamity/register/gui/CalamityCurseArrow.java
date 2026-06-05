@@ -2,7 +2,7 @@ package hua223.calamity.register.gui;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import hua223.calamity.main.CalamityCurios;
-import hua223.calamity.net.C2SPacket.SpellTypeSync;
+import hua223.calamity.net.packets.SpellTypeSync;
 import hua223.calamity.net.NetMessages;
 import hua223.calamity.util.delaytask.DelayRunnable;
 import net.minecraft.client.gui.GuiGraphics;
@@ -88,7 +88,7 @@ public class CalamityCurseArrow extends AbstractWidget {
         this.key = key;
     }
 
-    public static void afterMainTextureLoad(TextureAtlas atlas) {
+    static void afterMainTextureLoad(TextureAtlas atlas) {
         down = atlas.getSprite(CalamityCurios.ModResource("calamity_curse_arrow_down"));
         up = atlas.getSprite(CalamityCurios.ModResource("calamity_curse_arrow_up"));
         frame = (down.getU1() - down.getU0()) / 3;

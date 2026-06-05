@@ -1,7 +1,8 @@
 package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
-import hua223.calamity.integration.curios.listeners.EffectListener;
+import hua223.calamity.events.ApplyEvent;
+import hua223.calamity.events.listeners.EffectListener;
 import hua223.calamity.util.ConflictChain;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;

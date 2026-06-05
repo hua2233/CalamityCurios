@@ -1,12 +1,14 @@
 package hua223.calamity.register.gui;
 
 import hua223.calamity.capability.EnchantmentProvider;
-import hua223.calamity.net.C2SPacket.SpellTypeSync;
+import hua223.calamity.net.packets.SpellTypeSync;
 import hua223.calamity.net.NetMessages;
 import hua223.calamity.register.Items.CalamityItems;
 import hua223.calamity.register.RegisterList;
 import hua223.calamity.register.recipe.CalamityCurseRecipe;
+import hua223.calamity.util.CalamityHelp;
 import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -26,7 +28,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class CalamityCurseMenu extends AbstractContainerMenu {
     public static final int VANILLA_FIRST_SLOT_INDEX = 0;
@@ -35,6 +36,8 @@ public class CalamityCurseMenu extends AbstractContainerMenu {
     public SpellType type;
 
     public ItemStack[] spend;
+    @OnlyIn(Dist.CLIENT)
+    public boolean[] enough;
     public ItemStack result;
     public int reactantCount;
     public boolean isExhumed;
@@ -63,6 +66,7 @@ public class CalamityCurseMenu extends AbstractContainerMenu {
                     if (spell != null) {
                         type = spell;
                         NetMessages.sendToServer(new SpellTypeSync(type.name()));
+                        checkCostSituation();
                         screen.canRenderContent = true;
                         if (SpellType.isCanSwitch) screen.initButtonState();
                         else screen.notEnableButtonState();
@@ -77,6 +81,19 @@ public class CalamityCurseMenu extends AbstractContainerMenu {
             }
         }
     };
+
+    @OnlyIn(Dist.CLIENT)
+    private void checkCostSituation() {
+        enough = new boolean[spend.length];
+        Inventory inventory = player.getInventory();
+        Map<Integer, Integer> map = synthesis(false);
+        for (Map.Entry<Integer, Integer> entry : map.entrySet()) {
+            Item item = inventory.getItem(entry.getKey()).getItem();
+            for (int i = 0; i < spend.length; i++)
+                if (spend[i].getItem() == item)
+                    enough[i] = entry.getValue() > 0;
+        }
+    }
 
     public CalamityCurseMenu(@Nullable MenuType<?> menuType, int containerId, Player player) {
         super(menuType, containerId);
@@ -123,9 +140,11 @@ public class CalamityCurseMenu extends AbstractContainerMenu {
 
     public void setShareRenderTag(ItemStack stack, String spell) {
         stack.getCapability(EnchantmentProvider.CURSE_ENCHANTMENT).ifPresent(enchantment -> {
-            if (enchantment.isEffective())
-                Objects.requireNonNullElseGet(stack.getShareTag(), stack::getOrCreateTag)
-                    .putString(EnchantmentProvider.FONT_FLAG, spell);
+            if (enchantment.isEffective()) {
+                CompoundTag tag = stack.getOrCreateTag();
+                tag.putInt(CalamityHelp.FONT_FLAG, 1);
+                tag.putString("spell", spell);
+            }
         });
     }
 
@@ -204,6 +223,7 @@ public class CalamityCurseMenu extends AbstractContainerMenu {
                 type = SpellType.EXHUMED;
                 spend = s;
                 if (isClient) {
+                    checkCostSituation();
                     screen.canRenderContent = true;
                 } else {
                     isExhumed = true;
@@ -220,7 +240,7 @@ public class CalamityCurseMenu extends AbstractContainerMenu {
 
     @SuppressWarnings("ConstantConditions")
     private boolean hasBeenCursed(ItemStack stack) {
-        return stack.hasTag() && stack.getTag().contains(EnchantmentProvider.FONT_FLAG);
+        return stack.hasTag() && stack.getTag().contains(CalamityHelp.FONT_FLAG);
     }
 
     public boolean isEffectiveSlot() {
@@ -232,13 +252,13 @@ public class CalamityCurseMenu extends AbstractContainerMenu {
         }
     }
 
-    public Map<Integer, Integer> synthesis() {
+    public Map<Integer, Integer> synthesis(boolean interrupt) {
         Inventory inventory = player.getInventory();
         NonNullList<ItemStack> stacks = inventory.items;
         Map<Integer, Integer> slotChange = new HashMap<>();
 
         for (ItemStack ingredient : spend) {
-            if (!matching(ingredient, stacks, slotChange)) return null;
+            if (!matching(ingredient, stacks, slotChange) && interrupt) return null;
         }
 
         return slotChange;

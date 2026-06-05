@@ -1,6 +1,5 @@
 package hua223.calamity.mixins.client;
 
-import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.RenderUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
@@ -21,7 +20,7 @@ public abstract class GameRendererMixin {
     @SuppressWarnings("ConstantConditions")
     @ModifyVariable(method = "renderLevel", at = @At(value = "STORE", ordinal = 0), ordinal = 2)
     private float setDistort(float value) {
-        if (value == 0 || CalamityHelp.getCalamityFlag(minecraft.player, 0)) return 0;
+        if (value == 0 || minecraft.player.Calamity$Player.hasRadianceEffect) return 0;
         return value;
     }
 

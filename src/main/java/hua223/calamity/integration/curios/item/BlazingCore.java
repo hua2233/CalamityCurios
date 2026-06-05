@@ -1,8 +1,9 @@
 package hua223.calamity.integration.curios.item;
 
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.integration.curios.listeners.DeathListener;
-import hua223.calamity.integration.curios.listeners.HurtListener;
+import hua223.calamity.events.listeners.DeathListener;
+import hua223.calamity.events.listeners.HurtListener;
 import hua223.calamity.render.entity.CrystallizationRenderLayer;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.ICuriosStorage;
@@ -84,7 +85,7 @@ public class BlazingCore extends BaseCurio implements
     }
 
     @Override
-    public void onServerResponse(ServerPlayer player) {
+    public void onServerResponse(ServerPlayer player, CompoundTag tag) {
         float[] count = getCount(player);
         if (count[0] == 0) {
             count[0] = 1;

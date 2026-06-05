@@ -1,5 +1,6 @@
 package hua223.calamity.render;
 
+import hua223.calamity.render.font.CurseFont;
 import net.minecraft.client.gui.Font;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;

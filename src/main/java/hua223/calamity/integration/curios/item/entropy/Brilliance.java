@@ -32,7 +32,7 @@ public class Brilliance extends Card implements ICuriosStorage {
         if (++count[0] == 5) {
             count[0] = 0;
             CalamityLightBlock.placePlayerDynamicLightSource(player,
-                CalamityHelp.getCalamityFlag(player, 10) ? 15 : 8);
+                player.Calamity$Player.cardDeck ? 15 : 8);
         }
     }
 

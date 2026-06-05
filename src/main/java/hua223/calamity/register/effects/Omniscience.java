@@ -22,7 +22,7 @@ public class Omniscience extends CalamityEffect implements IEffectsCallBack {
     @Override
     public void onAdd(MobEffectInstance effect, LivingEntity entity, Entity source) {
         if (entity.calamity$IsPlayer && !entity.hasEffect(this))
-            ((IDataPackResponse) CalamityItems.OMNISCIENCE.get()).sendToClient((ServerPlayer) entity);
+            CalamityItems.OMNISCIENCE.asPackHandler().sendToClient((ServerPlayer) entity);
     }
 
     @Override

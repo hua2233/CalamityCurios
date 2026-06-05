@@ -79,6 +79,7 @@ public class CalamityCurseRecipe implements Recipe<SimpleContainer> {
 
     public static class CurseRecipeType implements RecipeType<CalamityCurseRecipe> {
         public static final CurseRecipeType INSTANCE = new CurseRecipeType();
+
         public static final String TYPE = "calamity_curse";
 
         private CurseRecipeType() {

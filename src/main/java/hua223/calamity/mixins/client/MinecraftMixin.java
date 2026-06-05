@@ -1,6 +1,5 @@
 package hua223.calamity.mixins.client;
 
-import hua223.calamity.util.CalamityHelp;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -28,7 +27,7 @@ public class MinecraftMixin {
     @Inject(method = "startAttack", at = @At(value = "INVOKE", shift = At.Shift.AFTER,
         target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;attack(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/entity/Entity;)V"), cancellable = true)
     private void resetAttack(CallbackInfoReturnable<Boolean> cir) {
-        if (CalamityHelp.getCalamityFlag(player, 6)) {
+        if (player.Calamity$Player.noAttackCooling) {
             missTime = 0;
             player.swing(InteractionHand.MAIN_HAND);
             cir.setReturnValue(true);
@@ -38,7 +37,7 @@ public class MinecraftMixin {
     @Redirect(method = "handleKeybinds", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/KeyMapping;consumeClick()Z", ordinal = 13))
     private boolean canAttack(KeyMapping instance) {
         //Make sure it's a per-frame attack and not stuck
-        if (!calamity$hasAttacked && CalamityHelp.getCalamityFlag(player, 6) && instance.isDown())
+        if (!calamity$hasAttacked && player.Calamity$Player.noAttackCooling && instance.isDown())
             return calamity$hasAttacked = true;
 
         return instance.consumeClick();

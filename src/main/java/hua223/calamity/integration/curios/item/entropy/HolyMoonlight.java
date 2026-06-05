@@ -1,9 +1,10 @@
 package hua223.calamity.integration.curios.item.entropy;
 
 import com.google.common.collect.Multimap;
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.integration.curios.listeners.HurtListener;
-import hua223.calamity.integration.curios.listeners.PlayerAttackListener;
+import hua223.calamity.events.listeners.HurtListener;
+import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.register.effects.SurvivableEffectInstance;
 import hua223.calamity.util.CMLangUtil;

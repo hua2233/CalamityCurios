@@ -1,7 +1,8 @@
 package hua223.calamity.integration.curios.item.entropy;
 
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.Card;
-import hua223.calamity.integration.curios.listeners.PlayerAttackListener;
+import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.register.Items.CalamityItems;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.CalamityHelp;
@@ -21,7 +22,7 @@ public class Tarnish extends Card {
 
     @ApplyEvent
     public final void onAttack(PlayerAttackListener listener) {
-        boolean flag = CalamityHelp.getCalamityFlag(listener.player, 10);
+        boolean flag = listener.player.Calamity$Player.cardDeck;
         listener.entity.setSecondsOnFire(flag ? 8 : 4);
         listener.amplifier += flag ? 0.12f : 0.08f;
     }

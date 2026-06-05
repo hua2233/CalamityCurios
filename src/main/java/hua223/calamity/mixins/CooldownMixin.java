@@ -1,7 +1,7 @@
 package hua223.calamity.mixins;
 
 import hua223.calamity.net.NetMessages;
-import hua223.calamity.net.S2CPacket.ReduceCooldown;
+import hua223.calamity.net.packets.ReduceCooldown;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;

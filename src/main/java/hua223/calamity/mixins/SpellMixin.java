@@ -1,6 +1,5 @@
 package hua223.calamity.mixins;
 
-import hua223.calamity.mixed.ICalamityMagicExpand;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastResult;
@@ -19,17 +18,17 @@ public abstract class SpellMixin {
     @Shadow public abstract int getManaCost(int level);
 
     @Unique
-    private static MagicData calamity$TempData;
+    private static Player calamity$TempData;
     @Unique
     private static int calamity$SpellLevel;
     @Inject(method = "canBeCastedBy", at = @At("HEAD"))
     private void getTemp(int spellLevel, CastSource castSource, MagicData playerMagicData, Player player, CallbackInfoReturnable<CastResult> cir) {
-        calamity$TempData = playerMagicData;
+        calamity$TempData = player;
         calamity$SpellLevel = spellLevel;
     }
 
     @ModifyVariable(method = "canBeCastedBy", at = @At(value = "STORE"), name = "hasEnoughMana")
     private boolean canCasted(boolean value) {
-        return value || ((ICalamityMagicExpand) calamity$TempData).calamity$UsePotionMana(getManaCost(calamity$SpellLevel), true);
+        return value || calamity$TempData.Calamity$Player.usePotionMana(getManaCost(calamity$SpellLevel), true);
     }
 }

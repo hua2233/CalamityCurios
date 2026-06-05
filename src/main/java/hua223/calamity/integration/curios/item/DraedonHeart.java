@@ -1,19 +1,20 @@
 package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
-import hua223.calamity.capability.CalamityCapProvider;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import hua223.calamity.capability.Adrenaline;
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.integration.curios.listeners.HurtListener;
-import hua223.calamity.integration.curios.listeners.PlayerAttackListener;
+import hua223.calamity.events.listeners.HurtListener;
+import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.sounds.CalamitySounds;
 import hua223.calamity.render.hud.AdrenalineHud;
-import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.ICuriosStorage;
+import hua223.calamity.util.*;
 import hua223.calamity.register.keys.IKeyDataPackResponse;
-import hua223.calamity.util.IDataPackResponse;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -30,13 +31,14 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 import java.util.UUID;
 
 public class DraedonHeart extends BaseCurio implements
-    ICuriosStorage, IKeyDataPackResponse, IDataPackResponse {
+    ICuriosStorage, IKeyDataPackResponse, IDataPackResponse, ICustomBackgroundRender {
     public DraedonHeart(Properties properties) {
         super(properties);
     }
@@ -45,8 +47,7 @@ public class DraedonHeart extends BaseCurio implements
     public @NotNull InteractionResultHolder<ItemStack> use(Level level, Player player, @NotNull InteractionHand usedHand) {
         ItemStack stack = player.getItemInHand(usedHand);
         if (!level.isClientSide) {
-            CalamityCapProvider.ADRENALINE.getCapabilityFrom(player).ifPresent(
-                adrenaline -> adrenaline.switchMode((ServerPlayer) player, this));
+            player.Calamity$Player.adrenaline.switchMode(this);
             return InteractionResultHolder.success(stack);
         }
 
@@ -65,21 +66,18 @@ public class DraedonHeart extends BaseCurio implements
     @Override
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
         setKeyMapping(player, true);
-        CalamityCapProvider.ADRENALINE.getCapabilityFrom(player).ifPresent(
-            adrenaline -> adrenaline.setEnabled(player, true, this));
+        player.Calamity$Player.adrenaline.setEnabled(true, this);
     }
 
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
         setKeyMapping(player, false);
-        CalamityCapProvider.ADRENALINE.getCapabilityFrom(player).ifPresent(adrenaline ->
-            adrenaline.setEnabled(player, false, this));
+        player.Calamity$Player.adrenaline.setEnabled(false, this);
     }
 
     @Override
-    public void onServerResponse(ServerPlayer player) {
-        CalamityCapProvider.ADRENALINE.getCapabilityFrom(player).ifPresent(
-            adrenaline -> adrenaline.adrenalineActivate(player, true, this));
+    public void onServerResponse(ServerPlayer player, CompoundTag tag) {
+        player.Calamity$Player.adrenaline.adrenalineActivate(true, this);
     }
 
     @Override
@@ -93,20 +91,19 @@ public class DraedonHeart extends BaseCurio implements
         if (!listener.isTriggerByLiving) return;
         ServerPlayer player = listener.player;
         float[] count = getCount(player);
+        Adrenaline adrenaline = player.Calamity$Player.adrenaline;
 
-        CalamityCapProvider.ADRENALINE.getCapabilityFrom(player).ifPresent(adrenaline -> {
-            if (adrenaline.isActive()) {
-                if (adrenaline.isNanoMachinesMode()) listener.amplifier -= adrenaline.getDamageOffset();
+        if (adrenaline.isActive()) {
+            if (adrenaline.isNanoMachinesMode()) listener.amplifier -= adrenaline.getDamageOffset();
+        } else {
+            if (adrenaline.isNanoMachinesMode()) {
+                count[0] = -20 - (20 - count[0]);
             } else {
-                if (adrenaline.isNanoMachinesMode()) {
-                    count[0] = -20 - (20 - count[0]);
-                } else {
-                    if (adrenaline.isMax()) listener.amplifier -= adrenaline.getDamageOffset();
-                    player.level().playSound(null, player, CalamitySounds.MAJOR_LOSS.get(), SoundSource.PLAYERS, 1f, 1f);
-                    adrenaline.zero(listener.player, this);
-                }
+                if (adrenaline.isMax()) listener.amplifier -= adrenaline.getDamageOffset();
+                player.level().playSound(null, player, CalamitySounds.MAJOR_LOSS.get(), SoundSource.PLAYERS, 1f, 1f);
+                adrenaline.zero(this);
             }
-        });
+        }
     }
 
     @Override
@@ -126,10 +123,9 @@ public class DraedonHeart extends BaseCurio implements
 
     @ApplyEvent
     public final void onAttack(PlayerAttackListener listener) {
-        CalamityCapProvider.ADRENALINE.getCapabilityFrom(listener.player).ifPresent(adrenaline -> {
-            if (adrenaline.isActive() && !adrenaline.isNanoMachinesMode())
-                listener.amplifier += adrenaline.getAmplifier();
-        });
+        Adrenaline adrenaline = listener.player.Calamity$Player.adrenaline;
+        if (adrenaline.isActive() && !adrenaline.isNanoMachinesMode())
+            listener.amplifier += adrenaline.getAmplifier();
     }
 
     @Override
@@ -139,12 +135,38 @@ public class DraedonHeart extends BaseCurio implements
 
     @Override
     protected void onPlayerTick(Player player) {
-        float[] count = getCount(player);
-        if (count[0]++ == 20) {
-            count[0] = 0;
-            CalamityCapProvider.ADRENALINE.getCapabilityFrom(player).ifPresent(
-                adrenaline -> adrenaline.addValue((ServerPlayer) player, this));
-        }
+        if (resetOrUpdate(player, 0, 20))
+            player.Calamity$Player.adrenaline.addValue(this);
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public RenderType getRenderType() {
+        return RenderUtil.Shaders.getDisintegration();
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void internalRender(VertexConsumer consumer, int x1, int y1, int x2, int y2, int z, float[] gradientColor, Matrix4f matrix4f) {
+        consumer.vertex(matrix4f, x1, y1, z)
+            .color(gradientColor[1], gradientColor[2], gradientColor[3], gradientColor[0])
+            .uv(1f, 1f)
+            .endVertex();
+
+        consumer.vertex(matrix4f, x1, y2, z)
+            .color(gradientColor[5], gradientColor[6], gradientColor[7], gradientColor[4])
+            .uv(1f, 0f)
+            .endVertex();
+
+        consumer.vertex(matrix4f, x2, y2, z)
+            .color(gradientColor[5], gradientColor[6], gradientColor[7], gradientColor[4])
+            .uv(0f, 0f)
+            .endVertex();
+
+        consumer.vertex(matrix4f, x2, y1, z)
+            .color(gradientColor[1], gradientColor[2], gradientColor[3], gradientColor[0])
+            .uv(0f, 1f)
+            .endVertex();
     }
 
     @Override

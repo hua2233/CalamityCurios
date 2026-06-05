@@ -1,10 +1,9 @@
 package hua223.calamity.register.Items;
 
-import hua223.calamity.mixed.ICalamityMagicExpand;
-import io.redspace.ironsspellbooks.api.magic.MagicData;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 
 public class MagicItem extends AvailableItem {
     private final byte level;
@@ -15,9 +14,9 @@ public class MagicItem extends AvailableItem {
     }
 
     @Override
-    public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity entity) {
+    public @NotNull ItemStack finishUsingItem(@NotNull ItemStack stack, @NotNull Level level, LivingEntity entity) {
         if (entity.calamity$IsPlayer && !level.isClientSide
-            && ((ICalamityMagicExpand) MagicData.getPlayerMagicData(entity)).calamity$TryUseMagicItem(this.level, getDescription().getString()))
+            && entity.calamity$Player.Calamity$Player.tryUseMagicItem(this.level))
             stack.shrink(1);
         return stack;
     }

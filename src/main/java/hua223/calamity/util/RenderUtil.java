@@ -13,6 +13,7 @@ import dev.kosmx.playerAnim.api.layered.KeyframeAnimationPlayer;
 import dev.kosmx.playerAnim.core.data.AnimationFormat;
 import dev.kosmx.playerAnim.core.data.KeyframeAnimation;
 import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationAccess;
+import hua223.calamity.events.ClientRushEvent;
 import hua223.calamity.main.CalamityCurios;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.register.recipe.CalamityCurseRecipe;
@@ -24,6 +25,7 @@ import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
@@ -63,6 +65,7 @@ import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.Random;
 
+//To be refactored...
 @OnlyIn(Dist.CLIENT)
 public final class RenderUtil {
     public static final Vector4i MAGENTA = new Vector4i(255, 0, 255, 255);
@@ -74,6 +77,7 @@ public final class RenderUtil {
     public static final Vector4i DARK_ORCHID = new Vector4i(153, 50, 204, 255);
     public static final Vector4i INDIAN_RED = new Vector4i(205, 92, 204, 255);
     public static final Vector4i DARK_RED = new Vector4i(139, 0, 0, 255);
+    public static final Matrix4f TRANSIENT_MATRIX = new Matrix4f();
     public static final HumanoidModel.ArmPose HOLD_POSE = HumanoidModel.ArmPose.create(
         "HOLD", true, (model, entity, arm) -> {
             float xRot = (entity.getXRot() + 8) * Mth.DEG_TO_RAD;
@@ -97,13 +101,7 @@ public final class RenderUtil {
         return false;
     };
 
-    private static short rainbowR = 255;
-    private static short rainbowG = 0;
-    private static short rainbowB = 0;
-    private static byte rainbowStyle = 0;
     private static boolean init = true;
-    public static int astrAmount;
-
     private static short tick;
 
     private RenderUtil() {
@@ -111,69 +109,79 @@ public final class RenderUtil {
 
     public static void updateGlobal() {
         if (tick++ == 3600) tick = 0;
-        EnchantedParticleSet.update();
-        CurseFont.updateTick();
-        switch (rainbowStyle) {
-            case 0 -> {
-                rainbowG += 7;
-                if (rainbowG >= 255) {
-                    rainbowG = 255;
-                    rainbowStyle++;
-                }
-            }
+    }
 
-            case 1 -> {
-                rainbowR -= 7;
-                if (rainbowR <= 0) {
-                    rainbowR = 0;
-                    rainbowStyle++;
+    private static short rainbowR = 255;
+    private static short rainbowG = 0;
+    private static short rainbowB = 0;
+    private static byte rainbowStyle = 0;
+    private static short lastRainbowTime;
+    public static Component getRainbow(MutableComponent component) {
+        if (lastRainbowTime != tick) {
+            lastRainbowTime = tick;
+            switch (rainbowStyle) {
+                case 0 -> {
+                    rainbowG += 7;
+                    if (rainbowG >= 255) {
+                        rainbowG = 255;
+                        rainbowStyle++;
+                    }
                 }
-            }
 
-            case 2 -> {
-                rainbowB += 7;
-                if (rainbowB >= 255) {
-                    rainbowB = 255;
-                    rainbowStyle++;
+                case 1 -> {
+                    rainbowR -= 7;
+                    if (rainbowR <= 0) {
+                        rainbowR = 0;
+                        rainbowStyle++;
+                    }
                 }
-            }
 
-            case 3 -> {
-                rainbowG -= 7;
-                if (rainbowG <= 0) {
-                    rainbowG = 0;
-                    rainbowStyle++;
+                case 2 -> {
+                    rainbowB += 7;
+                    if (rainbowB >= 255) {
+                        rainbowB = 255;
+                        rainbowStyle++;
+                    }
                 }
-            }
 
-            case 4 -> {
-                rainbowR += 7;
-                if (rainbowR >= 255) {
-                    rainbowR = 255;
-                    rainbowStyle++;
+                case 3 -> {
+                    rainbowG -= 7;
+                    if (rainbowG <= 0) {
+                        rainbowG = 0;
+                        rainbowStyle++;
+                    }
                 }
-            }
 
-            case 5 -> {
-                rainbowB -= 7;
-                if (rainbowB <= 0) {
-                    rainbowB = 0;
-                    rainbowStyle = 0;
+                case 4 -> {
+                    rainbowR += 7;
+                    if (rainbowR >= 255) {
+                        rainbowR = 255;
+                        rainbowStyle++;
+                    }
+                }
+
+                case 5 -> {
+                    rainbowB -= 7;
+                    if (rainbowB <= 0) {
+                        rainbowB = 0;
+                        rainbowStyle = 0;
+                    }
                 }
             }
         }
-    }
 
-    public static Component getRainbow(MutableComponent component) {
-        component.setStyle(Style.EMPTY.withColor(((rainbowR & 0xFF) << 16) |
+        return component.setStyle(Style.EMPTY.withColor(((rainbowR & 0xFF) << 16) |
             ((rainbowG & 0xFF) << 8) |
             ((rainbowB & 0xFF))));
-
-        return component;
     }
 
     public static short getLocalTick() {
         return tick;
+    }
+
+    public static void clear(LocalPlayer player) {
+        clearOldDecorator(player.level().getRecipeManager(), true);
+        Shaders.renderHighlightBlocks(true);
     }
 
     /**
@@ -214,18 +222,6 @@ public final class RenderUtil {
         poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
         renderTexture(last.pose(), last.normal(), consumer, packedLight);
     }
-
-//    public static int interpolateColor(int startColor, int endColor, float progress) {
-//        int r = (int) (FastColor.ARGB32.red(startColor) + (FastColor.ARGB32.blue(endColor)
-//            - getRed(startColor)) * progress);
-//
-//        int g = (int) (getGreen(startColor) + (getGreen(endColor)
-//            - getGreen(startColor)) * progress);
-//
-//        int b = (int) (getBlue(startColor) + (getBlue(endColor)
-//            - getBlue(startColor)) * progress);
-//        return (r << 16) | (g << 8) | b;
-//    }
 
     public static Vector2d directionTo(Vec3 vec3, double x, double y) {
         double dx = vec3.x - x;
@@ -329,18 +325,6 @@ public final class RenderUtil {
         return ratio;
     }
 
-//    public static int getRed(int color) {
-//        return (color >> 16) & 0xFF;
-//    }
-//
-//    public static int getGreen(int color) {
-//        return (color >> 8) & 0xFF;
-//    }
-//
-//    public static int getBlue(int color) {
-//        return color & 0xFF;
-//    }
-
     public static Vec3 subtractVec2(Vec3 start, Vec3 end) {
         return new Vec3(end.x - start.x, end.y - start.y, end.z);
     }
@@ -353,9 +337,6 @@ public final class RenderUtil {
     }
 
     public static float smoothStep(float from, float to, float amount) {
-//        amount = Mth.clamp(amount, 0, 1f);
-//        amount = amount * amount * (3f - 2f * amount);
-//        return from + (to - from) * amount;
         return hermite(from, 0f, to, 0f, Mth.clamp(amount, 0f, 1f));
     }
 
@@ -557,7 +538,6 @@ public final class RenderUtil {
         axis.normalize();
         float angleRad = (float) Math.acos(Math.max(-1.0f, Math.min(1.0f, dot)));
 
-        // 创建四元数：绕 axis 旋转 angleRad 弧度
         return new Quaternionf().rotateAxis(angleRad, axis);
     }
 
@@ -580,29 +560,15 @@ public final class RenderUtil {
     @OnlyIn(Dist.CLIENT)
     public static final class Shaders extends RenderType {
         private static final ResourceLocation FLASH = CalamityCurios.ModResource("textures/misc/flash.png");
-        private static ShaderInstance FADED_UV_MAP_STREAK;
-        private static final ShaderStateShard FADED_UV_MAP_STREAK_STATE_SHARD =
-            new ShaderStateShard(() -> FADED_UV_MAP_STREAK);
-
-        private static ShaderInstance RANCOR_MAGIC_CIRCLE;
-        private static final ShaderStateShard RANCOR_STATE_SHARD =
-            new ShaderStateShard(() -> RANCOR_MAGIC_CIRCLE);
-
-        private static ShaderInstance FLAME;
-        private static final ShaderStateShard FLAME_STATE_SHARD =
-            new ShaderStateShard(() -> FLAME);
-
-        private static ShaderInstance BASE;
-        private static final ShaderStateShard BASE_SHARD =
-            new ShaderStateShard(() -> BASE);
+        private static ShaderStateShard FADED_UV_MAP_STREAK_STATE_SHARD;
+        private static ShaderStateShard RANCOR_STATE_SHARD;
+        private static ShaderStateShard FLAME_STATE_SHARD;
+        public static ShaderStateShard BASE_SHARD;
+        private static ShaderStateShard RADIAL_SHINE;
+        private static ShaderStateShard DISINTEGRATION;
 
         private static final ShaderStateShard BLACK_HOLE_SHARD =
             new ShaderStateShard(CalamityCelestialBodyShader::getBlackInstance);
-
-        private static ShaderInstance SHINE;
-        private static final ShaderStateShard RADIAL_SHINE =
-            new ShaderStateShard(() -> SHINE);
-
         private static final ShaderStateShard SUN_SHARD =
             new ShaderStateShard(CalamityCelestialBodyShader::getSunInstance);
         //It should just be a shader, borrowed for post-processing, because Minecraft's post-processing is singleton
@@ -615,9 +581,8 @@ public final class RenderUtil {
         private static boolean flashEffect;
         private static double flashTime;
         private static boolean notRenderBlock = true;
-        private static int framebufferWidth;
-        private static int framebufferHeight;
 
+        @SuppressWarnings("deprecation")
         public static final ParticleRenderType GENERIC_BLOOM = new ParticleRenderType() {
             @Override
             public void begin(BufferBuilder bufferBuilder, @NotNull TextureManager textureManager) {
@@ -650,21 +615,30 @@ public final class RenderUtil {
             try {
                 ResourceProvider manager = event.getResourceProvider();
                 event.registerShader(new ShaderInstance(manager, CalamityCurios.ModResource("faded_uv_map_streak"),
-                    DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP), shader -> FADED_UV_MAP_STREAK = shader);
+                    DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP), shader ->
+                    FADED_UV_MAP_STREAK_STATE_SHARD = new ShaderStateShard(() -> shader));
 
                 event.registerShader(new ShaderInstance(manager, CalamityCurios.ModResource("flame"),
-                    DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP), shader -> FLAME = shader);
+                    DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP), shader ->
+                    FLAME_STATE_SHARD = new ShaderStateShard(() -> shader));
 
                 event.registerShader(new ShaderInstance(manager, CalamityCurios.ModResource("rancor_magic_circle"),
-                    DefaultVertexFormat.NEW_ENTITY), shader -> RANCOR_MAGIC_CIRCLE = shader);
+                    DefaultVertexFormat.NEW_ENTITY), shader ->
+                    RANCOR_STATE_SHARD = new ShaderStateShard(() -> shader));
 
                 event.registerShader(new ShaderInstance(manager, CalamityCurios.ModResource("base"),
-                    DefaultVertexFormat.POSITION_COLOR_TEX), shader -> BASE = shader);
+                    DefaultVertexFormat.POSITION_COLOR_TEX),
+                    shader -> BASE_SHARD = new ShaderStateShard(() -> shader));
+
+                event.registerShader(new ShaderInstance(manager, CalamityCurios.ModResource("disintegration"),
+                    DefaultVertexFormat.POSITION_COLOR_TEX),
+                    shader -> DISINTEGRATION = new ShaderStateShard(() -> shader));
 
                 event.registerShader(new CalamityCelestialBodyShader.BlackHoleShader(manager, CalamityCurios.ModResource("real_black_hole"),
                     DefaultVertexFormat.NEW_ENTITY), CalamityCelestialBodyShader::setInstance);
 
-                event.registerShader(CalamityCelestialBodyShader.SunShader.createRadialShineShader(manager), shader -> SHINE = shader);
+                event.registerShader(CalamityCelestialBodyShader.SunShader.createRadialShineShader(manager),
+                    shader -> RADIAL_SHINE = new ShaderStateShard(() -> shader));
 
                 event.registerShader(new CalamityCelestialBodyShader.SunShader(manager), CalamityCelestialBodyShader::setInstance);
             } catch (Exception e) {
@@ -681,7 +655,18 @@ public final class RenderUtil {
                     .setOverlayState(RenderStateShard.NO_OVERLAY)
                     .setCullState(RenderStateShard.NO_CULL)
                     .createCompositeState(false)
+
             );
+        }
+
+        public static RenderType getDisintegration() {
+            return RenderType.create("disintegration", DefaultVertexFormat.POSITION_COLOR_TEX, VertexFormat.Mode.QUADS,
+                256, false, false, CompositeState.builder()
+                    .setTextureState(new TextureStateShard(CalamityCelestialBodyShader.PERLIN, false, false))
+                    .setShaderState(DISINTEGRATION)
+                    .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                    .setDepthTestState(LEQUAL_DEPTH_TEST)
+                    .createCompositeState(false));
         }
 
         public static RenderType getRancorLaserRenderType(ResourceLocation texture) {
@@ -709,8 +694,20 @@ public final class RenderUtil {
             );
         }
 
+//        public static RenderType getAddBlendText() {
+//            return RenderType.create("burnished_auric",
+//                DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP,
+//                VertexFormat.Mode.QUADS, 256,
+//                false, true, RenderType.CompositeState.builder()
+//                    .setShaderState(RenderStateShard.RENDERTYPE_TEXT_SHADER)
+//                    .setTextureState(new RenderStateShard.TextureStateShard(CalamityCurios.resource("default/0"),
+//                        ForgeRenderTypes.enableTextTextureLinearFiltering, false))
+//                    .setTransparencyState(RenderStateShard.ADDITIVE_TRANSPARENCY)
+//                    .setLightmapState(LIGHTMAP).createCompositeState(false));
+//        }
+
         public static RenderType getBlackHole() {
-            return RenderType.create("black_hole", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS,
+            return RenderType.create("black_hole", DefaultVertexFormat.POSITION_COLOR_TEX, VertexFormat.Mode.QUADS,
                 256, false, false, CompositeState.builder()
                     .setShaderState(BLACK_HOLE_SHARD)
                     .setTextureState(new MultiTextureStateShard.Builder()
@@ -791,6 +788,7 @@ public final class RenderUtil {
                     .createCompositeState(false));
         }
 
+        @SuppressWarnings("ConstantConditions")
         public static void setScreenFlashEffect(int time, float intensity, int c) {
             if (!flashEffect) {
                 flashStartTime = Minecraft.getInstance().level.getGameTime();
@@ -819,37 +817,37 @@ public final class RenderUtil {
                     return;
                 }
 
-                int width = minecraft.getWindow().getGuiScaledWidth();
-                int height = minecraft.getWindow().getGuiScaledHeight();
-
-                RenderSystem.disableDepthTest();
-                RenderSystem.depthMask(false);
-                RenderSystem.enableBlend();
-                RenderSystem.defaultBlendFunc();
-                RenderSystem.setShader(GameRenderer::getPositionTexShader);
-                RenderSystem.setShaderColor(flashColor[0], flashColor[1], flashColor[2], getIntensity(partialTick, age, minecraft));
                 RenderSystem.setShaderTexture(0, FLASH);
+                RenderSystem.setShaderColor(flashColor[0], flashColor[1],
+                    flashColor[2], getIntensity(partialTick, age, minecraft));
+                renderMask(minecraft);
+            } else ClientRushEvent.BossRushSky.applyFilter(minecraft);
+        }
 
-                Tesselator tesselator = Tesselator.getInstance();
-                BufferBuilder bufferbuilder = tesselator.getBuilder();
-                bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-                bufferbuilder.vertex(0.0D, height, -90.0D).uv(0.0F, 1.0F).endVertex();
-                bufferbuilder.vertex(width, height, -90.0D).uv(1.0F, 1.0F).endVertex();
-                bufferbuilder.vertex(width, 0.0D, -90.0D).uv(1.0F, 0.0F).endVertex();
-                bufferbuilder.vertex(0.0D, 0.0D, -90.0D).uv(0.0F, 0.0F).endVertex();
-                tesselator.end();
-
-                RenderSystem.depthMask(true);
-                RenderSystem.enableDepthTest();
-                RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-            }
+        public static void renderMask(Minecraft minecraft) {
+            RenderSystem.disableDepthTest();
+            RenderSystem.depthMask(false);
+            RenderSystem.enableBlend();
+            RenderSystem.defaultBlendFunc();
+            RenderSystem.setShader(GameRenderer::getPositionTexShader);
+            int width = minecraft.getWindow().getGuiScaledWidth();
+            int height = minecraft.getWindow().getGuiScaledHeight();
+            Tesselator tesselator = Tesselator.getInstance();
+            BufferBuilder bufferbuilder = tesselator.getBuilder();
+            bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+            bufferbuilder.vertex(0.0D, height, -90.0D).uv(0.0F, 1.0F).endVertex();
+            bufferbuilder.vertex(width, height, -90.0D).uv(1.0F, 1.0F).endVertex();
+            bufferbuilder.vertex(width, 0.0D, -90.0D).uv(1.0F, 0.0F).endVertex();
+            bufferbuilder.vertex(0.0D, 0.0D, -90.0D).uv(0.0F, 0.0F).endVertex();
+            tesselator.end();
+            RenderSystem.depthMask(true);
+            RenderSystem.enableDepthTest();
+            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         }
 
         private static float getIntensity(float partialTick, long age, Minecraft minecraft) {
             float adjustedAge = age + partialTick;
             float screen = minecraft.options.screenEffectScale().get().floatValue();
-
-            framebufferHeight = framebufferWidth = -1;
 
             if (age <= fadeInTime) {
                 return baseFlashIntensity * (adjustedAge / fadeInTime) * screen;
@@ -864,15 +862,9 @@ public final class RenderUtil {
             if (notRenderBlock || CalamityOutlineRenderer.notRender()) return;
             Minecraft minecraft = Minecraft.getInstance();
             Window window = minecraft.getWindow();
-            int width = window.getScreenWidth();
-            int height = window.getScreenHeight();
-            if ((width != framebufferWidth || height != framebufferHeight) && width * height > 0) {
-                framebufferWidth = width;
-                framebufferHeight = height;
-                LIGHT.resize(framebufferWidth, framebufferHeight);
-            }
-
             RenderTarget lightFbo = LIGHT.getTempTarget("final");
+            checkFboSize(lightFbo, window.getScreenWidth(), window.getScreenHeight());
+
             lightFbo.clear(Minecraft.ON_OSX);
             lightFbo.bindWrite(false);
 
@@ -886,7 +878,7 @@ public final class RenderUtil {
             RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA,
                 GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA,
                 GlStateManager.SourceFactor.ZERO, GlStateManager.DestFactor.ONE);
-            lightFbo.blitToScreen(framebufferWidth, framebufferHeight, false);
+            lightFbo.blitToScreen(lightFbo.width, lightFbo.height, false);
         }
 
         public static void renderHighlightBlocks(boolean close) {
@@ -914,14 +906,10 @@ public final class RenderUtil {
 
                     notRenderBlock = false;
                     CalamityOutlineRenderer.init(minecraft);
+                    MobEffect effect = CalamityEffects.OMNISCIENCE.get();
                     DelayRunnable.addUniqueLoopTask(() -> {
-                        if (minecraft.player == null || !minecraft.player.hasEffect(CalamityEffects.OMNISCIENCE.get())) {
-                            RenderSystem.recordRenderCall(() -> {
-                                CalamityOutlineRenderer.close();
-                                LIGHT.close();
-                                LIGHT = null;
-                                notRenderBlock = true;
-                            });
+                        if (minecraft.player == null || !minecraft.player.hasEffect(effect)) {
+                            renderHighlightBlocks(true);
                             return true;
                         } else {
                             CalamityOutlineRenderer.updateOutlineTarget(minecraft);
@@ -968,6 +956,12 @@ public final class RenderUtil {
             }
         }
 
+        public static void checkFboSize(RenderTarget fbo, int width, int height) {
+            if ((width != fbo.width || height != fbo.height) && width * height > 0)
+                LIGHT.resize(width, height);
+        }
+
+        @SuppressWarnings("unchecked")
         public static void psychedelic(RenderLivingEvent.Pre<? extends LivingEntity, ? extends EntityModel<? extends LivingEntity>> event) {
             if (trippy && notTrippyRender) {
                 event.setCanceled(true);

@@ -1,7 +1,7 @@
 package hua223.calamity.mixins;
 
 import hua223.calamity.net.NetMessages;
-import hua223.calamity.net.S2CPacket.OutlineDetected;
+import hua223.calamity.net.packets.OutlineDetected;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;

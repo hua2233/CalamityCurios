@@ -1,9 +1,7 @@
     package hua223.calamity.register.Items.edible;
 
-    import hua223.calamity.mixed.ICalamityMagicExpand;
     import hua223.calamity.register.effects.CalamityEffects;
     import hua223.calamity.util.CMLangUtil;
-    import io.redspace.ironsspellbooks.api.magic.MagicData;
     import net.minecraft.ChatFormatting;
     import net.minecraft.network.chat.Component;
     import net.minecraft.world.effect.MobEffectInstance;
@@ -27,8 +25,8 @@
 
         @Override
         protected void endOfUse(ItemStack stack, Level level, LivingEntity entity) {
-            if (!level.isClientSide)
-                ((ICalamityMagicExpand) MagicData.getPlayerMagicData(entity)).calamity$ChangeMana(300, true);
+            if (!level.isClientSide && entity.calamity$IsPlayer)
+                entity.calamity$Player.Calamity$Player.changeMana(300, true);
         }
 
         @Override

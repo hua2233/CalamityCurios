@@ -64,7 +64,7 @@ public class IllusionBufferSource implements MultiBufferSource {
         }
 
         @Override
-        public VertexConsumer vertex(Matrix4f matrix, float x, float y, float z) {
+        public @NotNull VertexConsumer vertex(@NotNull Matrix4f matrix, float x, float y, float z) {
             hijackConsumer = hijackConsumer.vertex(matrix, x, y, z);
             return this;
         }
@@ -84,18 +84,18 @@ public class IllusionBufferSource implements MultiBufferSource {
         }
 
         @Override
-        public void putBulkData(PoseStack.Pose entry, BakedQuad quad, float red, float green, float blue, int light, int overlay) {
+        public void putBulkData(PoseStack.@NotNull Pose entry, @NotNull BakedQuad quad, float red, float green, float blue, int light, int overlay) {
             hijackConsumer.putBulkData(entry, quad, red, green, blue, light, overlay);
         }
 
         @Override
-        public void putBulkData(PoseStack.Pose entry, BakedQuad quad, float[] colorMuls,
-                                float red, float green, float blue, int[] lights, int overlay, boolean mulColor) {
+        public void putBulkData(PoseStack.@NotNull Pose entry, @NotNull BakedQuad quad, float @NotNull [] colorMuls,
+                                float red, float green, float blue, int @NotNull [] lights, int overlay, boolean mulColor) {
             hijackConsumer.putBulkData(entry, quad, colorMuls, red, green, blue, lights, overlay, mulColor);
         }
 
         @Override
-        public void putBulkData(PoseStack.Pose pose, BakedQuad bakedQuad, float red, float green,
+        public void putBulkData(PoseStack.@NotNull Pose pose, @NotNull BakedQuad bakedQuad, float red, float green,
                                 float blue, float alpha, int packedLight, int packedOverlay, boolean readExistingColor) {
             hijackConsumer.putBulkData(pose, bakedQuad, red, green, blue, alpha, packedLight, packedOverlay, readExistingColor);
         }

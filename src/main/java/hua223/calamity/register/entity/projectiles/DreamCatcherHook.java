@@ -196,6 +196,11 @@ public class DreamCatcherHook extends FishingHook implements IEntityAdditionalSp
         }
     }
 
+    @Override
+    public boolean fireImmune() {
+        return true;
+    }
+
     public static void retrieve(Player player, @NotNull ItemStack stack) {
         if (!player.level().isClientSide) {
             ServerLevel level = (ServerLevel) player.level();

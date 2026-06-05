@@ -14,6 +14,10 @@ public final class DelayRunnable {
     private DelayRunnable() {
     }
 
+    public static boolean isLocalServerEnvironment() {
+        return INTEGRATED_SERVER;
+    }
+
     public static void addRunTask(int runTick, Runnable task) {
         TASK_TABLE.add(new DelayTask(runTick, task));
     }

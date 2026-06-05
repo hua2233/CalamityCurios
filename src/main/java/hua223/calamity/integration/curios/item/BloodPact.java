@@ -1,8 +1,9 @@
 package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.integration.curios.listeners.PlayerHealListener;
+import hua223.calamity.events.listeners.PlayerHealListener;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.ConflictChain;
 import net.minecraft.ChatFormatting;
@@ -40,7 +41,6 @@ public class BloodPact extends BaseCurio {
         UUID uuid, ItemStack stack, Multimap<Attribute, AttributeModifier> modifier, LivingEntity equipped) {
         modifier.put(Attributes.MAX_HEALTH,
             new AttributeModifier(uuid, "blood_pact", 0.2, AttributeModifier.Operation.MULTIPLY_TOTAL));
-        
     }
 
     @Override

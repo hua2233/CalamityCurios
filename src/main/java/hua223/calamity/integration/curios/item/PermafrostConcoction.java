@@ -1,14 +1,18 @@
 package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
+import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.integration.curios.listeners.DeathListener;
+import hua223.calamity.events.listeners.DeathListener;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.util.CMLangUtil;
+import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.ICuriosStorage;
+import hua223.calamity.util.IDataPackResponse;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import net.minecraft.ChatFormatting;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerPlayer;
@@ -24,7 +28,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 import java.util.UUID;
 
-public class PermafrostConcoction extends BaseCurio implements ICuriosStorage {
+public class PermafrostConcoction extends BaseCurio implements ICuriosStorage, IDataPackResponse {
     public PermafrostConcoction(Properties properties) {
         super(properties);
     }
@@ -79,6 +83,12 @@ public class PermafrostConcoction extends BaseCurio implements ICuriosStorage {
             player.getCooldowns().addCooldown(this, 3600);
             listener.canceledEvent();
         }
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void onClientResponse(CompoundTag tag) {
+        CalamityHelp.getClientCalamity().freeze = tag.getBoolean("flag");
     }
 
     @Override

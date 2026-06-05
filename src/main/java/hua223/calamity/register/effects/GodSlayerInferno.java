@@ -1,8 +1,10 @@
 package hua223.calamity.register.effects;
 
+import hua223.calamity.register.Items.CalamityItems;
 import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.CalamityHelp;
+import hua223.calamity.util.IDataPackResponse;
 import net.minecraft.ChatFormatting;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
@@ -30,16 +32,22 @@ public class GodSlayerInferno extends CalamityEffect implements IEffectsCallBack
 
     @Override
     public void onAdd(MobEffectInstance effect, LivingEntity entity, Entity source) {
-        CalamityHelp.setCalamityFlag(entity, 5, true);
+        IDataPackResponse response = CalamityItems.NEBULOUS_CORE.asPackHandler();
+        CompoundTag tag = response.getPack();
+        tag.putInt("id", entity.getId());
+        tag.putBoolean("flag", true);
         inactivationEffect(entity, true);
     }
 
     @Override
     public void onRemove(MobEffectInstance effect, LivingEntity entity) {
-        //The second one doesn't seem to be used, maybe I can take advantage of it?!
-//        entity.setSharedFlag(2, false);
-        CalamityHelp.setCalamityFlag(entity, 5, false);
-        inactivationEffect(entity, false);
+        if (entity.isAlive()) {
+            IDataPackResponse response = CalamityItems.NEBULOUS_CORE.asPackHandler();
+            CompoundTag tag = response.getPack();
+            tag.putInt("id", entity.getId());
+            tag.putBoolean("flag", false);
+            inactivationEffect(entity, false);
+        }
     }
 
     @Override

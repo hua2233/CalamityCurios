@@ -2,10 +2,8 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.mixed.ICalamityMagicExpand;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.util.CMLangUtil;
-import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
@@ -52,15 +50,13 @@ public class EtherealTalisman extends BaseCurio {
 
     @Override
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
-        ICalamityMagicExpand expand = (ICalamityMagicExpand) MagicData.getPlayerMagicData(player);
-        expand.calamity$SetAutomaticUsePotion(stack.getOrCreateTag().getBoolean("disable_apply"));
+        player.Calamity$Player.automaticUsePotion = stack.getOrCreateTag().getBoolean("disable_apply");
     }
 
 
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
-        ICalamityMagicExpand expand = (ICalamityMagicExpand) MagicData.getPlayerMagicData(player);
-        expand.calamity$SetAutomaticUsePotion(false);
+        player.Calamity$Player.automaticUsePotion = false;
     }
 
     @Override
