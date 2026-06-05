@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "X": {
+      "item": "calamity_curios:shadow_spec_bar"
+    },
+    "N": {
+      "item": "minecraft:netherite_leggings"
+    }
+  },
+  "pattern": [
+    "XXX",
+    "XNX",
+    "X X"
+  ],
+  "result": {
+    "item": "calamity_curios:demon_shade_leggings"
+  }
+}
