@@ -50,15 +50,18 @@ public class AmbrosialAmpoule extends BaseCurio implements ICuriosStorage {
     }
 
     @Override
+    public boolean isFireResistant() {
+        return true;
+    }
+
+    @Override
     public int getCountSize() {
         return 1;
     }
 
     @Override
     protected void onPlayerTick(Player player) {
-        float[] data = getCount(player);
-        if (data[0]++ == 100) {
-            data[0] = 0;
+        if (resetOrUpdate(player, 0, 100)) {
             float heal = 1 + CalamityHelp.getDebuffCount(player);
             float maxHealth = player.getMaxHealth();
             float health = player.getHealth();

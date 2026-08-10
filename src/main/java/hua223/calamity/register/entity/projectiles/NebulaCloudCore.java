@@ -3,17 +3,19 @@ package hua223.calamity.register.entity.projectiles;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
-import hua223.calamity.util.damage.DamageTags;
+import hua223.calamity.register.RegisterList;
+import hua223.calamity.register.entity.AutoEntityRegister;
+import hua223.calamity.register.sounds.CalamitySounds;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.DamageTypes;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import hua223.calamity.main.CalamityCurios;
-import hua223.calamity.register.entity.CalamityEntity;
-import hua223.calamity.util.damage.CalamityDamageSource;
 import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.RenderUtil;
-import hua223.calamity.util.Vector2d;
+import hua223.calamity.util.Vector2f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.EndRodParticle;
 import net.minecraft.client.particle.ParticleEngine;
@@ -34,6 +36,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import org.joml.Vector4i;
 
 //I felt a little uncomfortable in my body and my head was dizzy...
+@AutoEntityRegister(sized = {1f, 1f}, trackingRange = 16)
 public class NebulaCloudCore extends Projectile {
     @OnlyIn(Dist.CLIENT)
     private int alpha = 0;
@@ -62,19 +65,19 @@ public class NebulaCloudCore extends Projectile {
     @OnlyIn(Dist.CLIENT)
     private float scaleOld = 0.4f;
     @OnlyIn(Dist.CLIENT)
-    private final RenderType nebula = RenderType.entityTranslucent(Render.NEBULA_CLOUD);
+    private final RenderType nebula = RenderType.entityTranslucent(CalamityCurios.ModResource("textures/entity/nebula_cloud.png"));
     @OnlyIn(Dist.CLIENT)
-    private final RenderType core = RenderType.entityTranslucent(Render.NEBULA_CORE);
+    private final RenderType core = RenderType.entityTranslucent(CalamityCurios.ModResource("textures/entity/nebula_cloud_core.png"));
     @OnlyIn(Dist.CLIENT)
     private float frameV1;
     @OnlyIn(Dist.CLIENT)
     private float frameV2;
 
     private LivingEntity target;
-    private LivingEntity player;
-    private DamageSource source;
     private byte hurtCount;
     private float scale = 0.4f;
+    private DamageSource source;
+    private float damage;
 
     public NebulaCloudCore(EntityType<? extends Projectile> entityType, Level level) {
         super(entityType, level);
@@ -83,18 +86,20 @@ public class NebulaCloudCore extends Projectile {
     @SuppressWarnings("ConstantConditions")
     public static void create(LivingEntity player) {
         Level level = player.level();
-        LivingEntity target = CalamityHelp.getClosestTarget(player, 14, player.position());
+        LivingEntity target = CalamityHelp.getClosestTarget(player, 14);
         if (target != null) {
             Vec3 look = player.getLookAngle().normalize();
-            NebulaCloudCore core = CalamityEntity.NEBULA_CLOUD_CORE.get().create(level);
+            NebulaCloudCore core = CalamityCurios.getEntityType(NebulaCloudCore.class).create(level);
             core.setDeltaMovement(look.scale(0.8 + level.random.nextDouble()));
             core.setPos(player.getEyePosition().add(look.scale(0.5)));
             core.target = target;
-            core.player = player;
-            core.source = CalamityDamageSource.source(DamageTypes.MOB_PROJECTILE,
-                core, player).addDamageTag(DamageTags.CALAMITY_MAGIC.tag);
+            core.setOwner(player);
             core.height = target.getBbHeight() * 0.7f;
+            AbstractSpell spell = RegisterList.NEBULOUS.get();
+            core.damage = (float) player.getAttribute(Attributes.ATTACK_DAMAGE).getValue() + spell.getSpellPower(1, player);
+            core.source = spell.getDamageSource(core, player);
             level.addFreshEntity(core);
+            CalamitySounds.NEBULA.playSound(player);
         }
     }
 
@@ -158,19 +163,17 @@ public class NebulaCloudCore extends Projectile {
                 return;
             }
 
+
+            Entity player = getOwner();
             boolean trigger = tickCount % 10 == 0;
-            if (trigger)
-                for (Entity entity : level().getEntities(this, this.getBoundingBox(), entity ->
-                    entity.isPickable() && entity.isAlive() && entity != player && entity instanceof LivingEntity)) {
-                    entity.hurt(source, 6f);
-                }
+            if (trigger) for (LivingEntity entity : CalamityHelp.getAttackableEntity(LivingEntity.class, player == null ? this : player, getBoundingBox()))
+                entity.hurt(source, damage / 2f);
 
             Vec3 endPos = target.position().add(0, height, 0);
-            if (distanceToSqr(endPos) > 0.5F) {
-                setPos(position().add(endPos.subtract(position()).normalize().scale(0.25)));
-            } else if (trigger) {
+            if (distanceToSqr(endPos) > 0.5F) setPos(position().add(endPos.subtract(position()).normalize().scale(0.25)));
+            else if (trigger) {
                 //Is this a bite in a sense?
-                target.hurt(source, 12f);
+                target.hurt(source, damage);
                 if (++hurtCount >= 6) onKill();
             }
         }
@@ -185,7 +188,7 @@ public class NebulaCloudCore extends Projectile {
         Vec3 spawn = position().subtract(zOffset.x, (zOffset.y - scale / 2), zOffset.z);
 
         for (int i = 0; i < 2; i++) {
-            Vec3[] offsetAndSpeed = RenderUtil.sampleRadialPosAndTangentVel(axis, random, Vector2d.NUNIT_Y, Mth.TWO_PI,  1.5f, 0.3, 0.5);
+            Vec3[] offsetAndSpeed = RenderUtil.sampleRadialPosAndTangentVel(axis, random, Vector2f.NUNIT_Y, Mth.TWO_PI,  1.5f, 0.3, 0.5);
             EndRodParticle particle = (EndRodParticle) engine.makeParticle(ParticleTypes.END_ROD,
                 spawn.x + offsetAndSpeed[0].x, spawn.y + offsetAndSpeed[0].y, spawn.z + offsetAndSpeed[0].z,
                 offsetAndSpeed[1].x, offsetAndSpeed[1].y, offsetAndSpeed[1].z);
@@ -209,7 +212,7 @@ public class NebulaCloudCore extends Projectile {
                     particle.setFadeColor(4793374);
                     engine.add(particle);
 
-                    Vec3[] p2 = RenderUtil.sampleRadialPosAndTangentVel(axis, random, Vector2d.NUNIT_Y, Mth.TWO_PI,  1.5f, 0.3, 0.5);
+                    Vec3[] p2 = RenderUtil.sampleRadialPosAndTangentVel(axis, random, Vector2f.NUNIT_Y, Mth.TWO_PI,  1.5f, 0.3, 0.5);
                     EndRodParticle p = (EndRodParticle) engine.makeParticle(ParticleTypes.END_ROD,
                         spawn.x + p2[0].x, spawn.y + p2[0].y, spawn.z + p2[0].z,
                         p2[1].x, p2[1].y, p2[1].z);
@@ -240,8 +243,11 @@ public class NebulaCloudCore extends Projectile {
     }
 
     private boolean findNewTarget() {
-        if (player.isAlive()) {
-            target = CalamityHelp.getClosestTarget(player, 20, player.position());
+        Entity player = getOwner();
+        if (player != null) {
+            AABB scope = getBoundingBox().inflate(10);
+            target = CalamityHelp.getClosestTarget(player, scope, position());
+            if (target == null) CalamityHelp.getClosestTarget(player, scope, player.position());
             if (target != null) return true;
         }
 
@@ -256,16 +262,16 @@ public class NebulaCloudCore extends Projectile {
             float radians = Mth.TWO_PI / totalProjectiles;
             float velocity = 0.7f + random.nextFloat() * 0.3f;
             Vec3 pos = position().add(0, scale / 2, 0);
-            Vector2d spinningPoint = new Vector2d(0, -velocity);
+            Vector2f spinningPoint = new Vector2f(0, -velocity);
 
             for (int k = 0; k < totalProjectiles; k++) {
-                Vector2d velocity2 = spinningPoint.rotatedBy(radians * k, Vector2d.ZERO, false).mul(0.2);
-                NebulaNova nova = CalamityEntity.NEBULA_NOVA.get().create(level());
+                Vector2f velocity2 = spinningPoint.rotatedBy(radians * k, Vector2f.ZERO, false).mul(0.2);
+                NebulaNova nova = CalamityCurios.getEntityType(NebulaNova.class).create(level());
                 nova.setPos(pos.x + random.nextDouble() * 0.6 - 0.3, pos.y, pos.z + random.nextDouble() * 0.6 - 0.3);
                 nova.setDeltaMovement(velocity2.x, 0, velocity2.y);
                 nova.centerY = pos.y;
-                nova.source = CalamityDamageSource.source(DamageTypes.MOB_PROJECTILE, nova, player).addDamageTag(DamageTags.CALAMITY_MAGIC.tag);
-                nova.owner = player;
+                nova.damage = damage * .75f;
+                nova.setOwner(getOwner());
                 level().addFreshEntity(nova);
             }
         }
@@ -298,7 +304,7 @@ public class NebulaCloudCore extends Projectile {
 
     @OnlyIn(Dist.CLIENT)
     private void spawnParticle(ParticleEngine engine, Vec3[] axis, int color, int fadeColor, boolean isY, float alpha, float scale, Vec3 spawnPos) {
-        Vec3 offset = RenderUtil.sampleRadialPos(axis, random, isY ? Vector2d.NUNIT_Y : Vector2d.UNIT_X,
+        Vec3 offset = RenderUtil.sampleRadialPos(axis, random, isY ? Vector2f.NUNIT_Y : Vector2f.UNIT_X,
             Mth.PI, null, random.nextDouble() * 3);
 
         EndRodParticle particle = (EndRodParticle) engine.makeParticle(ParticleTypes.END_ROD,
@@ -328,11 +334,8 @@ public class NebulaCloudCore extends Projectile {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static class Render extends EntityRenderer<NebulaCloudCore> {
-        protected static final ResourceLocation NEBULA_CLOUD = CalamityCurios.ModResource("textures/entity/nebula_cloud.png");
-        protected static final ResourceLocation NEBULA_CORE = CalamityCurios.ModResource("textures/entity/nebula_cloud_core.png");
-
-        public Render(EntityRendererProvider.Context context) {
+    public static class Renderer extends EntityRenderer<NebulaCloudCore> {
+        public Renderer(EntityRendererProvider.Context context) {
             super(context);
         }
 
@@ -343,7 +346,7 @@ public class NebulaCloudCore extends Projectile {
             cloudColor.w = coreColor.w;
 
             float rotation = RenderUtil.rotLerpRadians(partialTick, entity.rotationOld, entity.rotation);
-            float rotationScale = 0.95f + (float) (Vector2d.toRotationVector2(rotation * 0.75f).y * 0.1f);
+            float rotationScale = 0.95f + (float) (Vector2f.toRotationVector2(rotation * 0.75f).y * 0.1f);
 
             //Render three nebulae, distinguish them in color, size, and orientation and superimpose them on each other
             pose.mulPose(this.entityRenderDispatcher.cameraOrientation());
@@ -420,7 +423,7 @@ public class NebulaCloudCore extends Projectile {
 
         @Override
         public @NotNull ResourceLocation getTextureLocation(@NotNull NebulaCloudCore nebulaCloudCore) {
-            return NEBULA_CORE;
+            return CalamityCurios.ModResource("textures/entity/nebula_cloud.png");
         }
     }
 }

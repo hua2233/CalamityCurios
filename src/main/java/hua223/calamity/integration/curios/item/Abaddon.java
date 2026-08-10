@@ -8,7 +8,7 @@ import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.ConflictChain;
+import hua223.calamity.util.CurioRepel;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
@@ -23,7 +23,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 import java.util.UUID;
 
-@ConflictChain(value = Abaddon.class, isRoot = true)
+@CurioRepel(isRoot = true)
 public class Abaddon extends BaseCurio {
     protected final double value;
 

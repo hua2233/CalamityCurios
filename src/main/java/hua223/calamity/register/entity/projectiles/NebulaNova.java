@@ -3,7 +3,11 @@ package hua223.calamity.register.entity.projectiles;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import hua223.calamity.main.CalamityCurios;
+import hua223.calamity.register.RegisterList;
+import hua223.calamity.register.damage.DamageSupplier;
+import hua223.calamity.register.entity.AutoEntityRegister;
 import hua223.calamity.register.sounds.CalamitySounds;
+import hua223.calamity.util.CalamityHelp;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -21,17 +25,17 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 
-import java.util.List;
-
+@AutoEntityRegister(sized = {1f, 1f}, trackingRange = 32)
 public class NebulaNova extends Projectile {
     public double centerY;
-    public LivingEntity owner;
-    public DamageSource source;
+    private float scale = 0.2f;
+    private boolean upward;
+    float damage;
 
     @OnlyIn(Dist.CLIENT)
     private final float[] frame = new float[]{0f, 0.5f, 0f, 0.1428f};
     @OnlyIn(Dist.CLIENT)
-    private final RenderType type = RenderType.entityCutout(Render.TEXTURE);
+    private final RenderType type = RenderType.entityCutout(CalamityCurios.ModResource("textures/entity/nebula_nova.png"));
     @OnlyIn(Dist.CLIENT)
     private int lSteps;
     @OnlyIn(Dist.CLIENT)
@@ -40,8 +44,6 @@ public class NebulaNova extends Projectile {
     private double ly;
     @OnlyIn(Dist.CLIENT)
     private double lz;
-    private float scale = 0.2f;
-    private boolean upward;
 
     public NebulaNova(EntityType<? extends Projectile> entityType, Level level) {
         super(entityType, level);
@@ -61,15 +63,13 @@ public class NebulaNova extends Projectile {
             scale += 0.6f;
             refreshDimensions();
         } else if (tickCount == 27) {
-            if (level().isClientSide) {
-                level().playLocalSound(getX(), getY(), getZ(), CalamitySounds.NEBULA_EXPLODE.get(), SoundSource.AMBIENT, 1f, 1f, true);
-            } else {
-                List<Entity> entities = level().getEntities(this, this.getBoundingBox().inflate(2),
-                    entity -> entity.isPickable() && entity.isAlive() && entity != owner && entity instanceof LivingEntity);
-
-                if (!entities.isEmpty()) {
-                    for (Entity entity : entities)
-                        entity.hurt(source, 9f);
+            if (level().isClientSide) CalamitySounds.NEBULA_EXPLODE.playLocalSound();
+            else {
+                Entity owner = getOwner();
+                DamageSource source = null;
+                for (LivingEntity livingEntity : CalamityHelp.getAttackableEntity(LivingEntity.class, owner == null ? this : owner, getBoundingBox().inflate(2))) {
+                    if (source == null) source = RegisterList.NEBULOUS.get().getDamageSource(this, owner);
+                    livingEntity.hurt(source, damage);
                 }
             }
         }
@@ -114,6 +114,11 @@ public class NebulaNova extends Projectile {
     }
 
     @Override
+    public @NotNull SoundSource getSoundSource() {
+        return SoundSource.PLAYERS;
+    }
+
+    @Override
     @OnlyIn(Dist.CLIENT)
     public void lerpTo(double x, double y, double z, float yr, float xr, int steps, boolean b) {
         this.lx = x;
@@ -127,10 +132,8 @@ public class NebulaNova extends Projectile {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static class Render extends EntityRenderer<NebulaNova> {
-        protected static final ResourceLocation TEXTURE = CalamityCurios.ModResource("textures/entity/nebula_nova.png");
-
-        public Render(EntityRendererProvider.Context context) {
+    public static class Renderer extends EntityRenderer<NebulaNova> {
+        public Renderer(EntityRendererProvider.Context context) {
             super(context);
         }
 
@@ -176,7 +179,7 @@ public class NebulaNova extends Projectile {
 
         @Override
         public ResourceLocation getTextureLocation(NebulaNova nebulaNova) {
-            return TEXTURE;
+            return CalamityCurios.ModResource("textures/entity/nebula_nova.png");
         }
     }
 }

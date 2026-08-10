@@ -11,7 +11,7 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.UUID;
 
-import static hua223.calamity.register.Items.CalamityItems.BLOODY_WORM_TOOTH;
+import static hua223.calamity.register.items.CalamityItems.BLOODY_WORM_TOOTH;
 
 public class BloodyWormScarf extends BaseCurio {
     public BloodyWormScarf(Properties pProperties) {

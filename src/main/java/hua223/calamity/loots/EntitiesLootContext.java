@@ -16,21 +16,38 @@ import javax.annotation.Nullable;
 public class EntitiesLootContext extends BaseLootContextPacker {
     public final Entity entity;
     public final ServerPlayer player;
+    public final Entity killer;
     public final DamageSource source;
     public EntitiesLootContext(ObjectArrayList<ItemStack> generatedLoot, LootContext context,
-                               RandomSource source, Entity entity, ServerPlayer player) {
+                               RandomSource source, Entity entity, Entity killer) {
         super(generatedLoot, context, source);
         this.entity = entity;
-        this.player = player;
+        this.killer = killer;
+        this.player = killer != null && killer.getType() == EntityType.PLAYER ? (ServerPlayer) killer : null;
         this.source = context.getParamOrNull(LootContextParams.DAMAGE_SOURCE);
     }
 
     @Nullable
+    @SuppressWarnings("unchecked")
     public <T extends Entity> T verification(EntityType<T> type) {
         return onlyVerification(type) ? (T) entity : null;
     }
 
     public boolean onlyVerification(EntityType<?> type) {
         return entity.getType() == type;
+    }
+
+    @Override
+    public boolean triggeredByPlayers() {
+        return player != null;
+    }
+
+    public boolean onlyKiller(EntityType<?> type) {
+        return killer != null && killer.getType() == type;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends Entity> T killer(EntityType<T> type) {
+        return onlyVerification(type) ? (T) killer : null;
     }
 }

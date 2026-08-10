@@ -50,7 +50,7 @@ public class DestinyBook extends BaseCurio implements ICuriosStorage {
             ItemStack stack = player.getItemInHand(usedHand);
             CompoundTag tag = stack.getTag();
             if (tag != null) {
-                SpawnEggItem egg = fromNbtGetSaveEgg(tag);
+                Item egg = fromNbtGetSaveEgg(tag);
                 if (egg != null) {
                     player.getInventory().add(egg.getDefaultInstance());
                     tag.remove("egg");
@@ -68,8 +68,8 @@ public class DestinyBook extends BaseCurio implements ICuriosStorage {
         CompoundTag tag = stack.getTag();
         if (tag != null) {
             var storage = getMemory(player);
-            SpawnEggItem egg = fromNbtGetSaveEgg(tag);
-            if (egg != null) storage.putTypeStorage(egg.getType(null));
+            Item egg = fromNbtGetSaveEgg(tag);
+            if (egg != null) storage.putTypeStorage(((SpawnEggItem) egg).getType(null));
             if (tag.contains("DamageUp")) {
                 storage.count[0] = tag.getFloat("DamageUp");
                 tag.remove("DamageUp");
@@ -94,8 +94,9 @@ public class DestinyBook extends BaseCurio implements ICuriosStorage {
 
     @ApplyEvent
     public final void onAttack(PlayerAttackListener listener) {
-        if (getMemory(listener.player).getTypeStorage(EntityType.class) == listener.entity.getType())
-            listener.amplifier += getCount(listener.player)[0];
+        var memory = getMemory(listener.player);
+        if (memory.getTypeStorage(EntityType.class) == listener.entity.getType())
+            listener.amplifier += memory.count[0];
     }
 
     @ApplyEvent
@@ -116,7 +117,7 @@ public class DestinyBook extends BaseCurio implements ICuriosStorage {
         }
     }
 
-    private static SpawnEggItem fromNbtGetSaveEgg(CompoundTag tag) {
+    private static Item fromNbtGetSaveEgg(CompoundTag tag) {
         if (tag.contains("egg")) {
             Item item = ForgeRegistries.ITEMS.getValue(CalamityCurios.resource(tag.getString("egg")));
             if (item instanceof SpawnEggItem eggItem) return eggItem;
@@ -154,7 +155,7 @@ public class DestinyBook extends BaseCurio implements ICuriosStorage {
     @OnlyIn(Dist.CLIENT)
     @SuppressWarnings("ConstantConditions")
     public static ItemStack getOverlayStack(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
+        CompoundTag tag = stack.getShareTag();
         return tag != null && tag.contains("egg") ? ForgeRegistries.ITEMS.getValue(
             CalamityCurios.resource(tag.getString("egg"))).getDefaultInstance() : null;
     }

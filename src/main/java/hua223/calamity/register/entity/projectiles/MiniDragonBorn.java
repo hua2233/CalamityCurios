@@ -3,7 +3,7 @@ package hua223.calamity.register.entity.projectiles;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import hua223.calamity.main.CalamityCurios;
-import hua223.calamity.register.entity.CalamityEntity;
+import hua223.calamity.register.entity.AutoEntityRegister;
 import hua223.calamity.util.CalamityHelp;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -23,9 +23,10 @@ import org.joml.Matrix4f;
 
 import static hua223.calamity.util.RenderUtil.addVertex;
 
+@AutoEntityRegister(sized = {.5f, .5f}, trackingRange = 12)
 public class MiniDragonBorn extends BaseProjectile {
     @OnlyIn(Dist.CLIENT)
-    private RenderType type = RenderType.entityCutout(CalamityCurios.ModResource("textures/entity/mini_dragon_born.png"));
+    private final RenderType type = RenderType.entityCutout(CalamityCurios.ModResource("textures/entity/mini_dragon_born.png"));
     public MiniDragonBorn(EntityType<? extends Projectile> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
         this.damage = 27;
@@ -33,15 +34,14 @@ public class MiniDragonBorn extends BaseProjectile {
     }
 
     public static MiniDragonBorn of(Level level, Player player) {
-        MiniDragonBorn projectile = CalamityEntity.MINI_DRAGON.get().create(level);
+        MiniDragonBorn projectile = CalamityCurios.getEntityType(MiniDragonBorn.class).create(level);
 
         Vec3 lookAngle = player.getLookAngle();
         Vec3 right = lookAngle.cross(CalamityHelp.UNIT_Y).normalize();
 
-        // 在玩家右前方45度位置生成（0.4距离 + 0.3侧移）
         Vec3 spawnPos = player.getEyePosition()
             .add(lookAngle.scale(0.4))
-            .add(right.scale(0.3)); // 侧向偏移量
+            .add(right.scale(0.3));
 
         projectile.setPos(spawnPos);
         projectile.setOwner(player);
@@ -61,8 +61,8 @@ public class MiniDragonBorn extends BaseProjectile {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static class Render extends EntityRenderer<MiniDragonBorn> {
-        public Render(EntityRendererProvider.Context pContext) {
+    public static class Renderer extends EntityRenderer<MiniDragonBorn> {
+        public Renderer(EntityRendererProvider.Context pContext) {
             super(pContext);
         }
 

@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:cinder_essence"
+    },
+    "B": {
+      "item": "minecraft:netherite_scrap"
+    },
+    "C": {
+      "item": "calamity_curios:solar_fragment"
+    },
+    "D": {
+      "item": "calamity_curios:nebula_fragment"
+    }
+  },
+  "pattern": [
+    " C ",
+    "ABA",
+    " D "
+  ],
+  "result": {
+    "item": "calamity_curios:dark_sun_fragment",
+    "count": 3
+  }
+}

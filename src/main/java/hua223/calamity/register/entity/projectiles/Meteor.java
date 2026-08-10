@@ -2,10 +2,9 @@ package hua223.calamity.register.entity.projectiles;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import hua223.calamity.main.CalamityCurios;
-import hua223.calamity.register.entity.CalamityEntity;
-import hua223.calamity.util.damage.CalamityDamageSource;
+import hua223.calamity.register.damage.DamageSupplier;
+import hua223.calamity.register.entity.AutoEntityRegister;
 import hua223.calamity.util.RenderUtil;
-import hua223.calamity.util.damage.CalamityDamageTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -24,6 +23,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 
+@AutoEntityRegister(sized = {0.2f, 0.2f}, trackingRange = 8)
 public class Meteor extends BaseProjectile {
     private boolean sacred;
     @OnlyIn(Dist.CLIENT)
@@ -35,7 +35,7 @@ public class Meteor extends BaseProjectile {
 
     public static void of(LivingEntity target, ServerPlayer player, boolean isSacred) {
         Level level = target.level();
-        Meteor projectile = CalamityEntity.METEOR.get().create(level);
+        Meteor projectile = CalamityCurios.getEntityType(Meteor.class).create(level);
         if (projectile != null) {
             Vec3 spawnPos;
 
@@ -70,13 +70,12 @@ public class Meteor extends BaseProjectile {
 
     @Override
     protected void attack(LivingEntity target) {
-        target.hurt(CalamityDamageSource.source(
-            CalamityDamageTypes.MAGIC_PROJECTILE, this, getOwner()), 4);
+        target.hurt(DamageSupplier.MAGIC_PROJECTILE.get(this, getOwner()), 4);
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static final class Render extends EntityRenderer<Meteor> {
-        public Render(EntityRendererProvider.Context context) {
+    public static final class Renderer extends EntityRenderer<Meteor> {
+        public Renderer(EntityRendererProvider.Context context) {
             super(context);
         }
 

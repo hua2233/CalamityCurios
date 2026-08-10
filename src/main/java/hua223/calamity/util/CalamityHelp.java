@@ -6,20 +6,20 @@ import it.unimi.dsi.fastutil.HashCommon;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.client.Minecraft;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.FluidTags;
+import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -32,6 +32,7 @@ import top.theillusivec4.curios.api.type.inventory.ICurioStacksHandler;
 import top.theillusivec4.curios.api.type.inventory.IDynamicStackHandler;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -41,11 +42,12 @@ public class CalamityHelp {
     public static final Vec3 UNIT_Y = new Vec3(0, 1, 0);
     public static final Vec3 UNIT_Z = new Vec3(0, 0, 1);
 
+
     private CalamityHelp() {
     }
 
     public static boolean hasCurio(LivingEntity entity, Item item) {
-        Optional<ICuriosItemHandler> optional = CuriosApi.getCuriosInventory(entity).resolve();
+            Optional<ICuriosItemHandler> optional = CuriosApi.getCuriosInventory(entity).resolve();
         if (optional.isPresent()) {
             ICuriosItemHandler handler = optional.get();
             return handler.findFirstCurio(item).isPresent();
@@ -95,7 +97,7 @@ public class CalamityHelp {
         if (damage > threshold) {
             MobEffect effect = CalamityEffects.DODGE_CD.get();
             boolean can = !player.hasEffect(effect);
-            if (can) player.addEffect(new MobEffectInstance(effect, cd));
+            if (can) player.addEffect(new MobEffectInstance(effect, cd == -1 ? (int) Mth.clamp(damage * 100, 300, 1800) : cd));
 
             return can;
         }
@@ -105,8 +107,8 @@ public class CalamityHelp {
 
     @SuppressWarnings("ConstantConditions")
     public static boolean silent(Player player) {
-        CalamityCap cap = player.Calamity$Player.calamityCap;
-            if (cap.isCursePlayer() && cap.isInverted(CalamityCap.CurseType.SILVA))
+        CalamityCap cap = player.calamity$Player.Calamity$Player.calamityCap;
+        if (cap.isCursePlayer() && cap.isInverted(CalamityCap.CurseType.SILVA))
             return true;
         else if (player.hasEffect(CalamityEffects.ANECHOIC_COATING.get())) {
             float silence = 0.5f + player.getEffect(CalamityEffects.ANECHOIC_COATING.get()).getAmplifier() * 0.15f;
@@ -114,11 +116,6 @@ public class CalamityHelp {
         }
 
         return false;
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    private static boolean canWalkInFluid(FluidState state) {
-        return state.is(FluidTags.LAVA) || state.is(FluidTags.WATER);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -135,7 +132,7 @@ public class CalamityHelp {
      * @param distance 视线的最远距离
      * @return 最近的敌对活体，可能为null
      */
-    public static LivingEntity getLookedEntity(Player player, Level level, int distance) {
+    public static LivingEntity getLookedEntity(LivingEntity player, Level level, int distance) {
         Vec3 lookAngle = player.getLookAngle();
         LivingEntity entity = null;
         double d = 0.2;
@@ -270,16 +267,50 @@ public class CalamityHelp {
         Vec3 from = player.getEyePosition();
         Vec3 to = player.getLookAngle().normalize().scale(distance).add(from);
         EntityHitResult result = ProjectileUtil.getEntityHitResult(level, player, from, to, new AABB(from, to).inflate(1.0),
-            entity -> entity.isPickable() && entity.isAlive() &&
-                !entity.isAlliedTo(player) && entity instanceof LivingEntity);
+            entity -> entity instanceof LivingEntity && attackableEntity(player, entity));
 
         return result == null ? null : (LivingEntity) result.getEntity();
     }
 
-    public static LivingEntity getClosestTarget(Entity entity, int scope, Vec3 cutterPos) {
-        return (LivingEntity) entity.level().getEntities(entity, entity.getBoundingBox().inflate(scope), target ->
-                target.isPickable() && target.isAlive() && target.isAttackable() && !target.isAlliedTo(entity) && target instanceof Enemy)
-                .stream().min(Comparator.comparingDouble(target -> target.distanceToSqr(cutterPos))).orElse(null);
+    public static <T extends LivingEntity> List<T> getAttackableEntity(Class<T> target, Entity player, int scope) {
+        return getAttackableEntity(target, player, player.getBoundingBox().inflate(scope));
+    }
+
+    public static <T extends LivingEntity> List<T> getAttackableEntity(Class<T> target, Entity player, AABB box) {
+        return player.level().getEntitiesOfClass(target, box, entity -> attackableEntity(player, entity));
+    }
+
+    public static boolean attackableEntity(Entity owner, Entity entity) {
+        if (owner != entity && entity.isPickable() && entity.isAlive() && entity.isAttackable() && !entity.isAlliedTo(owner)) {
+            if (entity instanceof OwnableEntity ownable) {
+                Entity o = ownable.getOwner();
+                return o == null || (o != owner && !o.isAlliedTo(owner));
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public static LivingEntity getClosestTarget(Entity entity, int scope) {
+        return getClosestTarget(entity, entity.getBoundingBox().inflate(scope), entity.position());
+    }
+    public static LivingEntity getClosestTarget(Entity entity, AABB aabb, Vec3 cutterPos) {
+        List<LivingEntity> entities = getAttackableEntity(LivingEntity.class, entity, aabb);
+        return entities.isEmpty() ? null : entities.stream().min(Comparator.comparingDouble(target -> target.distanceToSqr(cutterPos))).get();
+    }
+
+    public static List<LivingEntity> blastingTheEnemy(Entity initiator, Vec3 position, float radius) {
+        initiator.level().explode(initiator, position.x, position.y, position.z, radius, Level.ExplosionInteraction.NONE);
+        radius *= 2;
+        int k1 = Mth.floor(position.x - radius - 1);
+        int l1 = Mth.floor(position.x + radius + 1);
+        int i2 = Mth.floor(position.y - radius - 1);
+        int i1 = Mth.floor(position.y + radius + 1);
+        int j2 = Mth.floor(position.z - radius - 1);
+        int j1 = Mth.floor(position.z + radius + 1);
+        return CalamityHelp.getAttackableEntity(LivingEntity.class, initiator, new AABB(k1, i2, j2, l1, i1, j1));
     }
 
     public static float cosineInterpolation(float start, float end, float time) {
@@ -358,5 +389,13 @@ public class CalamityHelp {
             Vec3 tangentVector = incoming.subtract(normal.scale(normalComponent)).scale(0.9);
             return normalVector.add(tangentVector).normalize();
         }
+    }
+
+    public static int multicolorLerp(float increment, int[] colors) {
+        increment %= 0.999f;
+        int currentColorIndex = (int)(increment * (float)colors.length);
+        int val = colors[currentColorIndex];
+        int nextColor = colors[(currentColorIndex + 1) % colors.length];
+        return FastColor.ARGB32.lerp(increment * colors.length % 1f, val, nextColor);
     }
 }

@@ -1,6 +1,6 @@
 package hua223.calamity.mixins;
 
-import hua223.calamity.util.damage.DamageTags;
+import hua223.calamity.register.damage.DamageSupplier;
 import io.redspace.ironsspellbooks.damage.SpellDamageSource;
 import net.minecraft.core.Holder;
 import net.minecraft.tags.TagKey;
@@ -17,6 +17,6 @@ public class SpellDamageMixin extends DamageSource {
 
     @Override
     public boolean is(@NotNull TagKey<DamageType> key) {
-        return key == DamageTags.CALAMITY_MAGIC.tag || super.is(key);
+        return key == DamageSupplier.CALAMITY_MAGIC || super.is(key);
     }
 }

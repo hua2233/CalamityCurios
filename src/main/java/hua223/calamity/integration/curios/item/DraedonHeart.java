@@ -7,18 +7,18 @@ import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.HurtListener;
 import hua223.calamity.events.listeners.PlayerAttackListener;
+import hua223.calamity.net.IDataPackResponse;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.sounds.CalamitySounds;
+import hua223.calamity.render.Item.ICustomBackgroundRender;
 import hua223.calamity.render.hud.AdrenalineHud;
 import hua223.calamity.util.*;
 import hua223.calamity.register.keys.IKeyDataPackResponse;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
@@ -37,8 +37,8 @@ import org.lwjgl.glfw.GLFW;
 import java.util.List;
 import java.util.UUID;
 
-public class DraedonHeart extends BaseCurio implements
-    ICuriosStorage, IKeyDataPackResponse, IDataPackResponse, ICustomBackgroundRender {
+public class DraedonHeart extends BaseCurio implements ICuriosStorage,
+    IKeyDataPackResponse, IDataPackResponse, ICustomBackgroundRender {
     public DraedonHeart(Properties properties) {
         super(properties);
     }
@@ -100,7 +100,7 @@ public class DraedonHeart extends BaseCurio implements
                 count[0] = -20 - (20 - count[0]);
             } else {
                 if (adrenaline.isMax()) listener.amplifier -= adrenaline.getDamageOffset();
-                player.level().playSound(null, player, CalamitySounds.MAJOR_LOSS.get(), SoundSource.PLAYERS, 1f, 1f);
+                CalamitySounds.MAJOR_LOSS.playSound(player);
                 adrenaline.zero(this);
             }
         }
@@ -116,7 +116,7 @@ public class DraedonHeart extends BaseCurio implements
         if (tag.contains("isNano")) AdrenalineHud.setForMachinesMode(tag.getBoolean("isNano"));
         if (tag.contains("play")) {
             boolean flag = tag.getBoolean("play");
-            if (flag) Minecraft.getInstance().player.playSound(CalamitySounds.FULL_ADRENALINE.get());
+            if (flag) CalamitySounds.FULL_ADRENALINE.playLocalSound();
             AdrenalineHud.playAnimation(flag);
         }
     }

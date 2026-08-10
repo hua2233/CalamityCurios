@@ -4,7 +4,7 @@ import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.events.listeners.HurtListener;
 import hua223.calamity.register.attribute.CalamityAttributes;
-import hua223.calamity.util.ConflictChain;
+import hua223.calamity.util.CurioRepel;
 import hua223.calamity.util.VariableAttributeModifier;
 import hua223.calamity.util.delaytask.DelayRunnable;
 import net.minecraft.server.level.ServerPlayer;
@@ -17,7 +17,7 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.UUID;
 
-@ConflictChain(value = Absorber.class, node = GiantShell.class)
+@CurioRepel(Absorber.class)
 public class GiantTortoiseShell extends GiantShell {
     public GiantTortoiseShell(Properties properties) {
         super(properties);

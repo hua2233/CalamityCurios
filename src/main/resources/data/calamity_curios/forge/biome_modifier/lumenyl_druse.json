@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#minecraft:is_deep_ocean",
+  "features": "calamity_curios:lumenyl_druse",
+  "step": "vegetal_decoration"
+}

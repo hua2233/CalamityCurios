@@ -183,6 +183,7 @@ dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}")
+    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-common-api:${jei_version}")
     runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
     //CuriosAPI
     runtimeOnly fg.deobf("top.theillusivec4.curios:curios-forge:${curios_version}")
@@ -230,6 +231,7 @@ tasks.named('jar', Jar).configure {
                     "Specification-Version"   : "1", // We are version 1 of ourselves
                     "Implementation-Title"    : project.name,
                     "Implementation-Version"  : project.jar.archiveVersion,
+                    "FMLCorePluginContainsFMLMod": true,
                     "Implementation-Vendor"   : mod_authors,
                     "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")])
     }
@@ -241,3 +243,5 @@ tasks.named('jar', Jar).configure {
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
 }
+
+jar.exclude("calamityinjector.cfg", "hua223/calamity/generators/**")

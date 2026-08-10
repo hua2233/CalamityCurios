@@ -9,8 +9,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 @OnlyIn(Dist.CLIENT)
 public class SpongeHud extends EnergyBarHud {
     private static SpongeHud INSTANCE;
-    //最近有个游戏，剧情搞得我很难受。我不怎骂人，但确实太抽象了，我靠作者你********。
-    //就是莫名难受，我可能确实多愁善感。唉，难受，睡觉去。
 
     public SpongeHud() {
         super(0, 30);

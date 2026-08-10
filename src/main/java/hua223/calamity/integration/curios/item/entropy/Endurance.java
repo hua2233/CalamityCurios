@@ -4,8 +4,7 @@ import com.google.common.collect.Multimap;
 import hua223.calamity.integration.curios.Card;
 import hua223.calamity.loots.ApplyGlobalLoot;
 import hua223.calamity.loots.ChestLootContext;
-import hua223.calamity.loots.GlobalLoot;
-import hua223.calamity.register.Items.CalamityItems;
+import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.util.CMLangUtil;
 import net.minecraft.ChatFormatting;
@@ -25,7 +24,6 @@ import java.util.UUID;
 public class Endurance extends Card {
     public Endurance(Properties properties) {
         super(properties);
-        GlobalLoot.mountTo(this);
     }
 
     @Override
@@ -40,7 +38,7 @@ public class Endurance extends Card {
     }
 
     @ApplyGlobalLoot
-    public final void onGlobalChestLoot(ChestLootContext context) {
+    public void onGlobalChestLoot(ChestLootContext context) {
         if (context.fromFuzzyType("jungle_temple") && context.chance(0.3f))
             context.addLoot(this, 1);
     }

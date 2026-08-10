@@ -2,7 +2,7 @@ package hua223.calamity.register.particle;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import org.joml.Quaternionf;
-import hua223.calamity.util.Vector2d;
+import hua223.calamity.util.Vector2f;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.core.particles.ParticleOptions;
@@ -18,10 +18,10 @@ import java.util.ArrayList;
 public class GlowSparkParticle extends SparkParticle {
     private final boolean quickShrink;
     private final boolean glow;
-    private final Vector2d squashOld;
+    private final Vector2f squashOld;
 
     public GlowSparkParticle(ClientLevel level, double x, double y, double z, double xSpeed, double ySpeed, float gravity,
-                             int lifeTime, float scale, Vector2d squash, Vector4i color, boolean quickShrink, boolean glow) {
+                             int lifeTime, float scale, Vector2f squash, Vector4i color, boolean quickShrink, boolean glow) {
         super(level, x, y, z, xSpeed, ySpeed, gravity, lifeTime, scale, color);
         xd = xSpeed;
         yd = ySpeed;
@@ -31,7 +31,7 @@ public class GlowSparkParticle extends SparkParticle {
         this.glow = glow;
 
         this.quickShrink = quickShrink;
-        if (quickShrink) squashOld = new Vector2d(squash.x, squash.y);
+        if (quickShrink) squashOld = new Vector2f(squash.x, squash.y);
         else squashOld = null;
     }
 
@@ -59,8 +59,8 @@ public class GlowSparkParticle extends SparkParticle {
 
     @Override
     protected float getWidth(float partialTick, float scaleLerp) {
-        if (quickShrink) return (float) Mth.lerp(partialTick, squashOld.x, squash.x) * scaleLerp;
-        else return (float) squash.x * scaleLerp;
+        if (quickShrink) return Mth.lerp(partialTick, squashOld.x, squash.x) * scaleLerp;
+        else return squash.x * scaleLerp;
     }
 
     @Override
@@ -81,7 +81,7 @@ public class GlowSparkParticle extends SparkParticle {
         protected SingleTexturedParticle getParticle(GlowSparkOptions type, ClientLevel level, double x, double y,
                                                      double z, double xSpeed, double ySpeed, double zSpeed) {
             return new GlowSparkParticle(level, x, y, z, xSpeed, ySpeed, (float) zSpeed, type.lifetime, type.scale,
-                new Vector2d(type.squishX, type.squishY), type.color, type.quickShrink, type.glow);
+                new Vector2f(type.squishX, type.squishY), type.color, type.quickShrink, type.glow);
         }
     }
 

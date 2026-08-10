@@ -7,13 +7,10 @@ import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.register.effects.SurvivableEffectInstance;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.ICuriosStorage;
-import hua223.calamity.util.damage.CalamityDamageSource;
-import hua223.calamity.util.damage.DamageTags;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -85,8 +82,7 @@ public class Camper extends BaseCurio implements ICuriosStorage {
                         entity -> entity.isPickable() && entity.isAttackable() && !entity.isAlliedTo(player));
 
                     if (!entities.isEmpty()) {
-                        DamageSource source = CalamityDamageSource.source(DamageTypes.MAGIC, player)
-                            .addDamageTag(DamageTags.NOT_TRIGGER_EVENT.tag);
+                        DamageSource source = player.damageSources().magic();
                         for (Entity entity : entities)
                             entity.hurt(source, 6f);
                     }

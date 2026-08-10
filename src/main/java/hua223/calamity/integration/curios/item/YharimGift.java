@@ -4,10 +4,10 @@ import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.HurtListener;
+import hua223.calamity.register.damage.DamageRequester;
+import hua223.calamity.register.damage.DamageSupplier;
 import hua223.calamity.register.entity.projectiles.FireMeteor;
 import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.damage.CalamityDamageSource;
-import hua223.calamity.util.damage.CalamityDamageTypes;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -24,9 +24,14 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 import java.util.UUID;
 
+import static hua223.calamity.generators.DamageMapping.*;
 import static hua223.calamity.register.effects.CalamityEffects.DRAGON_BURN;
 
 public class YharimGift extends BaseCurio {
+    @DamageRequester(key = MAGIC_FIRE, msg = "dragon_fire",
+        style = ChatFormatting.GOLD, zh_cn = "%s被龙焰烤熟了")
+    public static DamageSupplier supplier;
+
     public YharimGift(Properties properties) {
         super(properties);
     }
@@ -54,7 +59,7 @@ public class YharimGift extends BaseCurio {
             if (instance != null) {
                 int level = instance.getAmplifier();
                 if (level > 7) {
-                    attacker.hurt(CalamityDamageSource.source(CalamityDamageTypes.DRAGON_FIRE, player), 30f);
+                    attacker.hurt(supplier.get(), 30f);
                     attacker.removeEffect(effect);
                 } else {
                     attacker.addEffect(new MobEffectInstance(effect, 200, level + 1));

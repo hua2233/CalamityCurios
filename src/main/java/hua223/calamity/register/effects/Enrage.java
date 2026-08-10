@@ -22,8 +22,8 @@ public class Enrage extends CalamityEffect implements IEffectsCallBack {
     }
 
     @Override
-    public void onRemove(MobEffectInstance effect, LivingEntity entity) {
-        entity.calamity$EffectFragile -= ((effect.getAmplifier() + 1) * 0.25f);
+    public void onEffectRemoved(LivingEntity entity, int amplifier) {
+        entity.calamity$EffectFragile -= ((amplifier + 1) * 0.25f);
     }
 
     @Override

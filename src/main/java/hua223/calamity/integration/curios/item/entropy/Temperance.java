@@ -3,8 +3,7 @@ package hua223.calamity.integration.curios.item.entropy;
 import hua223.calamity.integration.curios.Card;
 import hua223.calamity.loots.ApplyGlobalLoot;
 import hua223.calamity.loots.EntitiesLootContext;
-import hua223.calamity.loots.GlobalLoot;
-import hua223.calamity.register.Items.CalamityItems;
+import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.PlayerServantsManager;
 import net.minecraft.ChatFormatting;
@@ -24,7 +23,6 @@ import java.util.List;
 public class Temperance extends Card {
     public Temperance(Properties properties) {
         super(properties);
-        GlobalLoot.mountTo(this);
     }
 
     @Override
@@ -44,8 +42,9 @@ public class Temperance extends Card {
         PlayerServantsManager.changeAttribute(servant, Attributes.ARMOR, deck ? 8 : 4, AttributeModifier.Operation.ADDITION);
     }
 
+
     @ApplyGlobalLoot
-    public final void onGlobalEntityLoot(EntitiesLootContext context) {
+    public void onGlobalEntityLoot(EntitiesLootContext context) {
         if (context.chance(0.4f) && context.entity instanceof OwnableEntity entity
             && entity.getOwner() == context.player) context.addLoot(this, 1);
     }

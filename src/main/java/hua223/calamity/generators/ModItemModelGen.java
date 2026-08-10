@@ -2,8 +2,7 @@ package hua223.calamity.generators;
 
 import com.google.common.collect.Lists;
 import hua223.calamity.main.CalamityCurios;
-import hua223.calamity.register.Items.CalamityItems;
-import net.minecraft.data.DataGenerator;
+import hua223.calamity.register.items.CalamityItems;
 import net.minecraft.data.PackOutput;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -55,7 +54,8 @@ public class ModItemModelGen extends ItemModelProvider {
          Collections.addAll(preExclusion, CalamityItems.CALAMITY, CalamityItems.SHATTERED_COMMUNITY,
              CalamityItems.EXCELSUS, CalamityItems.ATARAXIA, CalamityItems.NEBULOUS_CATACLYSM,
              CalamityItems.YHARIMS_CRYSTAL, CalamityItems.DREAM_CATCHER, CalamityItems.ANTI_VOID,
-             CalamityItems.STARLESS_NIGHT, CalamityItems.XYTHERON);
+             CalamityItems.STARLESS_NIGHT, CalamityItems.XYTHERON, CalamityItems.STORM_MAIDENS_RETRIBUTION,
+             CalamityItems.ICE_SNOW_MIRROR, CalamityItems.BRIMSTONE_BARRIER);
          return preExclusion;
     }
 

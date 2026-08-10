@@ -1,7 +1,7 @@
 package hua223.calamity.events.listeners;
 
 import hua223.calamity.events.EventConstructor;
-import hua223.calamity.util.damage.DamageTags;
+import hua223.calamity.register.damage.DamageSupplier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
@@ -17,7 +17,7 @@ public class HurtListener extends BaseListener<LivingHurtEvent> {
     public final ServerPlayer player;
     public final float baseAmount;
     public float amplifier = 1f;
-    private float finalAmount;
+    private float finalAmount = -1;
     public float floating;
 
     @EventConstructor
@@ -53,7 +53,7 @@ public class HurtListener extends BaseListener<LivingHurtEvent> {
 
 
     public boolean isSpell() {
-        return source.is(DamageTags.CALAMITY_MAGIC.tag);
+        return source.is(DamageSupplier.CALAMITY_MAGIC);
     }
 
     public Projectile getProjectile() {
@@ -61,7 +61,7 @@ public class HurtListener extends BaseListener<LivingHurtEvent> {
     }
 
     public void setFinalAmount(float amount) {
-        finalAmount = amount;
+        if (finalAmount < 0 || amount < finalAmount) finalAmount = amount;
     }
 
     public static DamageSource trySetSource(DamageSource source) {

@@ -6,6 +6,7 @@ import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.PlayerHealListener;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.ConflictChain;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -40,7 +41,9 @@ public class BloodPact extends BaseCurio {
     protected void setAttributeModifiers(
         UUID uuid, ItemStack stack, Multimap<Attribute, AttributeModifier> modifier, LivingEntity equipped) {
         modifier.put(Attributes.MAX_HEALTH,
-            new AttributeModifier(uuid, "blood_pact", 0.2, AttributeModifier.Operation.MULTIPLY_TOTAL));
+            new AttributeModifier(uuid, "blood_pact", 0.25, AttributeModifier.Operation.MULTIPLY_TOTAL));
+        modifier.put(AttributeRegistry.BLOOD_MAGIC_RESIST.get(),
+            new AttributeModifier(uuid, "blood_pact", 0.1, AttributeModifier.Operation.MULTIPLY_BASE));
     }
 
     @Override

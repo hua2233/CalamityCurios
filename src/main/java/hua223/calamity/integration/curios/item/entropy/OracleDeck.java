@@ -4,8 +4,8 @@ import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.Decks;
 import hua223.calamity.events.listeners.HurtListener;
-import hua223.calamity.register.Items.CalamityItems;
-import hua223.calamity.register.Items.UnsealingRope;
+import hua223.calamity.register.items.CalamityItems;
+import hua223.calamity.register.items.UnsealingRope;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.ICuriosStorage;
@@ -25,11 +25,6 @@ import java.util.List;
 import java.util.UUID;
 
 public class OracleDeck extends Decks implements ICuriosStorage {
-    @Override
-    public UnsealingRope getUnsealingRope() {
-        return (UnsealingRope) CalamityItems.FATE_THREAD.get();
-    }
-
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
         super.unEquipHandle(player, stack);

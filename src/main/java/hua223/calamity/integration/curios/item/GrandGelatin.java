@@ -2,7 +2,7 @@ package hua223.calamity.integration.curios.item;
 
 import hua223.calamity.events.listeners.HurtListener;
 import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.ConflictChain;
+import hua223.calamity.util.CurioRepel;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -16,7 +16,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.Collection;
 import java.util.List;
 
-@ConflictChain(value = Absorber.class, node = GrandGelatin.class)
+@CurioRepel(Absorber.class)
 public class GrandGelatin extends VitalJelly {
     public GrandGelatin(Properties properties) {
         super(properties);

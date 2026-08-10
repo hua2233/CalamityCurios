@@ -1,8 +1,7 @@
 package hua223.calamity.render.font;
 
-import hua223.calamity.util.ICalamityFont;
 import hua223.calamity.util.RenderUtil;
-import hua223.calamity.util.Vector2d;
+import hua223.calamity.util.Vector2f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -21,8 +20,8 @@ public class BurnishedAuric extends Font implements ICalamityFont {
         super(Minecraft.getInstance().font.fonts, false);
     }
 
-    static float lastFlashTime;
-    static boolean isFlashing;
+    private static float lastFlashTime;
+    private static boolean isFlashing;
 
     @Override
     @SuppressWarnings("ConstantConditions")
@@ -37,19 +36,19 @@ public class BurnishedAuric extends Font implements ICalamityFont {
         }
 
         float pulsing = 1.1F + (float) Math.sin(time * 0.2f) * 0.25F;
-        Vector2d p = new Vector2d(0, 0);
+        Vector2f p = new Vector2f(0, 0);
         int textColor = ARGB32.color(255, 78, 55, 6);
         Matrix4f transientMatrix = RenderUtil.TRANSIENT_MATRIX;
         transientMatrix.set(matrix);
         for (float f = 0f; f < Mth.TWO_PI; f += 0.79f) {
             p.x = pulsing;
-            p.rotatedBy(f + time * 0.05 % Mth.TWO_PI, Vector2d.ZERO, true);
-            renderText(describe, x + (float) p.x, y + (float) p.y, textColor, false,
+            p.rotatedBy(f + time * 0.05f % Mth.TWO_PI, Vector2f.ZERO, true);
+            renderText(describe, x + p.x, y + p.y, textColor, false,
                 transientMatrix, buffer, DisplayMode.NORMAL, 0, 15728880);
 
             if (isFlashing) {
-                Vector2d offset = Vector2d.nextVector2Circular(1.2f, .6f, random);
-                transientMatrix.translate((float) offset.x, (float) offset.y, 0);
+                Vector2f offset = Vector2f.nextVector2Circular(1.2f, .6f, random);
+                transientMatrix.translate(offset.x, offset.y, 0);
             }
         }
 
@@ -68,19 +67,19 @@ public class BurnishedAuric extends Font implements ICalamityFont {
         float shinePos = (shineDisp % (width(describe) + shineWidth));
 
         if (isFlashing) {
-            Vector2d offset = Vector2d.nextVector2Circular(1f, 2.2F, random);
-            x += (float) offset.x;
-            y += (float) offset.y;
+            Vector2f offset = Vector2f.nextVector2Circular(1f, 2.2F, random);
+            x += offset.x;
+            y += offset.y;
         }
 
-        Vector2d charSize = new Vector2d(0, 0);
+        Vector2f charSize = new Vector2f(0, 0);
         Vector4i color = new Vector4i();
         float charOffsetX = x;
         for (int i = 0; i < describe.length(); i++) {
             String c = String.valueOf(describe.charAt(i));
             charSize.set(width(c), lineHeight);
 
-            float centerX = (float) (charOffsetX + charSize.x / 2f + 2f);
+            float centerX = charOffsetX + charSize.x / 2f + 2f;
             float dist = Math.abs(centerX - (x + shinePos - shineWidth * 0.15f));
             float intensity = 1f - Mth.clamp(dist / shineWidth, 0f, 1f);
 
@@ -94,7 +93,7 @@ public class BurnishedAuric extends Font implements ICalamityFont {
                     , buffer, DisplayMode.NORMAL, 0, 15728880);
             }
 
-            charOffsetX += (float) (charSize.x - describe.length() * 0.0085f);
+            charOffsetX += charSize.x - describe.length() * 0.0085f;
         }
     }
 

@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import hua223.calamity.main.CalamityCurios;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.register.effects.SurvivableEffectInstance;
+import hua223.calamity.util.CalamityHelp;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -19,7 +20,6 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -29,6 +29,7 @@ import org.joml.Matrix4f;
 
 import java.util.List;
 
+@AutoEntityRegister(sized = {5f, .2f}, trackingRange = 16, updateInterval = 3, velocityUpdates = false)
 public class TeslaAura extends Entity {
     private LivingEntity owner;
     private boolean isBlunderBooster;
@@ -57,7 +58,7 @@ public class TeslaAura extends Entity {
 
     public static TeslaAura create(LivingEntity player, boolean isBlunderBooster) {
         Level level = player.level();
-        TeslaAura aura = CalamityEntity.TESLA_AURA.get().create(level);
+        TeslaAura aura = CalamityCurios.getEntityType(TeslaAura.class).create(level);
         aura.owner = player;
         aura.setPos(player.position().add(0, 0.1, 0));
         aura.isBlunderBooster = isBlunderBooster;
@@ -90,13 +91,10 @@ public class TeslaAura extends Entity {
             setPos(owner.position().add(0, 0.1, 0));
 
             if (tickCount % 20 == 0) {
-                List<LivingEntity> entities = level().getEntitiesOfClass(LivingEntity.class, getBoundingBox());
+                List<LivingEntity> entities = CalamityHelp.getAttackableEntity(LivingEntity.class, owner, getBoundingBox());
                 if (entities.isEmpty()) return;
                 MobEffect effect = CalamityEffects.GALVANIC_CORROSION.get();
                 for (LivingEntity entity : entities) {
-                    if (entity == owner || entity.isAlliedTo(owner) || !(entity instanceof Enemy)
-                        || entity.getEffect(effect) instanceof SurvivableEffectInstance) continue;
-
                     entity.addEffect(new SurvivableEffectInstance(effect, 9999, 0,
                         () -> isAlive() && entity.distanceToSqr(owner.position()) < 25)
                         .addSubEffects(CalamityEffects.ELECTRIFIED.get()));
@@ -143,8 +141,8 @@ public class TeslaAura extends Entity {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static class Render extends EntityRenderer<TeslaAura> {
-        public Render(EntityRendererProvider.Context context) {
+    public static class Renderer extends EntityRenderer<TeslaAura> {
+        public Renderer(EntityRendererProvider.Context context) {
             super(context);
         }
 

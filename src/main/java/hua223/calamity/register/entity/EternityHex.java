@@ -1,16 +1,21 @@
 package hua223.calamity.register.entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import hua223.calamity.generators.DamageMapping;
 import hua223.calamity.main.CalamityCurios;
-import hua223.calamity.register.Items.CalamityItems;
+import hua223.calamity.net.IDataPackResponse;
+import hua223.calamity.register.damage.DamageRequester;
+import hua223.calamity.register.damage.DamageSupplier;
+import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.register.particle.ParticleRegister;
 import hua223.calamity.register.sounds.CalamitySounds;
+import hua223.calamity.render.CircleBuffer;
 import hua223.calamity.util.*;
-import hua223.calamity.util.damage.CalamityDamageSource;
-import hua223.calamity.util.damage.CalamityDamageTypes;
 import hua223.calamity.util.delaytask.DelayRunnable;
-import hua223.calamity.util.primitive.PrimitiveRenderer;
-import hua223.calamity.util.primitive.PrimitiveSettings;
+import hua223.calamity.render.primitive.PrimitiveRenderer;
+import hua223.calamity.render.primitive.PrimitiveSettings;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -29,16 +34,20 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Vector3d;
 import org.joml.Vector4i;
 
+import java.awt.*;
 import java.util.concurrent.ThreadLocalRandom;
 
+@AutoEntityRegister(sized = {1f, .5f}, trackingRange = 16)
 public class EternityHex extends Entity {
+    @DamageRequester(key = DamageMapping.MAGIC_PROJECTILE, msg = "eternity",
+        style = ChatFormatting.LIGHT_PURPLE, zh_cn = "%s的生命流逝为了尘埃")
+    public static DamageSupplier supplier;
+
     //Approximately 5.15s in Terraria. 310 frames.
     //This is because Minecraft uses Tick instead of maxFrame rate. Balance using a setting of 60 frames for 20tick。
     private static final int LIFE_TIME = 206;
@@ -48,18 +57,9 @@ public class EternityHex extends Entity {
     private DamageSource source;
 
     @OnlyIn(Dist.CLIENT)
-    private final Vector4i finalColor = RenderUtil.black();
-    @OnlyIn(Dist.CLIENT)
-    private final Vector4i tailColor = RenderUtil.black();
-    @OnlyIn(Dist.CLIENT)
-    private float alpha = 1f;
-    @OnlyIn(Dist.CLIENT)
-    private static final Vector4i HEAD_COLOR =
-        RenderUtil.interpolateColor(RenderUtil.black(), RenderUtil.MAGENTA, 0.1f, null);
-    @OnlyIn(Dist.CLIENT)
     private static final float ANGLE = Mth.TWO_PI / 200f;
     @OnlyIn(Dist.CLIENT)
-    private final CircleBuffer<Vec3> oldPos = new CircleBuffer<>(64);
+    private final CircleBuffer<Vector2f> oldPos = CircleBuffer.ofFill(64, Vector2f::new);
     @OnlyIn(Dist.CLIENT)
     private float maxFrame;
     @OnlyIn(Dist.CLIENT)
@@ -69,30 +69,15 @@ public class EternityHex extends Entity {
     @OnlyIn(Dist.CLIENT)
     private float lemniscateAngle;
     @OnlyIn(Dist.CLIENT)
-    private final Vector2d lemniscateOffset = new Vector2d(0, 0);
+    private final Vector2f lemniscateOffset = new Vector2f(0, 0);
     @OnlyIn(Dist.CLIENT)
     private int currentFrame;
     @OnlyIn(Dist.CLIENT)
     private float extraUpdate;
     @OnlyIn(Dist.CLIENT)
-    private final Vector3d pos = new Vector3d(0, 0, 0);
+    private final Vector2f pos = new Vector2f();
     @OnlyIn(Dist.CLIENT)
-    private final PrimitiveSettings settings = new PrimitiveSettings(
-        completionRatio -> {
-            float widthInterpolant = RenderUtil.clampLerp(0f, 0.12f, completionRatio, true);
-            return RenderUtil.smoothStep(0.02f, 0.25f, widthInterpolant);
-        },
-        completionRatio -> {
-            float leftoverTimeScale = (float) Math.sin((double) RenderUtil.getLocalTick() / 15) * 0.5f + 0.5f;
-            leftoverTimeScale *= 0.5f;
-
-            RenderUtil.interpolateColor(RenderUtil.MAGENTA, RenderUtil.CYAN, completionRatio * 0.5f + leftoverTimeScale, tailColor);
-
-            float opacity = (float) Math.pow(RenderUtil.clampLerp(1f, 0.61f, completionRatio, true), 0.4) * alpha;
-            float fadeToMagenta = RenderUtil.smoothStep(0f, 1f, (float) Math.pow(completionRatio, 0.6d));
-            return RenderUtil.multiplyColor(RenderUtil.interpolateColor(HEAD_COLOR, tailColor, fadeToMagenta, finalColor), opacity, finalColor);
-        }, true, 40, 3,
-        RenderUtil.Shaders.getLemniscateRenderType(CalamityCurios.ModResource("textures/entity/eternity_streak.png")));
+    private final EternitySettings settings = new EternitySettings();
 
     public EternityHex(EntityType<?> entityType, Level level) {
         super(entityType, level);
@@ -109,13 +94,13 @@ public class EternityHex extends Entity {
 
     public static void create(Player player, IDataPackResponse response, Level level, LivingEntity target) {
         if (player.Calamity$Player.data.getMana() > 30) {
-            EternityHex hex = CalamityEntity.ETERNITY_HEX.get().create(level);
+            EternityHex hex = CalamityCurios.getEntityType(EternityHex.class).create(level);
             if (hex != null) {
                 hex.yOffset = target.getBbHeight() / 2;
                 hex.setPos(target.position().add(0, hex.yOffset, 0));
                 hex.owner = player;
                 hex.target = target;
-                hex.source = CalamityDamageSource.source(CalamityDamageTypes.ETERNITY_HEX, hex, player);
+                hex.source = supplier.get(hex, player);
                 hex.updateLock(response, true);
                 level.addFreshEntity(hex);
             }
@@ -124,7 +109,7 @@ public class EternityHex extends Entity {
 
     private boolean reSpawn() {
         if (canAlive() && (!target.isDeadOrDying() || chooseNewTarget())) {
-            EternityHex hex = CalamityEntity.ETERNITY_HEX.get().create(level());
+            EternityHex hex = CalamityCurios.getEntityType(EternityHex.class).create(level());
             if (hex != null) {
                 hex.yOffset = yOffset;
                 hex.source = source;
@@ -175,7 +160,7 @@ public class EternityHex extends Entity {
                 }
             }
         } else if (tickCount > 166) {
-            alpha = (LIFE_TIME - tickCount) / 40f;
+            settings.alpha = (LIFE_TIME - tickCount) / 40f;
 
             if (tickCount == LIFE_TIME) {
                 final float[] f = new float[]{random.nextFloat(), 1};
@@ -207,7 +192,7 @@ public class EternityHex extends Entity {
     }
 
     private boolean chooseNewTarget() {
-        LivingEntity newTarget = CalamityHelp.getClosestTarget(owner, 16, owner.position());
+        LivingEntity newTarget = CalamityHelp.getClosestTarget(owner, 16);
         if (newTarget != null) {
             target = newTarget;
             unLockTarget();
@@ -229,12 +214,12 @@ public class EternityHex extends Entity {
 
     private void unLockTarget() {
         if (target != null && target.isAlive()) updateLock(
-            CalamityItems.ETERNITY.asPackHandler(), false);
+            (IDataPackResponse) CalamityItems.ETERNITY.get(), false);
     }
 
     @OnlyIn(Dist.CLIENT)
     public final void explosionEffect(float radians) {
-        Vector2d randomCirclePointVector = Vector2d.NUNIT_Y.rotatedBy(radians, Vector2d.ZERO, false);
+        Vector2f randomCirclePointVector = Vector2f.NUNIT_Y.rotatedBy(radians, Vector2f.ZERO, false);
 
         // pointsPerStarStrip is basically how many times dust should be drawn to make half of a star point.
         // The amount of dust from the explosion = pointsPerStarStrip * starPoints * 2.
@@ -245,12 +230,12 @@ public class EternityHex extends Entity {
 
         float minStarOutwardness = localRandom.nextFloat(0.6f, 1f);
         float maxStarOutwardness = localRandom.nextFloat(1.4f, 2.4f);
-        Vector2d randomCirclePointLerped = new Vector2d(0, 0);
+        Vector2f randomCirclePointLerped = new Vector2f(0, 0);
 
         for (float i = 0; i < starPoints; i++) {
             for (int rotationDirection = -1; rotationDirection <= 1; rotationDirection += 2) {
-                Vector2d randomCirclePointRotated = randomCirclePointVector.rotatedBy(
-                    rotationDirection * Mth.TWO_PI / (starPoints * 2), Vector2d.ZERO, false);
+                Vector2f randomCirclePointRotated = randomCirclePointVector.rotatedBy(
+                    rotationDirection * Mth.TWO_PI / (starPoints * 2), Vector2f.ZERO, false);
 
                 for (float k = 0f; k < pointsPerStarStrip; k++) {
                     float v = k / pointsPerStarStrip;
@@ -264,45 +249,42 @@ public class EternityHex extends Entity {
                 }
             }
 
-            randomCirclePointVector.rotatedBy(Mth.TWO_PI / starPoints, Vector2d.ZERO, true);
+            randomCirclePointVector.rotatedBy(Mth.TWO_PI / starPoints, Vector2f.ZERO, true);
         }
 
         level().playLocalSound(getX(), getY(), getZ(), CalamitySounds.LARGE_WEAPON_FIRE.get(),
-            SoundSource.AMBIENT, 2f, 1f, false);
+            SoundSource.PLAYERS, 2f, 1f, false);
     }
 
     @OnlyIn(Dist.CLIENT)
-    public void determineLemniscatePosition(float partialTick) {
+    public void determineLemniscatePosition() {
         float scale = 2f / (3f - (float) Math.cos(2 * lemniscateAngle));
-        float outwardMultiplier = Mth.lerp(RenderUtil.clampLerp(0, maxFrame, currentFrame, true), 0.04f, 6f);
+        float outwardMultiplier = Mth.lerp(RenderUtil.clampLerp(0, maxFrame, currentFrame), 0.04f, 6f);
         lemniscateOffset.set((float) Math.cos(lemniscateAngle), (float) Math.sin(2f * lemniscateAngle) / 2f);
         lemniscateOffset.mul(scale);
 
-        double x = Mth.lerp(partialTick, 0d, getX() - xo);
-        double y = Mth.lerp(partialTick, 0d, getY() - yo);
-        double z = Mth.lerp(partialTick, 0d, getZ() - zo);
-        pos.set(x + lemniscateOffset.x * outwardMultiplier, y - lemniscateOffset.y * outwardMultiplier, z);
+        pos.set(lemniscateOffset.x * outwardMultiplier, lemniscateOffset.y * outwardMultiplier);
     }
 
     @OnlyIn(Dist.CLIENT)
-    private void render(PoseStack pose, MultiBufferSource buffer, float partialTick) {
+    private void render(PoseStack pose, MultiBufferSource buffer) {
         currentFrame++;
         for (int c = 0; c < 2; c++) {
             for (int i = 0; i < framerateLimit; i++) {
                 lemniscateAngle += ANGLE;
-                determineLemniscatePosition(partialTick);
+                determineLemniscatePosition();
             }
 
             if ((extraUpdate += partialLimit) > 1f) {
                 extraUpdate -= 1f;
                 lemniscateAngle += ANGLE;
-                determineLemniscatePosition(partialTick);
+                determineLemniscatePosition();
             }
         }
 
-        //pushPos
-        oldPos.push(new Vec3(pos.x, pos.y, pos.z));
-        PrimitiveRenderer.renderTrail(oldPos, settings.setBufferSource(buffer), 84, pose);
+        oldPos.fillNext().set(pos);
+        settings.source = buffer;
+        PrimitiveRenderer.renderTrail(oldPos, settings, 84, pose.last().pose());
     }
 
 
@@ -324,20 +306,69 @@ public class EternityHex extends Entity {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static class Render extends EntityRenderer<EternityHex> {
-        public Render(EntityRendererProvider.Context context) {
+    public static class Renderer extends EntityRenderer<EternityHex> {
+        public Renderer(EntityRendererProvider.Context context) {
             super(context);
         }
 
         @Override
         public void render(EternityHex entity, float entityYaw, float partialTick, PoseStack pose, @NotNull MultiBufferSource buffer, int packedLight) {
             pose.mulPose(entityRenderDispatcher.cameraOrientation());
-            entity.render(pose, buffer, partialTick);
+            entity.render(pose, buffer);
         }
 
         @Override
         public @NotNull ResourceLocation getTextureLocation(@NotNull EternityHex eternityHex) {
             return CalamityCurios.ModResource("textures/entity/eternity_streak.png");
+        }
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private static class EternitySettings extends PrimitiveSettings {
+        private float alpha = 1f;
+        private MultiBufferSource source;
+
+        private final Vector4i magenta = RenderUtil.fromColorGet(Color.magenta);
+        private final Vector4i cyan = RenderUtil.fromColorGet(Color.cyan);
+        private final Vector4i finalColor = RenderUtil.black();
+        private final Vector4i tailColor = RenderUtil.black();
+        private final Vector4i HEAD_COLOR = RenderUtil.interpolateColor(RenderUtil.black(), magenta, 0.1f, null);
+
+        public EternitySettings() {
+            super(RenderUtil.Shaders.getLemniscateRenderType(CalamityCurios.ModResource("textures/entity/eternity_streak.png")));
+        }
+
+        @Override
+        public float vertexWidth(float completionRatio) {
+            float widthInterpolant = RenderUtil.clampLerp(0f, 0.12f, completionRatio);
+            return RenderUtil.smoothStep(0.02f, 0.25f, widthInterpolant);
+        }
+
+        @Override
+        public Vector4i vertexColor(float completionRatio) {
+            float leftoverTimeScale = (float) Math.sin((double) RenderUtil.getLocalTick() / 15) * 0.5f + 0.5f;
+            leftoverTimeScale *= 0.5f;
+
+            RenderUtil.interpolateColor(magenta, cyan, completionRatio * 0.5f + leftoverTimeScale, tailColor);
+
+            float opacity = (float) Math.pow(RenderUtil.clampLerp(1f, 0.61f, completionRatio), 0.4) * alpha;
+            float fadeToMagenta = RenderUtil.smoothStep(0f, 1f, (float) Math.pow(completionRatio, 0.6d));
+            return RenderUtil.multiplyColor(RenderUtil.interpolateColor(HEAD_COLOR, tailColor, fadeToMagenta, finalColor), opacity, finalColor);
+        }
+
+        @Override
+        public int getCapacity() {
+            return 3;
+        }
+
+        @Override
+        public float widthCorrectionRatio() {
+            return 40;
+        }
+
+        @Override
+        public VertexConsumer getConsumer() {
+            return source.getBuffer(shader);
         }
     }
 }

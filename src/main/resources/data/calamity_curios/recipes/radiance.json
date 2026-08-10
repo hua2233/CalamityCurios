@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "calamity_curios:auric_ingot"
+    },
+    "C": {
+      "item": "calamity_curios:ambrosial_ampoule"
+    },
+    "B": {
+      "item": "calamity_curios:ascendant_spirit_essence"
+    },
+    "D": {
+      "item": "calamity_curios:infected_jewel"
+    }
+  },
+  "pattern": [
+    "ABB",
+    "ACB",
+    "ADB"
+  ],
+  "result": {
+    "item": "calamity_curios:radiance"
+  }
+}

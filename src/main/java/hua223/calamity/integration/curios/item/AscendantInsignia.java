@@ -57,14 +57,14 @@ public class AscendantInsignia extends Wings implements IKeyDataPackResponse {
     @SuppressWarnings("ConstantConditions")
     public void onServerResponse(ServerPlayer player, CompoundTag tag) {
         ServerLevel level = player.serverLevel();
-        level.playSound(player, player.blockPosition(), CalamitySounds.ASCENDANT_ACTIVATE.get(), SoundSource.AMBIENT);
+        CalamitySounds.ASCENDANT_ACTIVATE.playSound(player);
         float[] count = getMemory(player).count;
 
         count[2] = 1;
         player.getCooldowns().addCooldown(this, 800);
         DelayRunnable.addRunTask(160, () -> {
             count[2] = 0;
-            level.playSound(player, player.blockPosition(), CalamitySounds.ASCENDANT_OFF.get(), SoundSource.AMBIENT);
+            CalamitySounds.ASCENDANT_OFF.playSound(player);
         });
     }
 

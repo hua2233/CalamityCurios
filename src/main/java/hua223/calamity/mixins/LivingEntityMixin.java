@@ -2,12 +2,8 @@ package hua223.calamity.mixins;
 
 import hua223.calamity.events.listeners.CriticalHitTriggerListener;
 import hua223.calamity.events.listeners.HurtListener;
-import hua223.calamity.net.NetMessages;
-import hua223.calamity.net.packets.EffectSync;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.effects.CalamityEffects;
-import hua223.calamity.register.effects.IEffectsCallBack;
-import hua223.calamity.util.Vector2d;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.CombatRules;
@@ -23,10 +19,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.living.MobEffectEvent;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
@@ -34,6 +29,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 @Mixin(LivingEntity.class)
@@ -44,11 +40,12 @@ public abstract class LivingEntityMixin extends Entity {
 
     @Shadow public abstract boolean hurt(@NotNull DamageSource source, float amount);
 
-    @Shadow @Final private Map<MobEffect, MobEffectInstance> activeEffects;
-
     @Shadow public abstract AttributeMap getAttributes();
 
-    @Shadow private boolean effectsDirty;
+    @Invoker("addEffect")
+    public abstract boolean invokeAddEffect(MobEffectInstance pEffectInstance, @Nullable Entity pEntity);
+
+    @Shadow public abstract boolean addEffect(MobEffectInstance pEffectInstance);
 
     @Unique public boolean calamity$NoMoving;
 
@@ -65,17 +62,10 @@ public abstract class LivingEntityMixin extends Entity {
     public boolean calamity$IsPlayer;
 
     @Unique
-    @OnlyIn(Dist.CLIENT)
-    private boolean calamity$CanClimbable;
-
-    @Unique
     private LivingEntity calamity$Entity;
 
     @Unique
     private static DamageSource calamity$Source;
-
-    @Unique
-    private Vector2d[] calamity$Offsets;
 
     @Unique
     public float calamity$EffectFragile;
@@ -155,21 +145,6 @@ public abstract class LivingEntityMixin extends Entity {
         return vec3;
     }
 
-    @Inject(method = "onClimbable", at = @At(value = "INVOKE", target =
-        "Lnet/minecraft/world/entity/LivingEntity;blockPosition()Lnet/minecraft/core/BlockPos;",
-        shift = At.Shift.AFTER), cancellable = true)
-    private void canClimbable(CallbackInfoReturnable<Boolean> cir) {
-        if (calamity$CanClimbable && horizontalCollision)
-            cir.setReturnValue(true);
-    }
-
-
-    @Unique
-    public Vector2d[] calamity$GetPhantomOffset() {
-        return calamity$Offsets == null ? calamity$Offsets = new Vector2d[] {new Vector2d(0, 0),
-            new Vector2d(0, 0), new Vector2d(0, 0)} : calamity$Offsets;
-    }
-
     @Unique
     public void setPos(double x, double y, double z) {
         if (firstTick || !calamity$NoMoving)
@@ -178,26 +153,6 @@ public abstract class LivingEntityMixin extends Entity {
 
     @Unique
     public final void calamity$ForciblyAddEffect(MobEffectInstance instance, LivingEntity source) {
-        MobEffect newEffect = instance.getEffect();
-        MobEffectInstance mobeffectinstance = activeEffects.put(newEffect, instance);
-        effectsDirty = true;
-        if (!level().isClientSide) {
-            AttributeMap map = getAttributes();
-            int amplifier = instance.getAmplifier();
-            if (mobeffectinstance == null) newEffect.addAttributeModifiers(calamity$Entity, map, amplifier);
-            else {
-                if (newEffect instanceof IEffectsCallBack back) back.onRemove(mobeffectinstance, calamity$Entity);
-                newEffect.removeAttributeModifiers(calamity$Entity, map, amplifier);
-                newEffect.addAttributeModifiers(calamity$Entity, map, amplifier);
-            }
-
-            MinecraftForge.EVENT_BUS.post(new MobEffectEvent.Added(calamity$Entity, mobeffectinstance, instance, source));
-            NetMessages.sendToAllClient(new EffectSync(getId(), instance));
-        }
-    }
-
-    @Unique
-    public void calamity$CanClimbable(boolean can) {
-        calamity$CanClimbable = can;
+        invokeAddEffect(instance, source);
     }
 }

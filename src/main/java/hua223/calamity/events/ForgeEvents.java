@@ -1,20 +1,29 @@
 package hua223.calamity.events;
 
+import com.google.gson.*;
 import hua223.calamity.capability.EnchantmentProvider;
-import hua223.calamity.integration.curios.Decks;
+import hua223.calamity.events.levelevent.client.ClientLevelEvent;
 import hua223.calamity.main.CalamityCurios;
 import hua223.calamity.register.attribute.CalamityAttributes;
+import hua223.calamity.register.damage.DamageSupplier;
 import hua223.calamity.register.effects.IEffectsCallBack;
 import hua223.calamity.register.keys.ClientInteraction;
-import hua223.calamity.render.Item.CrusherRender;
-import hua223.calamity.render.Item.YharimsCrystalRenderer;
+import hua223.calamity.render.CalamityOutlineRenderer;
+import hua223.calamity.render.CalamityPsychedelicRenderer;
+import hua223.calamity.render.IPlayerPostRenderer;
+import hua223.calamity.render.Item.ExhumedDecoratorSystem;
 import hua223.calamity.render.entity.PurpleFlames;
 import hua223.calamity.util.*;
 import hua223.calamity.util.delaytask.DelayRunnable;
 import io.redspace.ironsspellbooks.api.events.ChangeManaEvent;
 import net.minecraft.client.model.EntityModel;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.TagParser;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -28,7 +37,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.*;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.EntityTeleportEvent;
 import net.minecraftforge.event.entity.living.LivingEquipmentChangeEvent;
 import net.minecraftforge.event.entity.living.MobEffectEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -37,7 +45,8 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-import java.util.*;
+import java.io.InputStreamReader;
+import java.util.Optional;
 
 import static hua223.calamity.main.CalamityCurios.MODID;
 
@@ -59,23 +68,46 @@ public class ForgeEvents {
 
         for (MobEffectInstance instance : player.getActiveEffectsMap().values())
             if (instance.getEffect() instanceof IEffectsCallBack callBack)
-                callBack.onLoad(instance, player);
+                callBack.onAdd(instance, player, null);
     }
 
     @SubscribeEvent
     @SuppressWarnings("ALL")
     public static void onServerStart(ServerStartedEvent event) {
-        DelayRunnable.setDist(event);
-        //Load Deck Recipe Nbt
-        RecipeManager manager = event.getServer().getRecipeManager();
-        for (Optional<? extends Recipe<?>> optional : List.of(manager.byKey(
-                CalamityCurios.ModResource("oracle_deck_unsealing")),
-            manager.byKey(CalamityCurios.ModResource("tainted_deck_unsealing"))))
-            if (optional.isPresent() && optional.get() instanceof ShapelessRecipe recipe) {
-                ItemStack stack = recipe.getResultItem(null);
-                if (stack.getItem() instanceof Decks decks && recipe.getIngredients().stream().flatMap(ingredient ->
-                    Arrays.stream(ingredient.getItems())).map(ItemStack::getItem).anyMatch(item -> item == decks.getUnsealingRope()))
-                    decks.unblock(stack);
+        MinecraftServer server = event.getServer();
+        DelayRunnable.setDist(server);
+        RecipeManager manager = server.getRecipeManager();
+        RegistryAccess access = server.registryAccess();
+        DamageSupplier.onServerStart(access);
+        Optional<Resource> resource = server.getResourceManager().getResource(CalamityCurios.ModResource("modify_recipe_nbt.json"));
+        //Load Recipe Nbt
+        if (resource.isPresent()) {
+            try (var inputStream = resource.get().open()) {
+                JsonElement json = JsonParser.parseReader(new InputStreamReader(inputStream));
+                for (JsonElement element : json.getAsJsonArray()) {
+                    JsonObject object = element.getAsJsonObject();
+                    JsonElement ids = object.get("recipes_id");
+                    ResourceLocation[] locations;
+                    if (ids.isJsonArray()) {
+                        JsonArray array = ids.getAsJsonArray();
+                        locations = new ResourceLocation[array.size()];
+                        for (int i = 0; i < locations.length; i++)
+                            locations[i] = CalamityCurios.resource(array.get(i).getAsString());
+                    } else locations = new ResourceLocation[]{CalamityCurios.resource(ids.getAsString())};
+
+                    CompoundTag tag = null;
+                    for (ResourceLocation id : locations) {
+                        Optional<? extends Recipe<?>> optional = manager.byKey(id);
+                        if (optional.isPresent()) {
+                            Recipe<?> recipe = optional.get();
+                            tag = TagParser.parseTag(object.get("nbt").getAsString());
+                            recipe.getResultItem(access).getOrCreateTag().merge(tag);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                CalamityCurios.LOGGER.info("Loaded recipe nbt failure");
+            }
         }
     }
 
@@ -97,19 +129,14 @@ public class ForgeEvents {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void prePlayerClone(PlayerEvent.Clone event) {
-        ServerPlayer player = (ServerPlayer) event.getEntity();
-        BossRushEvent.onPlayerReSpawn(player);
-        ConflictChain.Conflict.delete(player);
+        ServerPlayer player = (ServerPlayer) event.getOriginal();
+        player.reviveCaps();
+        CuriosConflictMap.delete(player);
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void lastPlayerClone(PlayerEvent.Clone event) {
         event.getEntity().Calamity$Player.onClone(event.getOriginal(), event.isWasDeath());
-    }
-
-    @SubscribeEvent
-    public static void onTeleport(EntityTeleportEvent event) {
-        BossRushEvent.onTeleport(event);
     }
 
     @SubscribeEvent
@@ -119,24 +146,6 @@ public class ForgeEvents {
 
         if (effect instanceof IEffectsCallBack properties)
             properties.onAdd(instance, event.getEntity(), event.getEffectSource());
-    }
-
-    @SubscribeEvent
-    public static void onRemove(final MobEffectEvent.Remove event) {
-        MobEffectInstance instance = event.getEffectInstance();
-        if (instance != null) {
-            MobEffect effect = instance.getEffect();
-            if (effect instanceof IEffectsCallBack properties) {
-                properties.onRemove(instance, event.getEntity());
-            }
-        }
-    }
-
-    @SubscribeEvent
-    public static void onExpired(final MobEffectEvent.Expired event) {
-        MobEffectInstance instance = event.getEffectInstance();
-        if (instance != null && instance.getEffect() instanceof IEffectsCallBack properties)
-            properties.onRemove(instance, event.getEntity());
     }
 
     @SubscribeEvent
@@ -157,7 +166,7 @@ public class ForgeEvents {
         }
     }
 
-    private static void triggerEnchant(ItemStack stack, ServerPlayer player, boolean to) {
+    private static void triggerEnchant(ItemStack stack, ServerPlayer player, final boolean to) {
         stack.getCapability(EnchantmentProvider.CURSE_ENCHANTMENT).ifPresent(enchantment -> {
             if (enchantment.isEffective()) enchantment.getRunes().onMainHandChange(to, stack, player);
         });
@@ -181,13 +190,13 @@ public class ForgeEvents {
 
         @SubscribeEvent
         public static void computeBossRushFog(ViewportEvent.ComputeFogColor event) {
-            if (ClientRushEvent.isBossRushEventActivating())
-                ClientRushEvent.BossRushSky.setSkyFogColor(event);
+            if (ClientLevelEvent.getRender() != null)
+                ClientLevelEvent.getRender().setSkyFogColor(event);
         }
 
         @SubscribeEvent
         public static void screenShakeEffect(ViewportEvent.ComputeCameraAngles event) {
-            ClientRushEvent.screenShakeHandle(event);
+            ClientLevelEvent.screenShakeHandle(event);
         }
 
         @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -210,12 +219,15 @@ public class ForgeEvents {
 
         @SubscribeEvent
         public static void onLongPress(InputEvent.InteractionKeyMappingTriggered event) {
-            ClientInteraction.longPressResponse(event);
+            if (CalamityHelp.getClientCalamity().freeze) {
+                event.setCanceled(true);
+                event.setSwingHand(false);
+            }
         }
 
         @SubscribeEvent
-        public static void beforeLivingRender(RenderLivingEvent.Pre<? extends LivingEntity, ? extends EntityModel<? extends LivingEntity>> event) {
-            RenderUtil.Shaders.psychedelic(event);
+        public static void beforeLivingRender(RenderLivingEvent.Pre<? extends LivingEntity, EntityModel<? extends LivingEntity>> event) {
+            CalamityPsychedelicRenderer.psychedelic(event);
         }
 
         @SubscribeEvent
@@ -225,20 +237,18 @@ public class ForgeEvents {
 
         @SubscribeEvent
         public static void onLevelRender(RenderLevelStageEvent event) {
-            if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES)
-                RenderUtil.Shaders.renderBlockPerspective(event);
+            CalamityOutlineRenderer.renderPerspective(event);
         }
 
         @SubscribeEvent
         public static void onRegisterItemDecorator(RecipesUpdatedEvent event) {
-            RenderUtil.registerExhumedItemDecorator(event.getRecipeManager());
+            ExhumedDecoratorSystem.registerExhumedItemDecorator(event.getRecipeManager());
         }
 
         @SubscribeEvent
         public static void afterPlayerRender(RenderPlayerEvent.Post event) {
-            if (CrusherRender.isRendering) CrusherRender.render(event);
-            else if (YharimsCrystalRenderer.crystalRayRender)
-                YharimsCrystalRenderer.renderYharimsCrystal(event);
+            IPlayerPostRenderer renderer = event.getEntity().Calamity$Player.getRenderer();
+            if (renderer != null) renderer.render(event);
         }
     }
 }

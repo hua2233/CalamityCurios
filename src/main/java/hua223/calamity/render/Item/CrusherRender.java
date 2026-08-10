@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import hua223.calamity.main.CalamityCurios;
+import hua223.calamity.render.IPlayerPostRenderer;
 import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.RenderUtil;
 import net.minecraft.client.player.AbstractClientPlayer;
@@ -26,16 +27,22 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 
 @OnlyIn(Dist.CLIENT)
-public class CrusherRender {
-    public static final ResourceLocation TEXTURE = CalamityCurios.resource("textures/entity/beacon_beam.png");
+public class CrusherRender implements IPlayerPostRenderer {
+    private final AbstractClientPlayer player;
+    public final ResourceLocation TEXTURE = CalamityCurios.resource("textures/entity/beacon_beam.png");
     private static final float RADIUS = .12f;
-    public static boolean isRendering = false;
-    private static boolean isIncremental = true;
-    private static float lastTick;
-    private static float distance;
-    private static int red = 0;
+    private boolean isIncremental = true;
+    private float lastTick;
+    private float distance;
+    private int red = 0;
 
-    public static void render(RenderPlayerEvent.Post event) {
+    public CrusherRender(AbstractClientPlayer player) {
+        this.player = player;
+        onlyThirdPersonRender(false, false, false, false);
+    }
+
+    @Override
+    public void render(RenderPlayerEvent.Post event) {
         LivingEntity entity = event.getEntity();
         PoseStack pose = event.getPoseStack();
         MultiBufferSource source = event.getMultiBufferSource();
@@ -68,19 +75,14 @@ public class CrusherRender {
         pose.popPose();
     }
 
-
-    public static void start(AbstractClientPlayer player) {
-        RenderUtil.onlyThirdPersonRender(player, false, false, false, false);
-        isRendering = true;
+    @Override
+    public void onStop() {
+        cancelThirdPersonRendering();
     }
 
-    public static void stop(AbstractClientPlayer player) {
-        isRendering = false;
-        isIncremental = true;
-        lastTick = 0;
-        distance = 0f;
-        red = 0;
-        RenderUtil.cancelThirdPersonRendering(player);
+    @Override
+    public AbstractClientPlayer getOwner() {
+        return player;
     }
 
     private static Vec3 length(LivingEntity entity, Level level) {
@@ -140,7 +142,7 @@ public class CrusherRender {
             .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(LightTexture.FULL_BRIGHT).normal(normal, 0f, 1f, 0f).endVertex();
     }
 
-    private static void colorTransform() {
+    private void colorTransform() {
         if (isIncremental) {
             red += 5;
             if (red == 150) isIncremental = false;

@@ -6,8 +6,6 @@ import hua223.calamity.register.gui.SpellType;
 import hua223.calamity.util.CMLangUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
@@ -19,8 +17,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 public class Apoptosis extends CountFactorEffects implements IEffectsCallBack {
     protected Apoptosis(MobEffectCategory category, int color) {
@@ -29,27 +25,24 @@ public class Apoptosis extends CountFactorEffects implements IEffectsCallBack {
     }
 
     @Override
-    public BiConsumer<MobEffectInstance, CountFactor> createFactorUpdater() {
-        return ((instance, factor) ->  {
-            LivingEntity entity = factor.getOwner();
-            if (entity != null) {
-                float[] values = factor.getFactor();
-                float value = values[0];
+    protected CountFactor factory() {
+        return new CountFactor(1) {
+            @Override
+            public void tick(@NotNull MobEffectInstance instance) {
+                LivingEntity entity = getOwner();
+                if (entity != null) {
+                    float value = factor[0];
 
-                if (value > 0 && value < 60) {
-                    entity.getMainHandItem().getCapability(EnchantmentProvider.CURSE_ENCHANTMENT).ifPresent(enchantment -> {
-                        if (enchantment.getRunes() == SpellType.WITHERED) values[0]++;
-                    });
+                    if (value > 0 && value < 60) {
+                        entity.getMainHandItem().getCapability(EnchantmentProvider.CURSE_ENCHANTMENT).ifPresent(enchantment -> {
+                            if (enchantment.getRunes() == SpellType.WITHERED) factor[0]++;
+                        });
+                    }
+
+                    if (factor[0] == value)factor[0]--;
                 }
-
-                if (values[0] == value) values[0]--;
             }
-        });
-    }
-
-    @Override
-    public float[] initFactorData(MobEffectInstance instance) {
-        return new float[1];
+        };
     }
 
     @Override
@@ -60,8 +53,7 @@ public class Apoptosis extends CountFactorEffects implements IEffectsCallBack {
     @Override
     public void applyEffectTick(@NotNull LivingEntity livingEntity, int amplifier) {
         if (!livingEntity.level().isClientSide) {
-            MobEffectInstance instance = livingEntity.getEffect(this);
-            float factor = instance.calamity$GetUniversalFactor(this).getFactor()[0];
+            float factor = fromTargetGet(livingEntity).getFactor()[0];
             livingEntity.hurt(livingEntity.damageSources().magic()
                 , (float) (2 * Math.pow(1.5, (factor / 60))));
         }
@@ -77,7 +69,7 @@ public class Apoptosis extends CountFactorEffects implements IEffectsCallBack {
     }
 
     @Override
-    public void onRemove(MobEffectInstance effect, LivingEntity entity) {
+    public void onEffectRemoved(LivingEntity entity, int amplifier) {
         inactivationEffect(entity, false);
     }
 

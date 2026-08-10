@@ -3,12 +3,14 @@ package hua223.calamity.register.entity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import hua223.calamity.generators.DamageMapping;
 import hua223.calamity.main.CalamityCurios;
+import hua223.calamity.register.damage.DamageRequester;
+import hua223.calamity.register.damage.DamageSupplier;
 import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.RenderUtil;
-import hua223.calamity.util.Vector2d;
-import hua223.calamity.util.damage.CalamityDamageSource;
-import hua223.calamity.util.damage.CalamityDamageTypes;
+import hua223.calamity.util.Vector2f;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.culling.Frustum;
@@ -40,7 +42,12 @@ import org.joml.Matrix4f;
 
 import java.util.List;
 
+@AutoEntityRegister(sized = {1f, 40f}, trackingRange = 16)
 public class UniverseSplitterSmallBeam extends Entity implements IEntityAdditionalSpawnData {
+    @DamageRequester(key = DamageMapping.MAGIC_PROJECTILE, msg = "universe_splitter_beam",
+        style = ChatFormatting.LIGHT_PURPLE, zh_cn = "%s被分裂光束击碎了")
+    public static DamageSupplier supplier;
+
     @OnlyIn(Dist.CLIENT)
     public static final int TIME_LIFT = 40;
     @OnlyIn(Dist.CLIENT)
@@ -62,7 +69,7 @@ public class UniverseSplitterSmallBeam extends Entity implements IEntityAddition
     private static final float MOVEMENT_TIME = 20;
     private static final float ANGLE_MAX = Mth.TWO_PI / 15f;
     float ai;
-    Vector2d velocity;
+    Vector2f velocity;
     Player owner;
     private float rotation;
 
@@ -75,7 +82,7 @@ public class UniverseSplitterSmallBeam extends Entity implements IEntityAddition
             target -> target.isPickable() && target.isAlive() && !(target instanceof Player));
 
         if (!targets.isEmpty()) {
-            DamageSource source = CalamityDamageSource.source(CalamityDamageTypes.UNIVERSE_SPLITTER_BEAM, attacker, owner);
+            DamageSource source = supplier.get(attacker, owner);
             for (Entity target : targets)
                 if (target instanceof LivingEntity living) {
                     living.hurt(source, hurt);
@@ -95,7 +102,7 @@ public class UniverseSplitterSmallBeam extends Entity implements IEntityAddition
         if (tickCount < MOVEMENT_TIME) {
             double v = tickCount / MOVEMENT_TIME;
 
-            velocity = Vector2d.toRotationVector2(ai + (float) Math.cos(v * 4d) *
+            velocity = Vector2f.toRotationVector2(ai + (float) Math.cos(v * 4d) *
                 CalamityHelp.cosineInterpolation(1f, 0f, (float) v) * ANGLE_MAX);
         }
 
@@ -150,13 +157,13 @@ public class UniverseSplitterSmallBeam extends Entity implements IEntityAddition
     public void readSpawnData(FriendlyByteBuf friendlyByteBuf) {
         this.setUUID(friendlyByteBuf.readUUID());
         this.setId(friendlyByteBuf.readInt());
-        velocity = new Vector2d(friendlyByteBuf.readDouble(), friendlyByteBuf.readDouble());
+        velocity = new Vector2f(friendlyByteBuf.readDouble(), friendlyByteBuf.readDouble());
         ai = friendlyByteBuf.readFloat();
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static class Render extends EntityRenderer<UniverseSplitterSmallBeam> {
-        public Render(EntityRendererProvider.Context pContext) {
+    public static class Renderer extends EntityRenderer<UniverseSplitterSmallBeam> {
+        public Renderer(EntityRendererProvider.Context pContext) {
             super(pContext);
         }
 

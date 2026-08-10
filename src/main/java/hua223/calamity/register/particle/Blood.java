@@ -18,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector4i;
 
+import java.awt.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 @OnlyIn(Dist.CLIENT)
@@ -32,7 +33,8 @@ public class Blood extends SingleTexturedParticle {
         super(level, x, y, z);
         setLifetime(level.random.nextInt(22, 36));
         attenuationAge = (int) (lifetime * 0.4);
-        initialColor = RenderUtil.interpolateColor(RenderUtil.RED, RenderUtil.DARK_RED, level.random.nextFloat(), null);
+        initialColor = RenderUtil.interpolateColor(RenderUtil.fromColorGet(Color.RED),
+            new Vector4i(139, 0, 0, 255), level.random.nextFloat(), null);
         RenderUtil.interpolateColor(initialColor, new Vector4i(51, 22, 94, 255), level.random.nextFloat() * 0.65f, initialColor);
         color = new Vector4i(initialColor);
 

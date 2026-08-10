@@ -4,8 +4,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.EventTypes;
 import hua223.calamity.register.keys.IKeyDataPackResponse;
-import hua223.calamity.util.CalamityHelp;
-import hua223.calamity.util.ConflictChain;
+import hua223.calamity.util.CuriosConflictMap;
 import hua223.calamity.util.ICuriosStorage;
 import net.minecraft.network.protocol.game.ClientboundSetHealthPacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -25,7 +24,6 @@ import java.util.UUID;
 public abstract class BaseCurio extends Item implements ICurioItem {
     protected final boolean enableTick;
     private final boolean hasEvent;
-    public final boolean hasConflictChain;
     private final int hash;
 
     protected BaseCurio(Properties properties) {
@@ -33,16 +31,13 @@ public abstract class BaseCurio extends Item implements ICurioItem {
         //initialization attribute
         Class<?> c = getClass();
         hasEvent = !EventTypes.collectEvents(c).isEmpty();
-        hasConflictChain = c.isAnnotationPresent(ConflictChain.class);
-        if (hasConflictChain) ConflictChain.Conflict.registerRootToLink(c);
 
         do {
-            if (Arrays.stream(c.getDeclaredMethods()).anyMatch(method -> {
-                String name = method.getName();
-                return (name.equals("onPlayerTick") || name.equals("onClientTick")) &&
-                    method.getParameterTypes().length == 1 && method.getParameterTypes()[0] == Player.class;})) {
-                break;
-            } else c = c.getSuperclass();
+            if (Arrays.stream(c.getDeclaredMethods()).anyMatch(method ->
+                method.getParameterTypes().length == 1 &&
+                method.getParameterTypes()[0] == Player.class &&
+                (method.getName().equals("onPlayerTick") || method.getName().equals("onClientTick")))) break;
+            else c = c.getSuperclass();
         } while (c != BaseCurio.class);
 
         enableTick = c != BaseCurio.class;
@@ -70,22 +65,15 @@ public abstract class BaseCurio extends Item implements ICurioItem {
     @Override
     public boolean canEquip(SlotContext slotContext, ItemStack stack) {
         LivingEntity entity = slotContext.entity();
-        if (entity.calamity$IsPlayer && !entity.calamity$Player.isLocalPlayer()) {
-            if (hasConflictChain) {
-                return ConflictChain.Conflict.noOccupied(
-                    getClass().getAnnotation(ConflictChain.class), entity);
-            } else return !CalamityHelp.hasCurio(slotContext.entity(), this);
-        }
-        return false;
+        return entity.calamity$IsPlayer && CuriosConflictMap.noOccupied(this, entity);
     }
 
     @Override
     public void onEquip(SlotContext slotContext, ItemStack prevStack, ItemStack stack) {
         LivingEntity entity = slotContext.entity();
-        if (entity.calamity$IsPlayer && !entity.calamity$Player.isLocalPlayer()) {
+        if (entity.calamity$IsPlayer) {
             ServerPlayer player = (ServerPlayer) entity;
-            if (hasConflictChain) ConflictChain.Conflict.lockInConflict(
-                getClass().getAnnotation(ConflictChain.class), entity);
+            CuriosConflictMap.lock(this, player, true);
             if (hasEvent) EventTypes.applyEvent(this, player, true);
             equipHandle(player, stack);
         }
@@ -97,14 +85,12 @@ public abstract class BaseCurio extends Item implements ICurioItem {
     @Override
     public void onUnequip(SlotContext slotContext, ItemStack newStack, ItemStack stack) {
         LivingEntity entity = slotContext.entity();
-        if (entity.calamity$IsPlayer && !entity.calamity$Player.isLocalPlayer()) {
+        if (entity.calamity$IsPlayer) {
             ServerPlayer player = (ServerPlayer) entity;
             if (hasEvent) EventTypes.applyEvent(this, player, false);
             unEquipHandle(player, stack);
             if (this instanceof ICuriosStorage storage) storage.removeStorage(player);//!newStack.is(this) &&
-            if (hasConflictChain)
-                ConflictChain.Conflict.unLockConflict(
-                    getClass().getAnnotation(ConflictChain.class), player);
+            CuriosConflictMap.lock(this, player, false);
         }
     }
 
@@ -140,6 +126,4 @@ public abstract class BaseCurio extends Item implements ICurioItem {
     public int hashCode() {
         return hash;
     }
-
-    public void onLogOut(Player player) {}
 }

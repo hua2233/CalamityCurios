@@ -1,9 +1,11 @@
 package hua223.calamity.integration.curios.item;
 
 import hua223.calamity.events.ApplyEvent;
+import hua223.calamity.events.LogoutRelease;
 import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.register.effects.CalamityEffects;
+import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.ICuriosStorage;
 import net.minecraft.ChatFormatting;
@@ -54,9 +56,10 @@ public class FungalClump extends BaseCurio implements ICuriosStorage {
         }
     }
 
-    @Override
-    public void onLogOut(Player player) {
-        if (!player.isLocalPlayer()) unEquipHandle((ServerPlayer) player, null);
+    @LogoutRelease
+    public static void onLogOut(ServerPlayer player) {
+        CalamityItems item = CalamityItems.FUNGAL_CLUMP;
+        if (item.isEquip(player)) ((FungalClump) item.get()).unEquipHandle(player, null);
     }
 
     @Override

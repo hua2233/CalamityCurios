@@ -19,19 +19,17 @@ public class ApplyKeyEvent extends DataPack {
     }
 
     public ApplyKeyEvent(IKeyDataPackResponse response, boolean apply) {
-        key = response.getKeyCode();
-        this.apply = apply;
+        this(response.getKeyCode(), apply);
     }
 
     public ApplyKeyEvent(FriendlyByteBuf byteBuf) {
-        apply = byteBuf.readBoolean();
-        key = byteBuf.readVarInt();
+        this(byteBuf.readVarInt(), byteBuf.readBoolean());
     }
 
     @Override
     public void toBytes(FriendlyByteBuf byteBuf) {
-        byteBuf.writeBoolean(apply);
         byteBuf.writeVarInt(key);
+        byteBuf.writeBoolean(apply);
     }
 
     @Override

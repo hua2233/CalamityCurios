@@ -2,39 +2,41 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
+import hua223.calamity.events.LogoutRelease;
 import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.DeathListener;
 import hua223.calamity.events.listeners.HurtListener;
+import hua223.calamity.register.damage.DamageRequester;
+import hua223.calamity.register.damage.DamageSupplier;
 import hua223.calamity.register.entity.projectiles.Meteor;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.ConflictChain;
-import hua223.calamity.util.damage.CalamityDamageSource;
-import hua223.calamity.util.damage.DamageTags;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
-import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import static hua223.calamity.generators.DamageMapping.*;
+
 @ConflictChain(value = DeitiesRampart.class)
 public class DeitiesRampart extends BaseCurio {
-    static Set<UUID> players;
-    private static DamageSource source;
+    @DamageRequester(key = SPUTTERING, msg = "protect",
+        style = ChatFormatting.GOLD, zh_cn = "%s为了守护他人英勇的牺牲了")
+    public static DamageSupplier supplier;
+    private static Set<UUID> players;
 
     public DeitiesRampart(Properties properties) {
         super(properties);
@@ -62,10 +64,9 @@ public class DeitiesRampart extends BaseCurio {
         if (listener.isPlayerDeath) players.remove(listener.player.getUUID());
     }
 
-    @Override
-    public void onLogOut(Player player) {
-        if (!player.isLocalPlayer())
-            players.remove(player.getUUID());
+    @LogoutRelease
+    public static void onLogOut(ServerPlayer player) {
+        if (players != null) players.remove(player.getUUID());
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -75,6 +76,7 @@ public class DeitiesRampart extends BaseCurio {
         PlayerList list = listener.player.getServer().getPlayerList();
         int[] count = {0};
         final float base = listener.baseAmount * 0.25f;
+        DamageSource source = supplier.get();
         players.stream().map(list::getPlayer).filter(player -> {
             if (player.getHealth() > (player.getMaxHealth() / 4)) {
                 count[0]++;
@@ -98,20 +100,14 @@ public class DeitiesRampart extends BaseCurio {
 
     @Override
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
-        if (players == null) {
-            source = CalamityDamageSource.source(DamageTypes.GENERIC_KILL, player.level())
-                .addDamageTag(DamageTags.NOT_TRIGGER_EVENT.tag, DamageTypeTags.BYPASSES_COOLDOWN);
-            players = new HashSet<>();
-        }
+        if (players == null) players = new ObjectOpenHashSet<>();
         players.add(player.getUUID());
     }
 
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
-        if (players != null && players.remove(player.getUUID()) && players.isEmpty()) {
+        if (players != null && players.remove(player.getUUID()) && players.isEmpty())
             players = null;
-            source = null;
-        }
     }
 
     @Override

@@ -2,7 +2,7 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.util.ConflictChain;
+import hua223.calamity.util.CurioRepel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -11,7 +11,7 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.UUID;
 
-@ConflictChain(GrandGelatin.class)
+@CurioRepel(GrandGelatin.class)
 public class VitalJelly extends BaseCurio {
     public VitalJelly(Properties properties) {
         super(properties);

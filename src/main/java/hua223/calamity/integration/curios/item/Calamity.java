@@ -4,14 +4,15 @@ import com.google.common.collect.Multimap;
 import hua223.calamity.capability.CalamityCap;
 import hua223.calamity.capability.CalamityCap.CurseType;
 import hua223.calamity.events.ApplyEvent;
+import hua223.calamity.events.LogoutRelease;
 import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.HurtListener;
 import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.main.CalamityCurios;
+import hua223.calamity.net.IDataPackResponse;
+import hua223.calamity.register.damage.*;
 import hua223.calamity.register.sounds.CalamitySounds;
 import hua223.calamity.util.*;
-import hua223.calamity.util.damage.CalamityDamageSource;
-import hua223.calamity.util.damage.CalamityDamageTypes;
 import hua223.calamity.util.delaytask.DelayRunnable;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
@@ -39,7 +40,17 @@ import top.theillusivec4.curios.api.type.capability.ICurio;
 import java.util.List;
 import java.util.UUID;
 
+import static hua223.calamity.generators.DamageMapping.*;
+
 public class Calamity extends BaseCurio implements ICuriosStorage, IDataPackResponse {
+    @DamageRequester(key = SPUTTERING, msg = "abyss",
+        style = ChatFormatting.BLUE, zh_cn = "%s殁亡于深渊之中")
+    public static DamageSupplier abyss;
+
+    @DamageRequester(key = MAGIC_FIRE, msg = "sulfurFire",
+        style = ChatFormatting.DARK_RED, zh_cn = "%s被硫磺火焚烧殆尽")
+    public static DamageSupplier sulfurFire;
+
     public Calamity(Properties properties) {
         super(properties);
     }
@@ -73,10 +84,9 @@ public class Calamity extends BaseCurio implements ICuriosStorage, IDataPackResp
         return canEquip(slotContext, stack);
     }
 
-    @Override
-    public void onLogOut(Player player) {
-        if (!player.isLocalPlayer())
-            player.Calamity$Player.calamityCap.setCursePlayer(false);
+    @LogoutRelease
+    public static void onLogOut(ServerPlayer player) {
+        player.Calamity$Player.calamityCap.setCursePlayer(false);
     }
 
     //Global logic, triggered only when others are injured
@@ -97,11 +107,12 @@ public class Calamity extends BaseCurio implements ICuriosStorage, IDataPackResp
         }
 
         final float hurt = listener.baseAmount * 0.45f;
-        DamageSource source = null;
-        for (ServerPlayer curseTarget : cap.getRestCalamity()) {
-            if (curseTarget.Calamity$Player.calamityCap.isCursePlayer())
-                curseTarget.hurt(source == null ? source = CalamityDamageSource.source(CalamityDamageTypes.ABYSS, player.level()) : source, hurt);
-        }
+        List<ServerPlayer> players = cap.getRestCalamity();
+        if (players.isEmpty()) return;
+
+        DamageSource source = abyss.get();
+        for (ServerPlayer curseTarget : players)
+            curseTarget.hurt(source, hurt);
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -117,7 +128,7 @@ public class Calamity extends BaseCurio implements ICuriosStorage, IDataPackResp
             }
             listener.canceledEvent();
         } else {
-            listener.setSource(CalamityDamageSource.source(CalamityDamageTypes.SULFUR_FIRE, listener.player.level()));
+            listener.setSource(sulfurFire.get());
             if (player.hasEffect(MobEffects.FIRE_RESISTANCE)) {
                 float amplifier = (player.getEffect(MobEffects.FIRE_RESISTANCE).getDuration() / 20f);
                 if (isOnFire) {

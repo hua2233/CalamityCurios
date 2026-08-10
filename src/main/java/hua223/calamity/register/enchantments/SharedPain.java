@@ -1,14 +1,11 @@
 package hua223.calamity.register.enchantments;
 
-import hua223.calamity.register.Items.CalamityItems;
-import hua223.calamity.util.damage.CalamityDamageSource;
-import hua223.calamity.util.damage.DamageTags;
+import hua223.calamity.register.items.CalamityItems;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
@@ -46,7 +43,7 @@ public class SharedPain extends Enchantment {
                         if (affect.isAlive() && !affect.calamity$IsPlayer && !affect.isAlliedTo(attacker)) {
                             if (source == null) {
                                 attacker.calamity$Player.getCooldowns().addCooldown(stack.getItem(), 100);
-                                source = CalamityDamageSource.source(DamageTypes.GENERIC_KILL, world).addDamageTag(DamageTags.NO_DECAY.tag);
+                                source = attacker.damageSources().genericKill();
                                 damageValue = (float) attacker.getAttributeValue(Attributes.ATTACK_DAMAGE) * (level * 0.3f);
                             }
 

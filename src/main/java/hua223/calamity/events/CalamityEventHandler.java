@@ -2,17 +2,13 @@ package hua223.calamity.events;
 
 import hua223.calamity.capability.CalamityCap;
 import hua223.calamity.events.listeners.*;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.integration.curios.item.Calamity;
 import hua223.calamity.integration.curios.item.DeitiesRampart;
 import hua223.calamity.main.CalamityCurios;
 import hua223.calamity.register.attribute.CalamityAttributes;
-import hua223.calamity.register.config.CalamityConfigHelper;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.register.effects.IEffectsCallBack;
 import hua223.calamity.register.entity.projectiles.MiniDragonBorn;
-import hua223.calamity.register.keys.ClientInteraction;
-import hua223.calamity.render.font.CurseFont;
 import hua223.calamity.util.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.Input;
@@ -28,14 +24,12 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemCooldowns;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.MovementInputUpdateEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.ProjectileImpactEvent;
@@ -46,18 +40,15 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.items.IItemHandlerModifiable;
 import org.jetbrains.annotations.Nullable;
-import top.theillusivec4.curios.api.CuriosApi;
 
 import java.util.*;
 
 import static hua223.calamity.main.CalamityCurios.MODID;
-import static hua223.calamity.register.Items.CalamityItems.*;
+import static hua223.calamity.register.items.CalamityItems.*;
 
 @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class CalamityEventHandler {
-
     private CalamityEventHandler() {}
 
     @Nullable
@@ -95,20 +86,12 @@ public class CalamityEventHandler {
     }
 
     public static void onPlayerHurt(final LivingHurtEvent event, ServerPlayer player) {
-        boolean isFall = event.getSource().is(DamageTypeTags.IS_FALL);
-        if (isFall && player.hasEffect(CalamityEffects.CALCIUM.get())) {
-            event.setCanceled(true);
-        } else {
-            HurtListener listener = dispatch(player, EventTypes.HURT, event, player);
-            if (listener != null) {
-                Calamity.sunkCurse(listener);
-                DeitiesRampart.rampartGuard(listener);
-
-                if (isFall && listener.player.hasEffect(CalamityEffects.BOUNDING.get())) listener.amplifier -= 0.4f;
-                listener.amplifier -= (float) player.getAttributeValue(
-                    CalamityAttributes.INJURY_OFFSET.get()) - (1 + listener.player.calamity$EffectFragile);
-                event.setAmount(listener.getCorrectionValue());
-            }
+        HurtListener listener = dispatch(player, EventTypes.HURT, event, player);
+        if (listener != null) {
+            Calamity.sunkCurse(listener);
+            DeitiesRampart.rampartGuard(listener);
+            listener.amplifier -= (float) (player.getAttributeValue(CalamityAttributes.INJURY_OFFSET.get()) - 1 - listener.player.calamity$EffectFragile);
+            event.setAmount(listener.getCorrectionValue());
         }
     }
 
@@ -154,8 +137,7 @@ public class CalamityEventHandler {
         if (entity.level().isClientSide || !(entity instanceof LivingEntity)) return;
 
         CriticalHitCheckListener listener = dispatch(event.getEntity(), EventTypes.CRITICAL_HIT_CHECK, event);
-        boolean hasListener = listener != null;
-        if ((hasListener && listener.isCriticalHit()) || (!hasListener && event.isVanillaCritical()))
+        if ((listener != null && listener.isCriticalHit()) || (listener == null && event.isVanillaCritical()))
             dispatch(event.getEntity(), EventTypes.CRITICAL_HIT_TRIGGER, event);
     }
 
@@ -181,8 +163,7 @@ public class CalamityEventHandler {
             //Reapplying callbacks during disk loading does not trigger Effect related events for entities loaded from the disk
             if (event.loadedFromDisk() && event.getEntity() instanceof LivingEntity entity) {
                 for (MobEffectInstance instance : entity.getActiveEffects())
-                    if (instance.getEffect() instanceof IEffectsCallBack callBack)
-                        callBack.onLoad(instance, entity);
+                    if (instance.getEffect() instanceof IEffectsCallBack callBack) callBack.onAdd(instance, entity, null);
             } else if (event.getEntity() instanceof Projectile projectile && projectile.getOwner() instanceof ServerPlayer player) {
                 ProjectileSpawnListener listener = dispatch(player, EventTypes.PROJECTILE_SPAWN, event, player, projectile);
                 if (listener != null) listener.settlement();
@@ -251,7 +232,7 @@ public class CalamityEventHandler {
         if (entity.calamity$InactivationCount > 0) event.setCanceled(true);
         else if (entity.calamity$IsPlayer) {
             PlayerHealListener listener = dispatch(entity.calamity$Player, EventTypes.HEAL, event, entity.calamity$Player);
-            if (listener != null && !listener.isCanceled()) event.setAmount(listener.getCorrectionValue());
+            if (listener != null) event.setAmount(listener.getCorrectionValue());
         }
     }
 
@@ -275,29 +256,6 @@ public class CalamityEventHandler {
     }
 
     @SubscribeEvent
-    public static void onLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
-        ServerPlayer player = (ServerPlayer) event.getEntity();
-        logOutCuriosCallBack(player);
-        ConflictChain.Conflict.delete(player);
-        CalamityConfigHelper.remove(player);
-    }
-
-    @SubscribeEvent
-    @OnlyIn(Dist.CLIENT)
-    public static void onClientLoggedOut(ClientPlayerNetworkEvent.LoggingOut event) {
-        LocalPlayer player = event.getPlayer();
-        //Why does logging in also trigger????
-        if (player != null) {
-            ClientRushEvent.interruptEvent();
-            logOutCuriosCallBack(player);
-            RenderUtil.clear(player);
-            CurseFont.reSet();
-            CalamityCap.CurseType.reSet();
-            ClientInteraction.clear();
-        }
-    }
-
-    @SubscribeEvent
     @OnlyIn(Dist.CLIENT)
     @SuppressWarnings("ConstantConditions")
     public static void onMoveInput(MovementInputUpdateEvent event) {
@@ -318,18 +276,5 @@ public class CalamityEventHandler {
     public static void setInvisible(LivingEvent.LivingVisibilityEvent event) {
         LivingEntity entity = event.getEntity();
         if (entity.calamity$IsPlayer) entity.calamity$Player.Calamity$Player.canBeSeen(event);
-    }
-
-    private static void logOutCuriosCallBack(Player player) {
-        CuriosApi.getCuriosInventory(player).ifPresent(modifiable -> {
-            for (int i = 0; i < modifiable.getSlots(); i++) {
-                IItemHandlerModifiable handler = modifiable.getEquippedCurios();
-                for (int j = 0; j < handler.getSlots(); j++) {
-                    ItemStack curio = handler.getStackInSlot(j);
-                    if (!curio.isEmpty() && curio.getItem() instanceof BaseCurio base)
-                        base.onLogOut(player);
-                }
-            }
-        });
     }
 }

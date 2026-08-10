@@ -6,7 +6,6 @@ import hua223.calamity.events.listeners.CriticalHitTriggerListener;
 import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.loots.ApplyGlobalLoot;
 import hua223.calamity.loots.EntitiesLootContext;
-import hua223.calamity.loots.GlobalLoot;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.CalamityHelp;
@@ -35,7 +34,6 @@ import java.util.UUID;
 public class VeneratedLocket extends BaseCurio implements ICuriosStorage {
     public VeneratedLocket(Properties properties) {
         super(properties);
-        GlobalLoot.mountTo(this);
     }
 
     @Override
@@ -102,7 +100,7 @@ public class VeneratedLocket extends BaseCurio implements ICuriosStorage {
 
     @ApplyGlobalLoot
     @SuppressWarnings("ConstantConditions")
-    public final void onGlobalEntityLoot(EntitiesLootContext context) {
+    public void onGlobalEntityLoot(EntitiesLootContext context) {
         if (context.onlyVerification(EntityType.WANDERING_TRADER) && context.chance(0.1f) &&
             context.player.getServer().getLevel(Level.END).getDragonFight().hasPreviouslyKilledDragon())
             context.addLoot(this, 1);

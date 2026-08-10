@@ -1,8 +1,9 @@
 package hua223.calamity.register.effects;
 
+import hua223.calamity.generators.DamageMapping;
+import hua223.calamity.register.damage.DamageRequester;
+import hua223.calamity.register.damage.DamageSupplier;
 import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.damage.CalamityDamageSource;
-import hua223.calamity.util.damage.CalamityDamageTypes;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.world.effect.MobEffectCategory;
@@ -17,6 +18,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public class AstralInjection extends CalamityEffect implements IEffectsCallBack {
+    @DamageRequester(key = DamageMapping.BLEEDING, msg = "astral_injection",
+        style = ChatFormatting.AQUA, zh_cn = "%s的血管由于药物过量爆裂了")
+    public static DamageSupplier supplier;
+
     public AstralInjection(MobEffectCategory category, int color) {
         super(category, color);
         addAttributeModifier(AttributeRegistry.MANA_REGEN.get(), "50cd184c-6dc0-486d-b52b-bb73cb5cc415", 10, AttributeModifier.Operation.MULTIPLY_BASE);
@@ -29,8 +34,7 @@ public class AstralInjection extends CalamityEffect implements IEffectsCallBack 
 
     @Override
     public void applyEffectTick(@NotNull LivingEntity target, int amplifier) {
-        if (!target.level().isClientSide)
-            target.hurt(CalamityDamageSource.source(CalamityDamageTypes.ASTRAL_INJECTION, target.level()), 4);
+        if (!target.level().isClientSide) target.hurt(supplier.get(), 4);
     }
 
     @Override

@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "calamity_curios:lumenyl"
+    },
+    "C": {
+      "item": "calamity_curios:mirage_mirror"
+    },
+    "B": {
+      "item": "calamity_curios:ink_bomb"
+    }
+  },
+  "pattern": [
+    "ABA",
+    "ACA",
+    "AAA"
+  ],
+  "result": {
+    "item": "calamity_curios:abyssal_mirror"
+  }
+}

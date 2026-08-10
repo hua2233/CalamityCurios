@@ -18,9 +18,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin({Projectile.class})
 public abstract class ProjectileMixin extends Entity {
     @Unique
-    public boolean calamity$Indestructible;
-
-    @Unique
     @OnlyIn(Dist.CLIENT)
     public boolean calamity$Detected;
 
@@ -42,8 +39,6 @@ public abstract class ProjectileMixin extends Entity {
 
     @Unique
     public void discard() {
-        if (calamity$Indestructible) {
-            calamity$Indestructible = false;
-        } else super.discard();
+        if (!getTags().remove("Indestructible")) super.discard();
     }
 }

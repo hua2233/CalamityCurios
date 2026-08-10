@@ -7,15 +7,10 @@ import hua223.calamity.events.listeners.DeathListener;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.ICuriosStorage;
-import hua223.calamity.util.IDataPackResponse;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import net.minecraft.ChatFormatting;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -28,7 +23,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 import java.util.UUID;
 
-public class PermafrostConcoction extends BaseCurio implements ICuriosStorage, IDataPackResponse {
+public class PermafrostConcoction extends BaseCurio implements ICuriosStorage {
     public PermafrostConcoction(Properties properties) {
         super(properties);
     }
@@ -72,32 +67,16 @@ public class PermafrostConcoction extends BaseCurio implements ICuriosStorage, I
         }
     }
 
-    @ApplyEvent
+    @ApplyEvent(95)
     public final void onDeath(DeathListener listener) {
-        if (listener.isPlayerDeath) {
-            ServerPlayer player = listener.player;
-            if (player.getCooldowns().isOnCooldown(this)) return;
-
-            player.setHealth((float) (player.getMaxHealth() * 0.4));
-            player.addEffect(new MobEffectInstance(CalamityEffects.FREEZE.get(), 140, 0));
-            player.getCooldowns().addCooldown(this, 3600);
-            listener.canceledEvent();
-        }
-    }
-
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public void onClientResponse(CompoundTag tag) {
-        CalamityHelp.getClientCalamity().freeze = tag.getBoolean("flag");
+        if (listener.canceledPlayerDeathIfNotCooldowns(this, .4f, 2400, 5636095, 5592575, 170, 43690, 0x1111EE))
+            listener.player.addEffect(new MobEffectInstance(CalamityEffects.FREEZE.get(), 140, 0));
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
     public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
-        Style style = Style.EMPTY.withColor(ChatFormatting.GOLD);
-        tooltips.add(CMLangUtil.getTranslatable("concoction", 1).setStyle(style));
-        tooltips.add(CMLangUtil.getTranslatable("concoction", 2).setStyle(style));
-        tooltips.add(CMLangUtil.getTranslatable("concoction", 3).setStyle(style));
+        CMLangUtil.batchColorTexts(tooltips, ChatFormatting.GOLD, "concoction", 1, 2, 3);
         tooltips.add(CMLangUtil.getTranslatable("concoction", 4).withStyle(ChatFormatting.AQUA));
         return tooltips;
     }

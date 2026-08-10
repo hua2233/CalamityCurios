@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:pyrium_ingot"
+    },
+    "B": {
+      "item": "irons_spellbooks:lightning_upgrade_orb"
+    },
+    "C": {
+      "item": "calamity_curios:yharon_soul_fragment"
+    },
+    "D": {
+      "item": "irons_spellbooks:holy_upgrade_orb"
+    }
+  },
+  "pattern": [
+    "CCC",
+    "BAD",
+    "CCC"
+  ],
+  "result": {
+    "item": "calamity_curios:auric_ingot"
+  }
+}

@@ -1,14 +1,12 @@
 package hua223.calamity.register.keys;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import hua223.calamity.events.LogoutRelease;
 import hua223.calamity.net.DataPack;
 import hua223.calamity.net.NetMessages;
 import hua223.calamity.net.packets.ApplySprint;
-import hua223.calamity.net.packets.ClientLongPressTrigger;
 import hua223.calamity.net.packets.DataPackActive;
 import hua223.calamity.net.packets.OpenEnchantGui;
-import hua223.calamity.util.ILongPressAvailable;
-import hua223.calamity.util.delaytask.DelayRunnable;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -16,7 +14,6 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.client.settings.IKeyConflictContext;
 import net.minecraftforge.client.settings.KeyConflictContext;
@@ -92,7 +89,8 @@ public abstract class ClientInteraction extends KeyMapping {
         }
     }
 
-    public static void clear() {
+    @LogoutRelease
+    public static void clear(LocalPlayer player) {
         for (ClientInteraction key : FUNCTION_KEY.values())
             key.active = false;
     }
@@ -104,48 +102,4 @@ public abstract class ClientInteraction extends KeyMapping {
     }
 
     protected abstract void onKeyDown();
-
-    //mouse
-    private static int pressDuration;
-    private static boolean isLongPressActive;
-
-    public static boolean isLongPressActive() {
-        return isLongPressActive;
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    public static void longPressResponse(InputEvent.InteractionKeyMappingTriggered event) {
-        if ((isLongPressActive && !event.isPickBlock()) || minecraft.player.Calamity$Player.freeze) {
-            event.setCanceled(true);
-            event.setSwingHand(false);
-        } else if (event.isAttack() && minecraft.player.getMainHandItem().getItem() instanceof ILongPressAvailable available) {
-            final DataPack pack = new ClientLongPressTrigger();
-            DelayRunnable.addUniqueLoopTask(() -> {
-                //获取最新状态而不是缓存对象
-                LocalPlayer player = minecraft.player;
-                if (player == null || !minecraft.mouseHandler.isLeftPressed() ||
-                    player.getMainHandItem().getItem() != available) {
-                    isLongPressActive = false;
-                    pressDuration = 0;
-                    return true;
-                }
-
-
-                if (isLongPressActive) {
-                    if (pressDuration >= available.maxDuration()) {
-                        isLongPressActive = false;
-                        pressDuration = 0;
-                    } else if (available.isResponseTime(player, ++pressDuration)) {
-                        available.onClientResponse(player);
-                        NetMessages.sendToServer(pack);
-                    }
-                } else if (++pressDuration > 14) {
-                    isLongPressActive = true;
-                    pressDuration = 0;
-                }
-
-                return false;
-            }, 1, ClientInteraction.class);
-        }
-    }
 }

@@ -2,13 +2,14 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
+import hua223.calamity.generators.DamageMapping;
 import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.PlayerAttackListener;
+import hua223.calamity.register.damage.DamageRequester;
+import hua223.calamity.register.damage.DamageSupplier;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.ICuriosStorage;
 import hua223.calamity.util.VariableAttributeModifier;
-import hua223.calamity.util.damage.CalamityDamageSource;
-import hua223.calamity.util.damage.CalamityDamageTypes;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import net.minecraft.ChatFormatting;
@@ -25,6 +26,10 @@ import java.util.List;
 import java.util.UUID;
 
 public class ManaPolarizer extends BaseCurio implements ICuriosStorage {
+    @DamageRequester(key = DamageMapping.BLEEDING, msg = "polarizer",
+        style = ChatFormatting.AQUA, zh_cn = "%1$s的生命完全升华为了魔力")
+    public static DamageSupplier supplier;
+
     public ManaPolarizer(Properties properties) {
         super(properties);
     }
@@ -72,7 +77,7 @@ public class ManaPolarizer extends BaseCurio implements ICuriosStorage {
                 / player.getAttributeValue(AttributeRegistry.MAX_MANA.get());
             float heal = (float) (-2 + (4 * (1 - manaRatio)));
             if (heal > 0) player.heal(heal);
-            else player.hurt(CalamityDamageSource.source(CalamityDamageTypes.POLARIZER_HURT, player.level()), Math.abs(heal));
+            else player.hurt(supplier.get(), Math.abs(heal));
 
             VariableAttributeModifier.updateModifierInInstance(player.getAttribute(AttributeRegistry.SPELL_POWER.get()),
                 getFirstUUID(player), 0.15 - (0.10 * manaRatio));

@@ -4,24 +4,32 @@ import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.DeathListener;
+import hua223.calamity.net.IDataPackResponse;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.entity.projectiles.Nebula;
+import hua223.calamity.register.particle.ColorfulTotemType;
 import hua223.calamity.util.CMLangUtil;
+import hua223.calamity.util.CurioRepel;
 import hua223.calamity.util.ICuriosStorage;
-import hua223.calamity.util.IDataPackResponse;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemCooldowns;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -29,6 +37,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 import java.util.UUID;
 
+@CurioRepel(EclipseMirror.class)
 public class NebulousCore extends BaseCurio implements ICuriosStorage, IDataPackResponse {
     public NebulousCore(Properties properties) {
         super(properties);
@@ -50,15 +59,6 @@ public class NebulousCore extends BaseCurio implements ICuriosStorage, IDataPack
                 if (entity != null && entity.isAlive()) entity.discard();
             }
         }
-    }
-
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    @SuppressWarnings("ConstantConditions")
-    public void onClientResponse(CompoundTag tag) {
-        Entity entity = Minecraft.getInstance().level.getEntity(tag.getInt("id"));
-        if (entity instanceof LivingEntity living)
-            living.calamity$GodSlayerFlames = tag.getBoolean("flag");
     }
 
     @Override
@@ -96,19 +96,35 @@ public class NebulousCore extends BaseCurio implements ICuriosStorage, IDataPack
 
     @ApplyEvent(100)
     public final void onDeath(DeathListener listener) {
-        if (listener.isPlayerDeath) {
-            ServerPlayer player = listener.player;
-            ItemCooldowns cooldowns = player.getCooldowns();
-            if (cooldowns.isOnCooldown(this)) return;
-            listener.canceledEvent();
-            player.setHealth(player.getMaxHealth() * 0.4f);
-            cooldowns.addCooldown(this, 1800);
-        }
+        if (listener.canceledPlayerDeathIfNotCooldowns(this, .7f, 1800, 5636095, 16733695, 5592575, 11141290, 43690))
+            listener.player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 80, 3));
     }
 
     @Override
     public Class<?>[] defineStorageType() {
         return new Class[] {ObjectOpenHashSet.class};
+    }
+
+    @Override
+    @SuppressWarnings({"ConstantConditions", "deprecation"})
+    public void onClientResponse(CompoundTag tag) {
+        Minecraft minecraft = Minecraft.getInstance();
+        int[] totem = tag.getIntArray("totem");
+        ClientLevel level = minecraft.level;
+        Entity entity = level.getEntity(totem[0]);
+        if (entity != null) {
+            int[] colors = new int[totem.length - 2];
+            ParticleOptions data;
+            if (colors.length != 0) {
+                System.arraycopy(totem, 2, colors, 0, colors.length);
+                data = new ColorfulTotemType.ColorfulTotemOptions(colors);
+            } else data = ParticleTypes.TOTEM_OF_UNDYING;
+
+            minecraft.particleEngine.createTrackingEmitter(entity, data, 30);
+            level.playLocalSound(entity.getX(), entity.getY(), entity.getZ(), SoundEvents.TOTEM_USE, entity.getSoundSource(), 1.0F, 1.0F, false);
+            if (entity == minecraft.player)
+                minecraft.gameRenderer.displayItemActivation(BuiltInRegistries.ITEM.byId(totem[1]).getDefaultInstance());
+        }
     }
 
     @Override

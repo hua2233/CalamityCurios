@@ -3,10 +3,9 @@ package hua223.calamity.register.entity.projectiles;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import hua223.calamity.main.CalamityCurios;
-import hua223.calamity.register.entity.CalamityEntity;
+import hua223.calamity.register.damage.DamageSupplier;
+import hua223.calamity.register.entity.AutoEntityRegister;
 import hua223.calamity.util.RenderUtil;
-import hua223.calamity.util.damage.CalamityDamageSource;
-import hua223.calamity.util.damage.CalamityDamageTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -21,6 +20,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+@AutoEntityRegister(sized = {.2f, .2f}, trackingRange = 8)
 public class AcidicRain extends BaseProjectile {
     @OnlyIn(Dist.CLIENT)
     private final RenderType type = RenderType.entityCutoutNoCull(
@@ -32,7 +32,7 @@ public class AcidicRain extends BaseProjectile {
     }
 
     public static AcidicRain of(Level level, LivingEntity target, ServerPlayer player) {
-        AcidicRain acidicRain = CalamityEntity.ACIDIC_RAIN.get().create(level);
+        AcidicRain acidicRain = CalamityCurios.getEntityType(AcidicRain.class).create(level);
         Vec3 pos = new Vec3(target.getX(), target.getY() + level.random.nextInt(6, 9), target.getZ());
         acidicRain.setPos(pos);
         acidicRain.setOwner(player);
@@ -41,17 +41,17 @@ public class AcidicRain extends BaseProjectile {
 
     @Override
     protected void attack(LivingEntity target) {
-        target.hurt(CalamityDamageSource.source(CalamityDamageTypes.MAGIC_PROJECTILE, this, getOwner()), damage);
+        target.hurt(DamageSupplier.MAGIC_PROJECTILE.get(this, getOwner()), damage);
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static class Render extends EntityRenderer<AcidicRain> {
-        public Render(EntityRendererProvider.Context pContext) {
+    public static class Renderer extends EntityRenderer<AcidicRain> {
+        public Renderer(EntityRendererProvider.Context pContext) {
             super(pContext);
         }
 
         @Override
-        public ResourceLocation getTextureLocation(AcidicRain pEntity) {
+        public ResourceLocation getTextureLocation(AcidicRain entity) {
             return CalamityCurios.ModResource("textures/entity/acidic_rain.png");
         }
 

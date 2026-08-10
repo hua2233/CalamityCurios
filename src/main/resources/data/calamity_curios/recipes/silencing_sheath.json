@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "tag": "forge:ingots/copper"
+    },
+    "C": {
+      "item": "irons_spellbooks:cinder_essence"
+    }
+  },
+  "pattern": [
+    "  B",
+    " A ",
+    "A  "
+  ],
+  "result": {
+    "item": "calamity_curios:silencing_sheath"
+  }
+}

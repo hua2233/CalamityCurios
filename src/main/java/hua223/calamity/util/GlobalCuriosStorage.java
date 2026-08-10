@@ -4,12 +4,15 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import top.theillusivec4.curios.api.CuriosApi;
+import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.UUID;
+import java.util.*;
 
 public class GlobalCuriosStorage {
+    private GlobalCuriosStorage() {}
+
     /**
      * Retrieves the Curios memory object for the specified player
      * 
@@ -37,6 +40,36 @@ public class GlobalCuriosStorage {
             entity.calamity$Player.Calamity$Player.curiosStorage = null;
     }
 
+    public static void addPlayerStorage(Player player) {
+        //The Curios author defaults to not processing the first frame, possibly to prevent excessive noise, so manual registration is required here
+        //If FirstTick is set to true when a player instance is created, it should be manually reset, such low frequency events are acceptable
+        CuriosApi.getCuriosInventory(player).ifPresent(handler -> {
+            for (int i = 0; i < handler.getSlots(); i++) {
+                ItemStack stack = handler.getEquippedCurios().getStackInSlot(i);
+                if (!stack.isEmpty() && stack.getItem() instanceof ICuriosStorage storage)
+                    storage.addToStorage(player);
+            }
+        });
+    }
+
+    public static void fromOldDataClone(Player _new, Player old) {
+        ObjectOpenHashSet<CuriosMemory> oldMemory = old.Calamity$Player.curiosStorage;
+        boolean empty = oldMemory == null || oldMemory.isEmpty();
+
+        Optional<ICuriosItemHandler> optional = CuriosApi.getCuriosInventory(_new).resolve();
+        if (optional.isPresent()) {
+            ICuriosItemHandler handler = optional.get();
+            for (int i = 0; i < handler.getSlots(); i++) {
+                ItemStack stack = handler.getEquippedCurios().getStackInSlot(i);
+                if (!stack.isEmpty() && stack.getItem() instanceof ICuriosStorage storage) {
+                    if (!empty && oldMemory.contains(storage))
+                        getOrCreate(_new).add(oldMemory.get(storage));
+                    else addCurioStorage(_new, storage);
+                }
+            }
+        }
+    }
+
     /**
      * Gets the count array from the player's Curios storage
      * 
@@ -59,10 +92,15 @@ public class GlobalCuriosStorage {
      * @param storage The Curios storage interface instance to add
      */
     public static void addCurioStorage(Player player, ICuriosStorage storage) {
+        ObjectOpenHashSet<CuriosMemory> set = getOrCreate(player);
+        if (!set.contains(storage)) set.add(new CuriosMemory(storage));
+    }
+
+    private static ObjectOpenHashSet<CuriosMemory> getOrCreate(Player player) {
         CalamityPlayer calamityExpand = player.Calamity$Player;
         if (calamityExpand.curiosStorage == null)
             calamityExpand.curiosStorage = CalamityHelp.createMappingSet();
-        calamityExpand.curiosStorage.addOrGet(new CuriosMemory(storage));
+        return calamityExpand.curiosStorage;
     }
 
     public static class CuriosMemory {

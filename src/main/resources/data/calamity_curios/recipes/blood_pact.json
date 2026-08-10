@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "tag": "minecraft:noteblock_top_instruments"
+    },
+    "B": {
+      "item": "calamity_curios:bloodstone_core"
+    },
+    "C": {
+      "item": "irons_spellbooks:bloody_vellum"
+    }
+  },
+  "pattern": [
+    "   ",
+    "BBB",
+    "CAC"
+  ],
+  "result": {
+    "item": "calamity_curios:blood_pact"
+  }
+}

@@ -1,16 +1,17 @@
 package hua223.calamity.integration.curios.item;
 
 import hua223.calamity.events.ApplyEvent;
+import hua223.calamity.generators.DamageMapping;
 import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.DeathListener;
 import hua223.calamity.events.listeners.HurtListener;
-import hua223.calamity.render.entity.CrystallizationRenderLayer;
+import hua223.calamity.register.damage.DamageRequester;
+import hua223.calamity.register.damage.DamageSupplier;
+import hua223.calamity.render.hud.CrystallizationRenderLayer;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.ICuriosStorage;
 import hua223.calamity.register.keys.IKeyDataPackResponse;
-import hua223.calamity.util.IDataPackResponse;
-import hua223.calamity.util.damage.CalamityDamageSource;
-import hua223.calamity.util.damage.CalamityDamageTypes;
+import hua223.calamity.net.IDataPackResponse;
 import hua223.calamity.util.delaytask.DelayRunnable;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -19,7 +20,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -29,6 +29,10 @@ import java.util.List;
 
 public class BlazingCore extends BaseCurio implements
     ICuriosStorage, IKeyDataPackResponse, IDataPackResponse {
+    @DamageRequester(key = DamageMapping.MAGIC_FIRE, msg = "blazing_fire",
+        style = ChatFormatting.GOLD, zh_cn = "%s被亵渎之火烤成了焦炭")
+    public static DamageSupplier supplier;
+
     public BlazingCore(Properties properties) {
         super(properties);
     }
@@ -59,7 +63,7 @@ public class BlazingCore extends BaseCurio implements
                 count[0] = 2;
 
                 List<Mob> mobs = player.level().getEntitiesOfClass(Mob.class, player.getBoundingBox().inflate(5));
-                DamageSource source = CalamityDamageSource.source(CalamityDamageTypes.BLAZING_CORE, player);;
+                DamageSource source = supplier.get(player);
                 for (Mob mob : mobs) mob.hurt(source, listener.baseAmount);
             }
             case 2 -> {
@@ -76,12 +80,6 @@ public class BlazingCore extends BaseCurio implements
             getPack().putByte("state", (byte) 3);
             sendToClient(listener.player);
         }
-    }
-
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public void onLogOut(Player player) {
-        if (player.isLocalPlayer()) CrystallizationRenderLayer.stop();
     }
 
     @Override
@@ -109,7 +107,7 @@ public class BlazingCore extends BaseCurio implements
             case 0 -> CrystallizationRenderLayer.start();
             case 1 -> CrystallizationRenderLayer.startChange();
             case 2 -> CrystallizationRenderLayer.notStopChange();
-            case 3 -> CrystallizationRenderLayer.stop();
+            case 3 -> CrystallizationRenderLayer.stop(null);
         }
     }
 

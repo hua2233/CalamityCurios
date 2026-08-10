@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import hua223.calamity.main.CalamityCurios;
 import hua223.calamity.register.effects.CalamityEffects;
+import hua223.calamity.render.screen.FlashScreenRenderer;
 import hua223.calamity.util.RenderUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -36,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
+@AutoEntityRegister(trackingRange = 16)
 public class UniverseSplitterHugeBeam extends Entity {
     public static final byte TIME_LEFT = 60;
     private static final byte TOTAL_FADEIN_TIME = 50;
@@ -88,9 +90,8 @@ public class UniverseSplitterHugeBeam extends Entity {
                 scaleOld = scale;
                 scale = Mth.lerp(((TIME_LEFT - tickCount) / 10f), 0.01f, LASER_SIZE);
             }//If you're seeing this entity
-            else if (tickCount == 42 && Minecraft.getInstance().levelRenderer.cullingFrustum.isVisible(box)) {
-                RenderUtil.Shaders.setScreenFlashEffect(18, 0.6f);
-            }
+            else if (tickCount == 42 && Minecraft.getInstance().levelRenderer.cullingFrustum.isVisible(box))
+                new FlashScreenRenderer(18, 0.6f);
         } else if (tickCount % 5 == 0) {
             //damage creatures in diameter
             MobEffect effect = CalamityEffects.ELECTRIFIED.get();
@@ -184,10 +185,8 @@ public class UniverseSplitterHugeBeam extends Entity {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static class Render extends EntityRenderer<UniverseSplitterHugeBeam> {
-
-
-        public Render(EntityRendererProvider.Context context) {
+    public static class Renderer extends EntityRenderer<UniverseSplitterHugeBeam> {
+        public Renderer(EntityRendererProvider.Context context) {
             super(context);
         }
 

@@ -1,7 +1,7 @@
 package hua223.calamity.render.Item;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import hua223.calamity.register.Items.CalamityItems;
+import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.register.entity.projectiles.ZenithProjectile;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
@@ -24,57 +24,40 @@ import java.util.Map;
 
 @OnlyIn(Dist.CLIENT)
 public abstract class TransformBakeModel implements BakedModel {
-    private final BakedModel originalModel;
+    protected final BakedModel originalModel;
 
     public TransformBakeModel(BakedModel originalModel) {
         this.originalModel = originalModel;
     }
 
     public static void register(ModelEvent.ModifyBakingResult event) {
-        final String itemModelPath = "inventory";
         Map<ResourceLocation, BakedModel> models = event.getModels();
 
         //SetUp
-        ZenithProjectile.ZenithProjectileRenderer.model =
-            models.get(new ModelResourceLocation(CalamityItems.ZENITH.getId(), itemModelPath));
+        ZenithProjectile.Renderer.model = models.get(getInventory(CalamityItems.ZENITH));
 
-        ModelResourceLocation bookKey = new ModelResourceLocation(CalamityItems.DESTINY_BOOK.getId(), itemModelPath);
-        models.computeIfPresent(bookKey, (key, bookExistingModel) ->
+        models.computeIfPresent(getInventory(CalamityItems.YHARIMS_CRYSTAL), (key , existingModel) -> {
+            if (existingModel instanceof PrismModel) return existingModel;
+            ItemOverrides.BakedOverride[] bakedOverrides = existingModel.getOverrides().overrides;
+            ItemOverrides.BakedOverride override = bakedOverrides[0];
+
+            return new PrismModel(existingModel, override.model);
+        });
+
+        models.computeIfPresent(getInventory(CalamityItems.STORM_MAIDENS_RETRIBUTION), (key , existingModel) ->
+            existingModel instanceof StormMaidensModel ? existingModel : new StormMaidensModel(existingModel));
+
+        models.computeIfPresent(getInventory(CalamityItems.DESTINY_BOOK), (key, bookExistingModel) ->
             new TransformBakeModel(bookExistingModel) {
             @Override
             public @NotNull BakedModel applyTransform(@NotNull ItemDisplayContext transformType, @NotNull PoseStack poseStack, boolean applyLeftHandTransform) {
-                return transformType == ItemDisplayContext.GUI ?
-                    this : applyDefaultTransform(transformType, poseStack, applyLeftHandTransform);
+                return transformType == ItemDisplayContext.GUI ? this : applyDefaultTransform(transformType, poseStack, applyLeftHandTransform);
             }
         });
+    }
 
-        ModelResourceLocation yharimsKey = new ModelResourceLocation(CalamityItems.YHARIMS_CRYSTAL.getId(), itemModelPath);
-        models.computeIfPresent(yharimsKey, (key , yharimsExistingModel) -> {
-            ItemOverrides.BakedOverride[] bakedOverrides = yharimsExistingModel.getOverrides().overrides;
-            if (bakedOverrides.length != 0)  {
-                ItemOverrides.BakedOverride override = bakedOverrides[0];
-                BakedModel originalModel = override.model;
-                if (originalModel != null && !(originalModel instanceof TransformBakeModel)) {
-                    bakedOverrides[0] = new ItemOverrides.BakedOverride(
-                        override.matchers, new TransformBakeModel(originalModel) {
-                        @Override
-                        public @NotNull BakedModel applyTransform(@NotNull ItemDisplayContext transformType, @NotNull
-                        PoseStack poseStack, boolean applyLeftHandTransform) {
-                            switch (transformType) {
-                                case FIRST_PERSON_RIGHT_HAND, THIRD_PERSON_RIGHT_HAND -> {
-                                    return YharimsCrystalRenderer.updateModelTransform(poseStack, originalModel, transformType);
-                                }
-
-                                default -> {
-                                    return applyDefaultTransform(transformType, poseStack, applyLeftHandTransform);
-                                }
-                            }
-                        }
-                    });
-                }
-            }
-            return yharimsExistingModel;
-        });
+    protected static ModelResourceLocation getInventory(CalamityItems item) {
+        return new ModelResourceLocation(item.getId(), "inventory");
     }
 
     @Override

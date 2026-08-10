@@ -29,19 +29,18 @@ public class OutlineDetected extends DataPack {
 
     public OutlineDetected(FriendlyByteBuf buf) {
         id = buf.readVarInt();
-        if (id < 0) {
-            pos = new BlockPos(buf.readVarInt(),
-                buf.readVarInt(), buf.readVarInt());
-        }
+        if (id < 0) pos = new BlockPos(buf.readVarInt(), buf.readVarInt(), buf.readVarInt());
     }
 
     @Override
     public void toBytes(FriendlyByteBuf byteBuf) {
+        byteBuf.writeVarInt(id);
+
         if (id < 0) {
             byteBuf.writeVarInt(pos.getX());
             byteBuf.writeVarInt(pos.getY());
             byteBuf.writeVarInt(pos.getZ());
-        } else byteBuf.writeVarInt(id);
+        }
     }
 
     @Override

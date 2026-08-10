@@ -54,8 +54,7 @@ public class HoneyDew extends BaseCurio implements ICuriosStorage {
 
     @Override
     protected void onPlayerTick(Player player) {
-        if (addCount(player, 0) > 100) {
-            zeroCount(player, 0);
+        if (resetOrUpdate(player, 0, 100)) {
             float value = 1f;
 
             if (player.walkDistO == player.walkDist) {

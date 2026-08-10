@@ -6,9 +6,8 @@ import hua223.calamity.events.listeners.HurtListener;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.ConflictChain;
-import hua223.calamity.util.IDataPackResponse;
+import hua223.calamity.net.IDataPackResponse;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.OptionInstance;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -22,8 +21,6 @@ import java.util.List;
 
 @ConflictChain(value = SprintCurio.class)
 public class StatisNinjaBelt extends SprintCurio implements IDataPackResponse {
-    @OnlyIn(Dist.CLIENT)
-    public static boolean autoJump;
     public final boolean immuneFall;
 
     public StatisNinjaBelt(Properties properties, boolean immuneFall) {
@@ -84,12 +81,8 @@ public class StatisNinjaBelt extends SprintCurio implements IDataPackResponse {
             Minecraft minecraft = Minecraft.getInstance();
             boolean isApply = tag.getBoolean("statis_ninja_belt");
             minecraft.player.Calamity$Player.jumpPower += isApply ? 0.32f : -0.32f;
-            OptionInstance<Boolean> option = minecraft.options.autoJump();
-            if (isApply) {
-                autoJump = option.get();
-                option.set(true);
-            } else option.set(autoJump);
-            minecraft.player.calamity$CanClimbable(isApply);
+            minecraft.options.autoJump().set(isApply);
+            minecraft.player.Calamity$Player.canClimbable = isApply;
         } else super.onClientResponse(tag);
     }
 

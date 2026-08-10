@@ -2,7 +2,7 @@ package hua223.calamity.net.packets;
 
 import hua223.calamity.net.CommunicationDirection;
 import hua223.calamity.net.DataPack;
-import hua223.calamity.util.IDataPackResponse;
+import hua223.calamity.net.IDataPackResponse;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;

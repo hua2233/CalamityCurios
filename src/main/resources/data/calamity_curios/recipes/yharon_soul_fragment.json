@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "minecraft:gold_block"
+    },
+    "B": {
+      "item": "minecraft:dragon_head"
+    },
+    "C": {
+      "item": "irons_spellbooks:divine_soulshard"
+    },
+    "D": {
+      "item": "irons_spellbooks:dragonskin"
+    }
+  },
+  "pattern": [
+    "DDD",
+    "BCB",
+    "AAA"
+  ],
+  "result": {
+    "item": "calamity_curios:yharon_soul_fragment",
+    "count": 12
+  }
+}

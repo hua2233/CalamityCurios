@@ -2,7 +2,9 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.integration.curios.BaseCurio;
+import hua223.calamity.net.IDataPackResponse;
 import hua223.calamity.util.*;
+import io.redspace.ironsspellbooks.api.backwards_compat.IBackwardsCompatDefaultNbtItem;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -16,13 +18,12 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.UUID;
 
 @ConflictChain(value = Radiance.class, isRoot = true)
-public class Radiance extends BaseCurio implements ICuriosStorage, IDataPackResponse {
+public class Radiance extends BaseCurio implements ICuriosStorage, IDataPackResponse, IBackwardsCompatDefaultNbtItem {
     public Radiance(Properties properties) {
         super(properties);
     }
@@ -35,10 +36,8 @@ public class Radiance extends BaseCurio implements ICuriosStorage, IDataPackResp
     }
 
     @Override
-    public @NotNull ItemStack getDefaultInstance() {
-        ItemStack stack = super.getDefaultInstance();
-        stack.getOrCreateTag().putInt(CalamityHelp.FONT_FLAG, 2);
-        return stack;
+    public void setupItem(ItemStack itemStack) {
+        itemStack.getOrCreateTag().putInt(CalamityHelp.FONT_FLAG, 2);
     }
 
     @Override
@@ -59,7 +58,7 @@ public class Radiance extends BaseCurio implements ICuriosStorage, IDataPackResp
         UUID uuid, ItemStack stack, Multimap<Attribute, AttributeModifier> modifier, LivingEntity equipped) {
         if (!equipped.level().isClientSide) getUUID(equipped)[0] = uuid;
         modifier.put(Attributes.MAX_HEALTH,
-            new AttributeModifier(uuid, "radiance_bonus", 0.7, AttributeModifier.Operation.MULTIPLY_BASE));
+            new AttributeModifier(uuid, "radiance", 0.7, AttributeModifier.Operation.MULTIPLY_BASE));
         modifier.put(Attributes.ARMOR,
             new VariableAttributeModifier(uuid, "radiance", 8, AttributeModifier.Operation.ADDITION));
         

@@ -4,7 +4,7 @@ import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.ConflictChain;
+import hua223.calamity.util.CurioRepel;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.item.ItemStack;
@@ -14,7 +14,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.List;
 
-@ConflictChain(DarkMatterSheath.class)
+@CurioRepel(DarkMatterSheath.class)
 public class SilencingSheath extends BaseCurio {
     public SilencingSheath(Properties properties) {
         super(properties);

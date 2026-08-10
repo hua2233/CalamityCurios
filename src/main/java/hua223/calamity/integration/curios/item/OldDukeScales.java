@@ -2,15 +2,17 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
+import hua223.calamity.events.LogoutRelease;
 import hua223.calamity.integration.curios.SprintCurio;
 import hua223.calamity.events.listeners.DeathListener;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.render.hud.FatigueHud;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.ICuriosStorage;
-import hua223.calamity.util.IDataPackResponse;
+import hua223.calamity.net.IDataPackResponse;
 import hua223.calamity.util.VariableAttributeModifier;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -131,10 +133,10 @@ public class OldDukeScales extends SprintCurio implements ICuriosStorage, IDataP
         } else super.onClientResponse(tag);
     }
 
-    @Override
+    @LogoutRelease
     @OnlyIn(Dist.CLIENT)
-    public void onLogOut(Player player) {
-        if (player.isLocalPlayer()) FatigueHud.getInstance().close();
+    public static void onLogOut(LocalPlayer player) {
+        FatigueHud.getInstance().close();
     }
 
     @Override

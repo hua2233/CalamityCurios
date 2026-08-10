@@ -5,11 +5,10 @@ import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.HurtListener;
 import hua223.calamity.register.attribute.CalamityAttributes;
+import hua223.calamity.register.damage.*;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.ICuriosStorage;
 import hua223.calamity.util.VariableAttributeModifier;
-import hua223.calamity.util.damage.CalamityDamageSource;
-import hua223.calamity.util.damage.CalamityDamageTypes;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -24,15 +23,20 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 import java.util.UUID;
 
+import static hua223.calamity.generators.DamageMapping.*;
+
 public class ForeseeOrb extends BaseCurio implements ICuriosStorage {
+    @DamageRequester(key = "foresee_orb", style = ChatFormatting.AQUA,
+        tags = {NTE, NO_IMPACT, BYPASSES_ARMOR, BYPASSES_COOLDOWN}, zh_cn = "%s被因果报复了")
+    public static DamageSupplier FORESEE_ORB;
+
     public ForeseeOrb(Properties properties) {
         super(properties);
     }
 
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
-        if (getCount(player)[1] > 0) player.hurt(CalamityDamageSource.source(
-            CalamityDamageTypes.FORESEE, player.level()), player.getMaxHealth() * 0.9f);
+        if (getCount(player)[1] > 0) player.hurt(FORESEE_ORB.get(), player.getMaxHealth() * 0.9f);
     }
 
     @Override

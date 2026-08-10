@@ -78,12 +78,6 @@ public class HolyMoonlight extends BaseCurio implements ICuriosStorage {
     }
 
     @Override
-    public void onLogOut(Player player) {
-        if (!player.isLocalPlayer())
-            player.removeEffect(CalamityEffects.MOONLIGHT_SHIELD.get());
-    }
-
-    @Override
     protected void onPlayerTick(Player player) {
         float[] count = getCount(player);
         if (count[1] == 0 && ++count[0] == 600) {

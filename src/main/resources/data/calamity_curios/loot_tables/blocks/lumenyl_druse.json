@@ -1,0 +1,41 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1.0,
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "calamity_curios:lumenyl",
+          "weight": 3,
+          "functions": [
+            {
+              "function": "minecraft:apply_bonus",
+              "enchantment": "minecraft:fortune",
+              "formula": "minecraft:ore_drops"
+            },
+            {
+              "function": "minecraft:explosion_decay"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:prismarine_crystals",
+          "weight": 7,
+          "functions": [
+            {
+              "function": "minecraft:apply_bonus",
+              "enchantment": "minecraft:fortune",
+              "formula": "minecraft:ore_drops"
+            },
+            {
+              "function": "minecraft:explosion_decay"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

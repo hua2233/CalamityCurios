@@ -35,7 +35,7 @@ public class MoonWalkers extends AngelTreads {
 
     @Override
     protected float getVerticalSpeed() {
-        return 2.2f;
+        return 2.3f;
     }
 
     @Override
@@ -43,5 +43,4 @@ public class MoonWalkers extends AngelTreads {
     protected void addTooltip(List<Component> tooltips, Style defaultStyle) {
         tooltips.add(CMLangUtil.getTranslatable("moon_walkers").setStyle(defaultStyle));
     }
-
 }

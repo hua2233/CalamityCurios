@@ -2,6 +2,7 @@ package hua223.calamity.register.entity;
 
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
+import hua223.calamity.main.CalamityCurios;
 import hua223.calamity.render.CalamityCelestialBodyShader;
 import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.RenderUtil;
@@ -30,6 +31,7 @@ import org.joml.Vector3f;
 
 import java.util.UUID;
 
+@AutoEntityRegister(sized = {1f, 1f}, trackingRange = 16, velocityUpdates = false, name = "black_hole")
 public class BlackHolePet extends Entity implements OwnableEntity {
     @OnlyIn(Dist.CLIENT)
     private final RenderType type = RenderUtil.Shaders.getBlackHole();
@@ -77,7 +79,7 @@ public class BlackHolePet extends Entity implements OwnableEntity {
     }
 
     public static UUID create(Player player) {
-        BlackHolePet hole = CalamityEntity.BLACK_HOLE.get().create(player.level());
+        BlackHolePet hole = CalamityCurios.getEntityType(BlackHolePet.class).create(player.level());
         if (hole != null) {
             hole.owner = player;
             Vec3[] axis = CalamityHelp.makeBasisFromDirection(player.getLookAngle());

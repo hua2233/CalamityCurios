@@ -6,6 +6,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,13 +36,12 @@ public abstract class CountFactorEffects extends UniversalFactorEffect<float[], 
     }
 
     @Override
-    protected CountFactor factory() {
-        return new CountFactor(this);
-    }
+    protected abstract CountFactor factory();
 
     public static class CountFactor extends UniversalFactor<float[]> {
-        public CountFactor(UniversalFactorEffect<float[], CountFactor> supplier) {
-            super(supplier);
+        public CountFactor(int size) {
+            super();
+            factor = new float[size];
         }
 
         protected CountFactor(float[] factor) {

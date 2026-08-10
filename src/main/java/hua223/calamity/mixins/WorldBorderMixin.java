@@ -1,7 +1,9 @@
 package hua223.calamity.mixins;
 
-import hua223.calamity.events.BossRushEvent;
+import hua223.calamity.events.levelevent.BossRushEvent;
+import hua223.calamity.events.levelevent.LevelEvent;
 import net.minecraft.world.level.border.WorldBorder;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -23,9 +25,11 @@ public abstract class WorldBorderMixin {
 
     @Shadow @Final public static WorldBorder.Settings DEFAULT_SETTINGS;
 
+    @Unique public VoxelShape calamity$Shape;
+
     @Inject(method = "setCenter", at = @At("HEAD"), cancellable = true)
     private void bossRushBox(double x, double z, CallbackInfo ci) {
-        if (BossRushEvent.isBossRushEventActivating()) ci.cancel();
+        if (LevelEvent.inProgress(BossRushEvent.class)) ci.cancel();
     }
 
     @Unique
@@ -41,11 +45,11 @@ public abstract class WorldBorderMixin {
 
    @Inject(method = "createSettings", at = @At("HEAD"), cancellable = true)
    private void bossRushSettings(CallbackInfoReturnable<WorldBorder.Settings> cir) {
-        if (BossRushEvent.isBossRushEventActivating()) cir.setReturnValue(DEFAULT_SETTINGS);
+        if (LevelEvent.inProgress(BossRushEvent.class)) cir.setReturnValue(DEFAULT_SETTINGS);
    }
 
     @Inject(method = "setSize", at = @At("HEAD"), cancellable = true)
     private void bossRushBox(double size, CallbackInfo ci) {
-        if (BossRushEvent.isBossRushEventActivating()) ci.cancel();
+        if (LevelEvent.inProgress(BossRushEvent.class)) ci.cancel();
     }
 }

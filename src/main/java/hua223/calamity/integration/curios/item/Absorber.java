@@ -5,11 +5,10 @@ import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.HurtListener;
 import hua223.calamity.register.effects.CalamityEffects;
+import hua223.calamity.register.effects.Plague;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.CalamityHelp;
-import hua223.calamity.util.ConflictChain;
-import hua223.calamity.util.damage.CalamityDamageSource;
-import hua223.calamity.util.damage.CalamityDamageTypes;
+import hua223.calamity.util.CurioRepel;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -28,7 +27,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 import java.util.UUID;
 
-@ConflictChain(value = Absorber.class, isRoot = true)
+@CurioRepel(isRoot = true)
 public class Absorber extends BaseCurio {
     public Absorber(Properties properties) {
         super(properties);
@@ -65,7 +64,7 @@ public class Absorber extends BaseCurio {
                 }
             }
 
-            listener.entity.hurt(CalamityDamageSource.source(CalamityDamageTypes.PLAGUE, player), listener.baseAmount);
+            listener.entity.hurt(Plague.supplier.get(player), listener.baseAmount);
             CalamityHelp.addIfDoesNotExist(listener.entity, 200, 0, CalamityEffects.NATURE_PAIN.get());
             float value = listener.getCorrectionValue() * 0.05f;
             if (value > 0) listener.floating -= value;

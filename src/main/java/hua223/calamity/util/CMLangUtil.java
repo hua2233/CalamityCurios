@@ -29,6 +29,7 @@ public class CMLangUtil {
     }
 
     public static String getDeath(String type) {
+
         return DEATH + type;
     }
 

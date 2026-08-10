@@ -29,7 +29,7 @@ public class WhisperingDeath extends CalamityEffect implements IEffectsCallBack 
     }
 
     @Override
-    public void onRemove(MobEffectInstance effect, LivingEntity entity) {
+    public void onEffectRemoved(LivingEntity entity, int amplifier) {
         inactivationEffect(entity, false);
     }
 

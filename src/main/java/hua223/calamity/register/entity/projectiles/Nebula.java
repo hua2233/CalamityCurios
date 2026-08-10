@@ -1,14 +1,11 @@
 package hua223.calamity.register.entity.projectiles;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import hua223.calamity.integration.curios.item.NebulousCore;
 import hua223.calamity.main.CalamityCurios;
+import hua223.calamity.register.damage.DamageSupplier;
 import hua223.calamity.register.effects.CalamityEffects;
-import hua223.calamity.register.entity.CalamityEntity;
-import hua223.calamity.util.damage.CalamityDamageSource;
-import hua223.calamity.util.GlobalCuriosStorage;
+import hua223.calamity.register.entity.AutoEntityRegister;
 import hua223.calamity.util.RenderUtil;
-import hua223.calamity.util.damage.CalamityDamageTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -21,7 +18,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -30,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.UUID;
 
+@AutoEntityRegister(sized = {.25f, .25f}, trackingRange = 6)
 public class Nebula extends Projectile {
     @OnlyIn(Dist.CLIENT)
     private final RenderType type = RenderType.entityCutoutNoCull(CalamityCurios.ModResource("textures/entity/nebula.png"));
@@ -51,7 +48,7 @@ public class Nebula extends Projectile {
 
     public static UUID spawnAroundPlayer(Player player) {
         Level level = player.level();
-        Nebula nebula = CalamityEntity.NEBULA.get().create(level);
+        Nebula nebula = CalamityCurios.getEntityType(Nebula.class).create(level);
         if (nebula != null) {
             nebula.setOwner(player);
             Vec3 position = player.getEyePosition();
@@ -97,7 +94,7 @@ public class Nebula extends Projectile {
             for (LivingEntity target : entities)
                 if (target.isAlive() && target != owner && !target.isAlliedTo(owner)) {
                     remove = true;
-                    target.hurt(CalamityDamageSource.source(CalamityDamageTypes.MAGIC_PROJECTILE, this, owner), 12);
+                    target.hurt(DamageSupplier.MAGIC_PROJECTILE.get(this, owner), 12);
                     if (!target.hasEffect(CalamityEffects.GOD_SLAYER_INFERNO.get()))
                         target.addEffect(new MobEffectInstance(CalamityEffects.GOD_SLAYER_INFERNO.get(), 100, 0));
                 }
@@ -121,8 +118,8 @@ public class Nebula extends Projectile {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static final class Render extends EntityRenderer<Nebula> {
-        public Render(EntityRendererProvider.Context context) {
+    public static final class Renderer extends EntityRenderer<Nebula> {
+        public Renderer(EntityRendererProvider.Context context) {
             super(context);
         }
 

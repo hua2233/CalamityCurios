@@ -14,8 +14,10 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Abilities;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.ForgeMod;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Final;
@@ -25,6 +27,8 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import java.util.Optional;
 
 @Mixin(Player.class)
 public abstract class PlayerMixin extends LivingEntity {
@@ -56,6 +60,11 @@ public abstract class PlayerMixin extends LivingEntity {
         }
 
         return false;
+    }
+
+    @Override
+    public boolean onClimbable() {
+        return (horizontalCollision && Calamity$Player.canClimbable) || super.onClimbable();
     }
 
     @Redirect(method = "attack", at = @At(value = "INVOKE", target =

@@ -2,6 +2,7 @@ package hua223.calamity.register.entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import hua223.calamity.main.CalamityCurios;
 import hua223.calamity.render.CalamityCelestialBodyShader;
 import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.RenderUtil;
@@ -30,6 +31,7 @@ import org.joml.Vector3f;
 
 import java.util.UUID;
 
+@AutoEntityRegister(sized = {1f, 1f}, trackingRange = 16, velocityUpdates = false, name = "sun")
 public class StarPet extends Entity implements OwnableEntity {
     @OnlyIn(Dist.CLIENT)
     private final RenderType circleSmall = RenderUtil.Shaders.getCircleSmall();
@@ -77,7 +79,7 @@ public class StarPet extends Entity implements OwnableEntity {
     }
 
     public static UUID create(Player player) {
-        StarPet star = CalamityEntity.SUN.get().create(player.level());
+        StarPet star = CalamityCurios.getEntityType(StarPet.class).create(player.level());
         if (star != null) {
             star.owner = player;
             Vec3[] axis = CalamityHelp.makeBasisFromDirection(player.getLookAngle());

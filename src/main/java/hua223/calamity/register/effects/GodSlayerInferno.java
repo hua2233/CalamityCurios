@@ -1,9 +1,9 @@
 package hua223.calamity.register.effects;
 
-import hua223.calamity.register.Items.CalamityItems;
+import hua223.calamity.net.IEffectDataResponse;
 import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.IDataPackResponse;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class GodSlayerInferno extends CalamityEffect implements IEffectsCallBack {
+public class GodSlayerInferno extends CalamityEffect implements IEffectsCallBack, IEffectDataResponse {
     public GodSlayerInferno(MobEffectCategory category, int color) {
         super(category, color);
     }
@@ -32,22 +32,30 @@ public class GodSlayerInferno extends CalamityEffect implements IEffectsCallBack
 
     @Override
     public void onAdd(MobEffectInstance effect, LivingEntity entity, Entity source) {
-        IDataPackResponse response = CalamityItems.NEBULOUS_CORE.asPackHandler();
-        CompoundTag tag = response.getPack();
+        CompoundTag tag = getPack();
         tag.putInt("id", entity.getId());
         tag.putBoolean("flag", true);
+        sendToAllClient();
         inactivationEffect(entity, true);
     }
 
     @Override
-    public void onRemove(MobEffectInstance effect, LivingEntity entity) {
+    public void onEffectRemoved(LivingEntity entity, int amplifier) {
         if (entity.isAlive()) {
-            IDataPackResponse response = CalamityItems.NEBULOUS_CORE.asPackHandler();
-            CompoundTag tag = response.getPack();
+            CompoundTag tag = getPack();
             tag.putInt("id", entity.getId());
             tag.putBoolean("flag", false);
+            sendToAllClient();
             inactivationEffect(entity, false);
         }
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    @SuppressWarnings("ConstantConditions")
+    public void onClientResponse(CompoundTag tag) {
+        Entity entity = Minecraft.getInstance().level.getEntity(tag.getInt("id"));
+        if (entity instanceof LivingEntity living) living.calamity$GodSlayerFlames = tag.getBoolean("flag");
     }
 
     @Override

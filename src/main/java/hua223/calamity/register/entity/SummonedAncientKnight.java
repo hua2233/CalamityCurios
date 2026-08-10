@@ -2,6 +2,7 @@ package hua223.calamity.register.entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import hua223.calamity.main.CalamityCurios;
+import hua223.calamity.util.delaytask.DelayRunnable;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
@@ -14,6 +15,7 @@ import io.redspace.ironsspellbooks.entity.mobs.goals.*;
 import io.redspace.ironsspellbooks.entity.mobs.keeper.KeeperAnimatedWarlockAttackGoal;
 import io.redspace.ironsspellbooks.entity.mobs.keeper.KeeperEntity;
 import io.redspace.ironsspellbooks.entity.mobs.keeper.KeeperRenderer;
+import io.redspace.ironsspellbooks.registries.EntityRegistry;
 import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -43,6 +45,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.apache.logging.log4j.core.util.ReflectionUtil;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
@@ -52,10 +55,11 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
 import software.bernie.geckolib.util.GeckoLibUtil;
+import sun.misc.Unsafe;
 
-import java.lang.reflect.Field;
 import java.util.function.Supplier;
 
+@AutoEntityRegister(sized = {.85f, 2.3f}, trackingRange = 64)
 public class SummonedAncientKnight extends KeeperEntity {
     private static final EntityDataAccessor<Boolean> DATA_IS_ANIMATING_RISE =
         SynchedEntityData.defineId(SummonedAncientKnight.class, EntityDataSerializers.BOOLEAN);
@@ -72,7 +76,7 @@ public class SummonedAncientKnight extends KeeperEntity {
 
     @SuppressWarnings("ConstantConditions")
     public static void summonedFromDemonGate(DemonGate gate, ServerPlayer player) {
-        EntityType<SummonedAncientKnight> type = CalamityEntity.SAK.get();
+        EntityType<SummonedAncientKnight> type = CalamityCurios.getEntityType(SummonedAncientKnight.class);
         Level level = gate.level();
         float radius = 1.5F + 0.185F * 6;
         float angle = (float)Math.PI / 180F;
@@ -231,22 +235,20 @@ public class SummonedAncientKnight extends KeeperEntity {
 
     @OnlyIn(Dist.CLIENT)
     public static class Renderer extends AbstractSpellCastingMobRenderer {
-        final KeeperRenderer keeperRenderer;
-        public Renderer(EntityRendererProvider.Context renderManager, KeeperRenderer renderer, AbstractSpellCastingMobModel model) {
-            super(renderManager, model);
-            keeperRenderer = renderer;
-        }
+        private KeeperRenderer keeperRenderer;
+        public Renderer(EntityRendererProvider.Context renderManager) {
+            super(renderManager, null);
+            DelayRunnable.currentTickEndRun(() -> {
+                keeperRenderer = (KeeperRenderer) renderManager.getEntityRenderDispatcher().renderers.get(EntityRegistry.KEEPER.get());
+                try {
+                    Unsafe unsafe = (Unsafe) ReflectionUtil.getFieldValue(Unsafe.class.getDeclaredField("theUnsafe"), null);
+                    var model = (AbstractSpellCastingMobModel) ReflectionUtil.getFieldValue(GeoEntityRenderer.class.getDeclaredField("model"), keeperRenderer);
+                    unsafe.putObject(this, unsafe.objectFieldOffset(GeoEntityRenderer.class.getDeclaredField("model")), model);
+                } catch (NoSuchFieldException e) {
+                    throw new RuntimeException(e);
+                }
 
-        public static Renderer getInstance(EntityRendererProvider.Context renderManager) {
-            KeeperRenderer keeperRenderer = new KeeperRenderer(renderManager);
-            try {
-                Field field = GeoEntityRenderer.class.getDeclaredField("model");
-                field.setAccessible(true);
-                return new Renderer(renderManager, keeperRenderer, (AbstractSpellCastingMobModel) field.get(keeperRenderer));
-            } catch (Exception e) {
-                CalamityCurios.LOGGER.error("on get model, unknown compatibility issue has occurred, please report to the developer");
-                throw new RuntimeException(e);
-            }
+            });
         }
 
         @Override

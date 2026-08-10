@@ -2,18 +2,22 @@ package hua223.calamity.integration.curios.item.entropy;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
+import hua223.calamity.generators.DamageMapping;
 import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.HurtListener;
 import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.events.listeners.PlayerHealListener;
+import hua223.calamity.net.IDataPackResponse;
+import hua223.calamity.register.damage.DamageRequester;
+import hua223.calamity.register.damage.DamageSupplier;
 import hua223.calamity.util.*;
-import hua223.calamity.util.damage.CalamityDamageSource;
-import hua223.calamity.util.damage.CalamityDamageTypes;
+
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -26,17 +30,25 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 import java.util.UUID;
 
-public class DeusCore extends BaseCurio implements ICuriosStorage , IDataPackResponse {
+public class DeusCore extends BaseCurio implements ICuriosStorage, IDataPackResponse {
+    @DamageRequester(key = DamageMapping.BLEEDING, msg = "astr_erosion",
+        style = ChatFormatting.AQUA, zh_cn = "%s被星辉侵蚀的千疮百孔")
+    public static DamageSupplier supplier;
+
     public DeusCore(Properties properties) {
         super(properties);
+    }
+
+    @Override
+    protected void equipHandle(ServerPlayer player, ItemStack stack) {
+        getMemory(player).putTypeStorage(supplier.get());
     }
 
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
         float erosionValue = getCount(player)[1];
         if (erosionValue > 0f) {
-            player.hurt(CalamityDamageSource.source(
-                CalamityDamageTypes.ASTR_EROSION, player.level()), erosionValue);
+            player.hurt(getMemory(player).getTypeStorage(DamageSource.class), erosionValue);
             getPack().putInt("v", 0);
             sendToClient(player);
         } else syncHealth(player);
@@ -50,12 +62,12 @@ public class DeusCore extends BaseCurio implements ICuriosStorage , IDataPackRes
 
     @ApplyEvent(1000)
     public final void onHurt(HurtListener listener) {
-        listener.amplifier += 0.2f;
         if (listener.isTriggerByLiving) {
+            listener.amplifier += 0.2f;
             float[] astrErosion = getCount(listener.player);
             listener.canceledEvent();
             float amount = (Math.min(listener.player.getMaxHealth(), astrErosion[1]
-                + listener.getCorrectionValue() - listener.player.getAbsorptionAmount()));
+                + listener.getCorrectionValue()));
 
             astrErosion[1] = amount;
             astrErosion[2] = amount / 5f;
@@ -108,17 +120,22 @@ public class DeusCore extends BaseCurio implements ICuriosStorage , IDataPackRes
 
     @Override
     protected void onPlayerTick(Player player) {
-        float[] astrErosion = getCount(player);
+        var memory = getMemory(player);
+        float[] astrErosion = memory.count;
         if (--astrErosion[0] <= 0) {
             astrErosion[0] = 20;
             if (astrErosion[1] > 0) {
                 float hurt = Math.min(astrErosion[2], astrErosion[1]);
-                player.hurt(CalamityDamageSource.source(
-                    CalamityDamageTypes.ASTR_EROSION, player.level()), hurt);
+                player.hurt(memory.getTypeStorage(DamageSource.class), hurt);
                 getPack().putInt("v", Mth.ceil((astrErosion[1] -= hurt) / 2f));
                 sendToClient((ServerPlayer) player);
             }
         }
+    }
+
+    @Override
+    public Class<?>[] defineStorageType() {
+        return new Class[] {DamageSource.class};
     }
 
     @Override

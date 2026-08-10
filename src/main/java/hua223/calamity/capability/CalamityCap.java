@@ -1,8 +1,10 @@
 package hua223.calamity.capability;
 
+import hua223.calamity.events.LogoutRelease;
 import hua223.calamity.integration.curios.item.Calamity;
-import hua223.calamity.register.Items.CalamityItems;
-import hua223.calamity.util.IDataPackResponse;
+import hua223.calamity.register.items.CalamityItems;
+import hua223.calamity.net.IDataPackResponse;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -67,7 +69,7 @@ public class CalamityCap implements BaseCap {
 
     @Override
     public void syncData() {
-        IDataPackResponse response = CalamityItems.CALAMITY.asPackHandler();
+        IDataPackResponse response = (IDataPackResponse) CalamityItems.CALAMITY.get();
         CompoundTag tag = response.getPack();
         for (CurseType type : CurseType.values())
             if (type.reversed) tag.putByte(type.name(), curseFlags);
@@ -97,15 +99,12 @@ public class CalamityCap implements BaseCap {
         CurseType() {}
 
         private byte getBit() {
-            CurseType[] types = values();
-            for (int i = 0; i < types.length; i++)
-                if (this == types[i]) return (byte) i;
-
-            throw new IllegalStateException("Non-existent enumeration object!");
+            return (byte) ordinal();
         }
 
         @OnlyIn(Dist.CLIENT)
-        public static void reSet() {
+        @LogoutRelease
+        public static void reSet(LocalPlayer player) {
             for (CurseType type : values()) type.reversed = false;
         }
     }

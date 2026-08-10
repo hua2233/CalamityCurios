@@ -1,13 +1,12 @@
 package hua223.calamity.register.entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import hua223.calamity.main.CalamityCurios;
-import hua223.calamity.util.CircleBuffer;
+import hua223.calamity.render.CircleBuffer;
 import hua223.calamity.util.RenderUtil;
-import hua223.calamity.util.damage.CalamityDamageSource;
-import hua223.calamity.util.damage.CalamityDamageTypes;
-import hua223.calamity.util.primitive.PrimitiveRenderer;
-import hua223.calamity.util.primitive.PrimitiveSettings;
+import hua223.calamity.render.primitive.PrimitiveSettings;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -31,18 +30,17 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector4i;
 
+import java.awt.*;
 import java.util.List;
 
+@AutoEntityRegister(sized = {.1f, .1f}, trackingRange = 32, name = "rancor_laser")
 public class RancorLaserBeam extends Entity {
-    @OnlyIn(Dist.CLIENT)
-    private final Vector4i smoothColor = RenderUtil.black();
+    private RancorMagicCircle circle;
+
     @OnlyIn(Dist.CLIENT)
     public final CircleBuffer<Vec3> position = new CircleBuffer<>(24);
     @OnlyIn(Dist.CLIENT)
-    private final Vector4i vibrantColor = RenderUtil.black();
-    @OnlyIn(Dist.CLIENT)
     private float laserLength;
-    private RancorMagicCircle circle;
     @OnlyIn(Dist.CLIENT)
     private int lSteps;
     @OnlyIn(Dist.CLIENT)
@@ -53,25 +51,9 @@ public class RancorLaserBeam extends Entity {
     private double lz;
     @OnlyIn(Dist.CLIENT)
     private float scale = 0.05f;
-    @OnlyIn(Dist.CLIENT)
-    private float partialTick;
 
     @OnlyIn(Dist.CLIENT)
-    private final PrimitiveSettings settings = new PrimitiveSettings(
-        c -> tickCount < 5 ? scale - Mth.lerp(partialTick, 0.19f, 0f) : scale,
-
-        c -> {
-            RenderUtil.interpolateColor(RenderUtil.BLUE, RenderUtil.RED, (float) Math.cos(RenderUtil.getLocalTick() * 0.67f -
-                c / laserLength * 29f) * 0.5f + 0.5f, vibrantColor);
-
-            float opacity = (float) (RenderUtil.clampLerp(0.97f, 0.9f, c, true) *
-                RenderUtil.clampLerp(0f, Mth.clamp(0.1f / laserLength, 0f, 0.5f), c, true) *
-                Math.pow(RenderUtil.clampLerp(0.6f, 1.8f, laserLength, true), 3D));
-
-            RenderUtil.multiplyColor(RenderUtil.interpolateColor(vibrantColor, RenderUtil.WHITE, 0.5f, smoothColor), opacity, smoothColor);
-            return RenderUtil.multiplyColor(smoothColor, 2f, smoothColor);
-        },
-        true, 10, 10, RenderUtil.Shaders.getRancorLaserRenderType(CalamityCurios.ModResource("textures/entity/perlin.png")));
+    private final PrimitiveSettings settings = new RancorSettings();
 
     private DamageSource source;
 
@@ -82,10 +64,10 @@ public class RancorLaserBeam extends Entity {
     }
 
     public static void create(Level level, RancorMagicCircle circle) {
-        RancorLaserBeam beam = CalamityEntity.RANCOR_LASER.get().create(level);
+        RancorLaserBeam beam = CalamityCurios.getEntityType(RancorLaserBeam.class).create(level);
         if (beam != null) {
             beam.circle = circle;
-            beam.source = CalamityDamageSource.source(CalamityDamageTypes.DRAGON_FIRE, circle.owner);
+            beam.source = level.damageSources().inFire();
             beam.setPos(circle.position());
             level.addFreshEntity(beam);
         }
@@ -175,22 +157,69 @@ public class RancorLaserBeam extends Entity {
         circle = (RancorMagicCircle) level().getEntity(id);
     }
 
-    public static class Render extends EntityRenderer<RancorLaserBeam> {
-        public Render(EntityRendererProvider.Context pContext) {
+    public static class Renderer extends EntityRenderer<RancorLaserBeam> {
+        public Renderer(EntityRendererProvider.Context pContext) {
             super(pContext);
         }
 
         @Override
         public void render(RancorLaserBeam entity, float pEntityYaw, float partialTick, @NotNull PoseStack pose,
                            @NotNull MultiBufferSource buffer, int packedLight) {
-            entity.partialTick = partialTick;
-            PrimitiveRenderer.renderVec3Trail(entity.position, entity.settings.setBufferSource(buffer),
-                PrimitiveRenderer.TrailOrientation.SCREEN_ALIGNED_VERTICAL,96, pose);
+//            PrimitiveRenderer.renderVec3Trail(entity.position, entity.settings.setBufferSource(buffer),
+//                PrimitiveRenderer.TrailOrientation.SCREEN_ALIGNED_VERTICAL,96, pose);
         }
 
         @Override
         public @NotNull ResourceLocation getTextureLocation(@NotNull RancorLaserBeam rancorLaserBeam) {
             return CalamityCurios.ModResource("textures/entity/perlin.png");
+        }
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private class RancorSettings extends PrimitiveSettings {
+        private MultiBufferSource source;
+
+        private final Vector4i smoothColor = RenderUtil.black();
+        private final Vector4i vibrantColor = RenderUtil.black();
+        private final Vector4i blue = RenderUtil.fromColorGet(Color.BLUE);
+        private final Vector4i red = RenderUtil.fromColorGet(Color.RED);
+        private final Vector4i white = RenderUtil.fromColorGet(Color.WHITE);
+
+        public RancorSettings() {
+            super(RenderUtil.Shaders.getRancorLaserRenderType(CalamityCurios.ModResource("textures/entity/perlin.png")));
+        }
+
+        @Override
+        public float vertexWidth(float completionRatio) {
+            return tickCount < 5 ? scale - Mth.lerp(Minecraft.getInstance().getFrameTime(), 0.19f, 0f) : scale;
+        }
+
+        @Override
+        public Vector4i vertexColor(float completionRatio) {
+            RenderUtil.interpolateColor(blue, red, (float) Math.cos(RenderUtil.getLocalTick() * 0.67f -
+                completionRatio / laserLength * 29f) * 0.5f + 0.5f, vibrantColor);
+
+            float opacity = (float) (RenderUtil.clampLerp(0.97f, 0.9f, completionRatio) *
+                RenderUtil.clampLerp(0f, Mth.clamp(0.1f / laserLength, 0f, 0.5f), completionRatio) *
+                Math.pow(RenderUtil.clampLerp(0.6f, 1.8f, laserLength), 3D));
+
+            RenderUtil.multiplyColor(RenderUtil.interpolateColor(vibrantColor, white, 0.5f, smoothColor), opacity, smoothColor);
+            return RenderUtil.multiplyColor(smoothColor, 2f, smoothColor);
+        }
+
+        @Override
+        public int getCapacity() {
+            return 10;
+        }
+
+        @Override
+        public float widthCorrectionRatio() {
+            return 10;
+        }
+
+        @Override
+        public VertexConsumer getConsumer() {
+            return source.getBuffer(shader);
         }
     }
 }

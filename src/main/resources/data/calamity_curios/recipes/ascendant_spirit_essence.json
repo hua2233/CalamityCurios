@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "calamity_curios:nightmare_fuel"
+    },
+    "B": {
+      "item": "calamity_curios:endothermic_energy"
+    },
+    "D": {
+      "item": "calamity_curios:dark_sun_fragment"
+    },
+    "E": {
+      "item": "calamity_curios:necroplasm"
+    }
+  },
+  "pattern": [
+    "ABD",
+    "EEE",
+    "ABD"
+  ],
+  "result": {
+    "item": "calamity_curios:ascendant_spirit_essence",
+    "count": 3
+  }
+}

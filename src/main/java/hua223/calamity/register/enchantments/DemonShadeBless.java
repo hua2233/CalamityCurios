@@ -1,6 +1,6 @@
 package hua223.calamity.register.enchantments;
 
-import hua223.calamity.register.Items.DemonShade;
+import hua223.calamity.register.items.DemonShade;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;

@@ -4,12 +4,12 @@ import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.events.listeners.EffectListener;
 import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.register.effects.CalamityEffects;
-import hua223.calamity.util.ConflictChain;
+import hua223.calamity.util.CurioRepel;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.ItemCooldowns;
 import net.minecraft.world.level.Level;
 
-@ConflictChain(Abaddon.class)
+@CurioRepel(Abaddon.class)
 public class ExtinctionVoid extends Abaddon {
     public ExtinctionVoid(Properties properties, double value) {
         super(properties, value);

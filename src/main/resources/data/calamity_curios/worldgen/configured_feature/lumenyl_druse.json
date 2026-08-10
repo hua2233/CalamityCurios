@@ -1,0 +1,43 @@
+{
+  "type": "minecraft:random_patch",
+  "config": {
+    "tries": 4,
+    "xz_spread": 6,
+    "y_spread": 0,
+    "feature": {
+      "feature": {
+        "config": {
+          "to_place": {
+            "type": "minecraft:simple_state_provider",
+            "state": {
+              "Name": "calamity_curios:lumenyl_druse",
+              "Properties": {
+                "waterlogged": true
+              }
+            }
+          }
+        },
+        "type": "minecraft:simple_block"
+      },
+      "placement": [
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_fluids",
+                "fluids": "#minecraft:water"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "offset": [0, -1, 0],
+                "blocks": "minecraft:gravel"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

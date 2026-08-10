@@ -3,7 +3,7 @@ package hua223.calamity.integration.curios;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.ICuriosStorage;
-import hua223.calamity.util.IDataPackResponse;
+import hua223.calamity.net.IDataPackResponse;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -105,7 +105,7 @@ public abstract class Wings extends BaseCurio implements ICuriosStorage, IDataPa
         Style style = Style.EMPTY.withColor(ChatFormatting.GOLD);
         tooltips.add(CMLangUtil.getDynamic("wings", 2, getFlyTime()).setStyle(style));
 
-        if (getVerticalSpeed() > 4f)
+        if (getVerticalSpeed() >= 3.5f)
             tooltips.add(CMLangUtil.getTranslatable("vertical", 3).withStyle(ChatFormatting.LIGHT_PURPLE));
         else if (getVerticalSpeed() > 2.5f)
             tooltips.add(CMLangUtil.getTranslatable("vertical", 2).withStyle(ChatFormatting.AQUA));

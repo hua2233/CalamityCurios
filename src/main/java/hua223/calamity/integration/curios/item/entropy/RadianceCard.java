@@ -5,8 +5,7 @@ import hua223.calamity.integration.curios.Card;
 import hua223.calamity.events.listeners.PlayerHealListener;
 import hua223.calamity.loots.ApplyGlobalLoot;
 import hua223.calamity.loots.EntitiesLootContext;
-import hua223.calamity.loots.GlobalLoot;
-import hua223.calamity.register.Items.CalamityItems;
+import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.util.CMLangUtil;
 import io.redspace.ironsspellbooks.registries.EntityRegistry;
 import net.minecraft.ChatFormatting;
@@ -21,7 +20,6 @@ import java.util.List;
 public class RadianceCard extends Card {
     public RadianceCard(Properties properties) {
         super(properties);
-        GlobalLoot.mountTo(this);
     }
 
     @ApplyEvent
@@ -30,7 +28,7 @@ public class RadianceCard extends Card {
     }
 
     @ApplyGlobalLoot
-    public final void onGlobalEntityLoot(EntitiesLootContext context) {
+    public void onGlobalEntityLoot(EntitiesLootContext context) {
         if (context.onlyVerification(EntityRegistry.PRIEST.get())
             && context.chance(0.4f)) context.addLoot(this, 1);
     }

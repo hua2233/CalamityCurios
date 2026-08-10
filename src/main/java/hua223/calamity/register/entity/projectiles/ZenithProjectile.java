@@ -4,10 +4,13 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import hua223.calamity.main.CalamityCurios;
-import hua223.calamity.register.Items.CalamityItems;
+import hua223.calamity.register.damage.DamageRequester;
+import hua223.calamity.register.damage.DamageSupplier;
+import hua223.calamity.register.entity.AutoEntityRegister;
+import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.util.RenderUtil;
-import hua223.calamity.util.Vector2d;
-import hua223.calamity.util.damage.CalamityDamageSource;
+import hua223.calamity.util.Vector2f;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -50,22 +53,24 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3d;
 
+import java.util.List;
 import java.util.Map;
 
-import static hua223.calamity.register.Items.CalamityItems.ZENITH;
-import static hua223.calamity.register.entity.CalamityEntity.ZENITH_PROJECTILE;
+import static hua223.calamity.generators.DamageMapping.*;
+import static hua223.calamity.register.items.CalamityItems.ZENITH;
 import static hua223.calamity.register.sounds.CalamitySounds.ZENITH_ATTACK;
 
+@AutoEntityRegister(sized = {0.5f, 0.5f}, trackingRange = 32)
 public final class ZenithProjectile extends Projectile implements IEntityAdditionalSpawnData {
+    @DamageRequester(key = "zenith", tags = {IS_PROJ, BYPASSES_COOLDOWN,
+        BYPASSES_SHIELD}, style = ChatFormatting.GOLD, zh_cn = "%s死于天顶剑刃")
+    public static DamageSupplier supplier;
+
     private final float[] SCALE;
-    private DamageSource source;
     private static final byte LIFE = 20;
 
     @OnlyIn(Dist.CLIENT)
-    private final ResourceLocation texture =
-        CalamityCurios.ModResource("textures/entity/zenith_projectile.png");
-    @OnlyIn(Dist.CLIENT)
-    private final RenderType type = RenderType.entityTranslucent(texture);
+    private final RenderType type = RenderType.entityTranslucent(CalamityCurios.ModResource("textures/entity/zenith_projectile.png"));
     @OnlyIn(Dist.CLIENT)
     private final ItemStack defaultInstance = ZENITH.get().getDefaultInstance();
     private @NotNull Map<Enchantment, Integer> enchantments;
@@ -96,9 +101,7 @@ public final class ZenithProjectile extends Projectile implements IEntityAdditio
 
     @SuppressWarnings("ConstantConditions")
     private static @NotNull ZenithProjectile newZenithProjectile(Level level, @NotNull Player player) {
-        var projectile = ZENITH_PROJECTILE.get().create(level);
-        projectile.source = CalamityDamageSource.source(DamageTypes.PLAYER_ATTACK, projectile, player)
-            .addDamageTag(DamageTypeTags.IS_PROJECTILE, DamageTypeTags.BYPASSES_COOLDOWN);
+        var projectile = CalamityCurios.getEntityType(ZenithProjectile.class).create(level);
         projectile.setEnchantments(EnchantmentHelper.getEnchantments(player.getMainHandItem()));
         projectile.setOwner(player);
 
@@ -217,19 +220,24 @@ public final class ZenithProjectile extends Projectile implements IEntityAdditio
                 pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1).inflate(2.5);
             float f = (float)player.getAttributeValue(Attributes.ATTACK_DAMAGE);
             ItemStack handItem = player.getMainHandItem();
-            for (LivingEntity potentialTarget : player.serverLevel().getEntitiesOfClass(LivingEntity.class, aabb)) {
-                if (potentialTarget.isAttackable() && potentialTarget != player && potentialTarget.isAlive()) {
-                    float f1 = f;
-                    int value;
-                    for(Enchantment enchantment : enchantments.keySet()) {
-                        value = enchantments.get(enchantment);
-                        f1 += enchantment.getDamageBonus(value, potentialTarget.getMobType(), handItem);
-                        enchantment.doPostHurt(player, potentialTarget, value);
-                        if (enchantment == Enchantments.FIRE_ASPECT && potentialTarget.isOnFire())
-                            potentialTarget.setSecondsOnFire(4 * enchantments.get(enchantment));
-                    }
+            List<LivingEntity> list = player.serverLevel().getEntitiesOfClass(LivingEntity.class, aabb);
 
-                    potentialTarget.hurt(source, f1);
+            if (!list.isEmpty()) {
+                DamageSource source = supplier.get(this, player);
+                for (LivingEntity potentialTarget : list) {
+                    if (potentialTarget.isAttackable() && potentialTarget != player && potentialTarget.isAlive()) {
+                        float f1 = f;
+                        int value;
+                        for(Enchantment enchantment : enchantments.keySet()) {
+                            value = enchantments.get(enchantment);
+                            f1 += enchantment.getDamageBonus(value, potentialTarget.getMobType(), handItem);
+                            enchantment.doPostHurt(player, potentialTarget, value);
+                            if (enchantment == Enchantments.FIRE_ASPECT && potentialTarget.isOnFire())
+                                potentialTarget.setSecondsOnFire(4 * enchantments.get(enchantment));
+                        }
+
+                        potentialTarget.hurt(source, f1);
+                    }
                 }
             }
         }
@@ -300,9 +308,8 @@ public final class ZenithProjectile extends Projectile implements IEntityAdditio
         setUUID(additionalData.readUUID());
         setId(additionalData.readInt());
         setOwner(level().getEntity(additionalData.readInt()));
-        if (getOwner() instanceof Player player) {
-            player.playSound(ZENITH_ATTACK.get(), 1.0F, 1.0F);
-        }
+        if (getOwner() instanceof Player player)
+            ZENITH_ATTACK.playSound(player);
 
         ODirection = new Vec3(additionalData.readDouble(), additionalData.readDouble(), additionalData.readDouble());
         setCurvature(additionalData.readFloat());
@@ -316,7 +323,7 @@ public final class ZenithProjectile extends Projectile implements IEntityAdditio
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static final class ZenithProjectileRenderer extends EntityRenderer<ZenithProjectile> {
+    public static final class Renderer extends EntityRenderer<ZenithProjectile> {
         public static final Quaternionf AXIS;
         public static BakedModel model;
         public static final double SIN45 = Math.sin(Math.toRadians(45.0));
@@ -328,7 +335,7 @@ public final class ZenithProjectile extends Projectile implements IEntityAdditio
             AXIS = new Quaternionf(-sin * SIN45, sin * SIN45, 0.0, cos);
         }
 
-        public ZenithProjectileRenderer(EntityRendererProvider.Context context) {
+        public Renderer(EntityRendererProvider.Context context) {
             super(context);
         }
 
@@ -371,13 +378,15 @@ public final class ZenithProjectile extends Projectile implements IEntityAdditio
                 float v_s = 1.0F;
                 float v_e = 0.0F;
                 double a = Math.toRadians(zenithProjectile.getYRot());
-                Vector2d v2d = Vector2d.vector2dMultiply(Math.sin(a), Math.cos(a), zenithProjectile.ODirection.x, zenithProjectile.ODirection.z);
+                Vector2f v2d = Vector2f.vector2dMultiply((float) Math.sin(a), (float) Math.cos(a),
+                    (float) zenithProjectile.ODirection.x, (float) zenithProjectile.ODirection.z);
+
                 double du = 1.0 / Math.sin(Math.toRadians(s));
                 float radians2;
                 double cos;
                 double sin;
                 float u_e;
-                Vector2d add = new Vector2d(0, 0);
+                Vector2f add = new Vector2f(0, 0);
                 for(double i1 = 0.0; i1 < s; i1 += dr) {
                     radians2 = (float) Math.toRadians(i1);
                     cos = Mth.cos(radians2);
@@ -385,7 +394,7 @@ public final class ZenithProjectile extends Projectile implements IEntityAdditio
                     u_e = (float)(sin * du);
                     add.set(v2d);
                     add = add.mul(Mth.sin((float) Math.toRadians(currentAngle - i1)) *
-                        (zenithProjectile.acceleration - 1.0)).add(-cos, -sin).mul(dr * r / (byte) 18);
+                        (zenithProjectile.acceleration - 1.0f)).add((float) -cos, (float) -sin).mul((float) (dr * r / (byte) 18));
 
                     float x_e = (float)((double)x_s + add.x);
                     vertex(matrix4f, matrix3f, vertexconsumer, x_e, y_s, u_e, v_s);
@@ -407,7 +416,7 @@ public final class ZenithProjectile extends Projectile implements IEntityAdditio
         }
 
         public @NotNull ResourceLocation getTextureLocation(@NotNull ZenithProjectile zenithProjectile) {
-            return zenithProjectile.texture;
+            return null;
         }
     }
 }

@@ -48,6 +48,7 @@ public class CalamityLightBlock extends BaseEntityBlock implements SimpleWaterlo
     public static void registerBlock(IEventBus bus) {
         DeferredRegister<Block> blockRegister = DeferredRegister.create(ForgeRegistries.BLOCKS, MODID);
         LIGHT_BLOCK = blockRegister.register("light", CalamityLightBlock::new);
+        blockRegister.register("lumenyl_druse", LumenylDruse::new);
         blockRegister.register(bus);
 
         DeferredRegister<BlockEntityType<?>> blockEntity = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, MODID);

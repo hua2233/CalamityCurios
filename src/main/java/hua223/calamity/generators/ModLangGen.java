@@ -1,26 +1,31 @@
 package hua223.calamity.generators;
 
+import hua223.calamity.main.CalamityCurios;
 import hua223.calamity.register.RegisterList;
 import hua223.calamity.register.effects.CalamityEffects;
-import hua223.calamity.register.entity.CalamityEntity;
+import hua223.calamity.register.entity.*;
+import hua223.calamity.register.entity.projectiles.*;
 import hua223.calamity.register.gui.SpellType;
 import hua223.calamity.register.keys.ClientInteraction;
 import hua223.calamity.register.sounds.CalamitySounds;
-import hua223.calamity.util.CMLangUtil;
 import net.minecraft.data.PackOutput;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.data.LanguageProvider;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import static hua223.calamity.main.CalamityCurios.MODID;
-import static hua223.calamity.register.Items.CalamityItems.*;
+import static hua223.calamity.main.CalamityCurios.getEntityType;
+import static hua223.calamity.register.items.CalamityItems.*;
 import static hua223.calamity.util.CMLangUtil.*;
 
 @OnlyIn(Dist.CLIENT)
 public class ModLangGen extends LanguageProvider {
+    private static final List<String> ADDITIONAL = new ArrayList<>();
     public ModLangGen(PackOutput output, String locale) {
         super(output, MODID, locale);
     }
@@ -28,6 +33,9 @@ public class ModLangGen extends LanguageProvider {
     //JSON Text Create
     @Override
     protected void addTranslations() {
+        for (int i = 0; i < ADDITIONAL.size(); i++)
+            add(ADDITIONAL.get(i), ADDITIONAL.get(++i));
+
         add("itemGroup.calamity_item", "灾厄物品");
         add("itemGroup.calamity_curios", "灾厄饰品");
         add(ZENITH.get(), "天顶剑");
@@ -77,10 +85,10 @@ public class ModLangGen extends LanguageProvider {
         add(getCommonText("scions_curio", 1), "让大多数远程武器攻击时在空中释放酸性液滴");
         add(getCommonText("scions_curio", 2), "使你免疫辐射减益");
         add(SCIONS_CURIO.get(), "锈蚀勋章");
-        add(CalamityEntity.FIRE_METEOR.get(), "燃火流星");
-        add(CalamityEntity.METEOR.get(), "幻星");
-        add(CalamityEntity.ACIDIC_RAIN.get(), "酸液滴");
-        add(CalamityEntity.ZENITH_PROJECTILE.get(), "天顶剑刃");
+        add(getEntityType(FireMeteor.class), "燃火流星");
+        add(getEntityType(Meteor.class), "幻星");
+        add(getEntityType(AcidicRain.class), "酸液滴");
+        add(getEntityType(ZenithProjectile.class), "天顶剑刃");
         add(getAttribute("far_attack"), "远程伤害");
         add(getAttribute("ammunition_add"), "减少弹药消耗");
         add(DEADSHOT_BROOCH.get(), "神射手胸针");
@@ -93,7 +101,7 @@ public class ModLangGen extends LanguageProvider {
         add(getCommonText("stem_cells", 1), "狂暴，无序，混乱，盲目痴愚");
         add(getCommonText("stem_cells", 2), "使你免疫龙焰和带电减益");
         add(getCommonText("stem_cells", 3), "发射弹射物时有几率额外发射迷你龙裔，存在25s的冷却");
-        add(CalamityEntity.MINI_DRAGON.get(), "癫狂龙裔");
+        add(getEntityType(MiniDragonBorn.class), "癫狂龙裔");
         add(PLANEBREAKERS_POUCH.get(), "破界者行囊");
         add(getCommonText("deadshot_brooch"), "增加所有远程弹射物的速度");
         add(CalamityEffects.FREEZE.get(), "冰固");
@@ -102,7 +110,7 @@ public class ModLangGen extends LanguageProvider {
         add(getCommonText("concoction", 1), "增加50点最大魔力值并降低15%魔力消耗");
         add(getCommonText("concoction", 2), "低于50%生命值时+0.5HP/5s生命再生，低于25%生命值时+1HP/5s生命再生，低于10%生命值时+2HP/5s生命再生");
         add(getCommonText("concoction", 3), "着火时+3HP/5s生命再生");
-        add(getCommonText("concoction", 4), "受到致死伤害时会复活并将生命值回复至40%，此效果有3分钟冷却");
+        add(getCommonText("concoction", 4), "受到致死伤害时会复活并将生命值回复至40%，此效果有2分钟冷却");
         add(COMET_SHARD.get(), "彗星碎片");
         add(ETHEREAL_CORE.get(), "飘渺星核");
         add(PHANTOM_HEART.get(), "幻影之心");
@@ -111,8 +119,6 @@ public class ModLangGen extends LanguageProvider {
         add(getCommonText("mana_polarizer", 2), "魔力值越低意味着生命再生更高，但魔法伤害更低");
         add(getCommonText("mana_polarizer", 3), "生命再生范围为-2~+2HP/3s，魔法伤害范围为15%~5%");
         add(getCommonText("mana_polarizer", 4), "造成法术伤害时能够汲取敌人的生命");
-        add(getDeath("polarizer_hurt"), "%1$s的生命完全升华为了魔力");
-        add(getDeathPlayer("polarizer_hurt"), "%1$s的生命完全升华为了魔力");
         add(CalamityEffects.MANA_BURN.get(), "魔力烧蚀");
         add(CalamityEffects.MANA_SICKNESS.get(), "魔力疾病");
         add(ENCHANTED_STARFISH.get(), "魔力星鱼");
@@ -178,25 +184,25 @@ public class ModLangGen extends LanguageProvider {
         add(getCommonText("vexation"), "你的所有攻击都会造成酸性毒液减益");
         add(CalamityEffects.ACID_VENOM.get(), "酸性毒液");
         add(ASCENDANT_SPIRIT_ESSENCE.get(), "化神精魄");
-        add(getCommonText("essence", 1), "融合强大灵魂而制成的最高级催化剂");
-        add(POLTERPLASM.get(), "灵质");
-        add(getCommonText("polterplasm", 1), "可怖恶意涌动不已");
+        add(getCommonText("essence"), "融合强大灵魂而制成的最高级催化剂");
+        add(NECROPLASM.get(), "灵质");
+        add(getCommonText("necroplasm"), "可怖恶意涌动不已");
         add(NIGHTMARE_FUEL.get(), "梦魇魔能");
-        add(getCommonText("nightmare_fuel", 1), "收割之月散发着诡异的光芒，它会搅乱你的心智");
+        add(getCommonText("nightmare_fuel"), "收割之月散发着诡异的光芒，它会搅乱你的心智");
         add(ENDOTHERMIC_ENERGY.get(), "恒温能量");
-        add(getCommonText("energy", 1), "寒霜之月散发着明洁的光辉，它的极寒能够吸收周围的生命");
+        add(getCommonText("energy"), "寒霜之月散发着明洁的光辉，它的极寒能够吸收周围的生命");
         add(DARK_SUN_FRAGMENT.get(), "日蚀之阴碎片");
-        add(getCommonText("fragment", 1), "黑蚀之日蓄势待发。曜日与皎月，两种相斥天体的能量聚合进这一块晶体中");
+        add(getCommonText("fragment"), "黑蚀之日蓄势待发。曜日与皎月，两种相斥天体的能量聚合进这一块晶体中");
         add(GALACTICA_SINGULARITY.get(), "星系异石");
-        add(getCommonText("singularity", 1), "来自世界之外的奇异物质");
+        add(getCommonText("singularity"), "来自世界之外的奇异物质");
         add(VORTEX.get(), "星旋碎片");
-        add(getCommonText("vortex", 1), "旋涡能量由此碎片散发而出");
+        add(getCommonText("vortex"), "旋涡能量由此碎片散发而出");
         add(NEBULA.get(), "星云碎片");
-        add(getCommonText("nebula", 1), "星系之力驻留于此碎片内");
+        add(getCommonText("nebula"), "星系之力驻留于此碎片内");
         add(STARDUST.get(), "星尘碎片");
-        add(getCommonText("stardust", 1), "让人目眩神迷的粒子围绕此碎片旋转");
+        add(getCommonText("stardust"), "让人目眩神迷的粒子围绕此碎片旋转");
         add(SOLAR.get(), "日耀碎片");
-        add(getCommonText("solar", 1), "宇宙之怒存在于此碎片内");
+        add(getCommonText("solar"), "宇宙之怒存在于此碎片内");
         add(DESTINY_BOOK.get(), "命运之书");
         add(getCommonText("destiny", 1), "撰写了生灵的秘密");
         add(getCommonText("destiny", 2), "装备后在击杀时生物有小概率记录此生物的刷怪蛋，右键取出，不会被再次覆盖");
@@ -216,11 +222,7 @@ public class ModLangGen extends LanguageProvider {
         add(getCommonText("affliction"), "为你和你的所有队友增加10%最大生命值、7%伤害减免、13点防御、6点的盔甲韧性和10%伤害");
         add(DIMENSIONAL.get(), "维魂神物");
         add(getCommonText("dimensional"), "所有伤害乘1.4倍，代价是所受伤害增加20%");
-        add(CalamityEntity.SHADOWS_RAIN.get(), "阴影之雨");
-        add(getDeath("sulfur_fire"), "%s被硫磺火焚烧殆尽");
-        add(getDeathPlayer("sulfur_fire"), "%s被硫磺火焚烧殆尽");
-        add(getDeath("sink"), "%s沉沦于深渊之中");
-        add(getDeathPlayer("sink"), "%s沉沦于深渊之中");
+        add(getEntityType(ShadowsRain.class), "阴影之雨");
         add(getDeath("core"), "%s被渎火屏障震碎了");
         add(getDeathPlayer("core"), "%s被渎火屏障震碎了");
         add(CALAMITY.get(), "灾厄");
@@ -351,7 +353,7 @@ public class ModLangGen extends LanguageProvider {
         add(getCommonText("nebulous_core", 1), "召唤漂浮的小星云保护你");
         add(getCommonText("nebulous_core", 2), "受到致死伤害时会复活并将并将生命值回复至40%");
         add(getCommonText("nebulous_core", 3), "此效果有90秒冷却时间");
-        add(CalamityEntity.NEBULA.get(), "小星云");
+        add(getEntityType(Nebula.class), "小星云");
         add(CalamityEffects.GOD_SLAYER_INFERNO.get(), "弑神怒焰");
         add(SPONGE.get(), "化棉留香石");
         add(getCommonText("sponge", 1), "投影一个至多吸收30点伤害的量子泡沫屏障");
@@ -360,11 +362,10 @@ public class ModLangGen extends LanguageProvider {
         add(getCommonText("sponge", 4), "重新充能期间受击会重置充能计时器");
         add(BLOOD_GOD_CHALICE.get(), "血神圣杯");
         add(getCommonText("blood_god_chalice", 1), "竟然为了一滴血付出了这么多");
-        add(getCommonText("blood_god_chalice", 2), "每5秒恢复已损生命的40%并增强25%的治疗效果");
+        add(getCommonText("blood_god_chalice", 2), "每5秒恢复已损生命的30%并增强25%的治疗效果");
         add(getCommonText("blood_god_chalice", 3), "受到2点以上伤害时，将超出的部分转化为流血效果");
         add(getCommonText("blood_god_chalice", 4), "在治疗时能够抵消至多50%治疗量的流血伤害");
         add(getCommonText("blood_god_chalice", 5), "在流血时解除装备将会立即造成剩余伤害");
-        add(getDeath("blood_god"), "成为了祭品");
         add(DEITIES_RAMPART.get(), "神之壁垒");
         add(getCommonText("deities_rampart", 1), "受到伤害时会召唤星星从天而降并延长受伤后无敌时间");
         add(getCommonText("deities_rampart", 2), "根据你已损失的生命值在受伤时获得额外的无敌帧");
@@ -413,7 +414,7 @@ public class ModLangGen extends LanguageProvider {
         add(getCommonText("ornate_shield", 2), "此冲刺可以在不受伤害的情况下猛击穿过敌怪");
         add(getCommonText("ornate_shield", 3), "免疫冻结伤害");
         add(ANGEL_TREADS.get(), "天使之靴");
-        add(getCommonText("angel_treads"), "增加16%加速度");
+        add(getCommonText("angel_treads"), "增加%s%%加速度");
         add(getCommonText("angel_treads", 1), "极致的速度!");
         add(getCommonText("angel_treads", 2), "提供飞行，流体行走以及冰面上的额外机动性");
         add(getCommonText("angel_treads", 3), "使你免疫火焰");
@@ -434,13 +435,11 @@ public class ModLangGen extends LanguageProvider {
         add(getCommonText("gravistar_sabaton", 6), "猛击到地面后会暂时增加100%跳跃高度");
         add(BRIMSTONE_LOCUS.get(), "硫火魔珠");
         add(getCommonText("brimstone_locus", 1), "我不仅可以用强大的魔法增强你的装备，还可以引出某些物品真正的死灵之力...");
-        add(CalamityEffects.GRUESOME_EVIL_SPIRITS.get(), "腥邪诡灵");
         add(GRUESOME_EMINENCE.get(), "异端僭越");
         add(getCurioKeyId(GRUESOME_EMINENCE.get()), "异端僭越激活");
         add(getCommonText("gruesome_eminence", 1), "聚合成那地牢怪物的灵魂永远无法进入他们所期望的来世，");
         add(getCommonText("gruesome_eminence", 2), "被愤怒玷污、融化，他们终将如此。");
-        add(getCommonText("gruesome_eminence", 3), "按下主动按键，召唤一团腥邪诡灵附身于你，你造成的攻击会大幅提高，");
-        add(getCommonText("gruesome_eminence", 4), "但随着时间的流逝你的身体会逐渐不受控制");
+        add(getCommonText("gruesome_eminence", 3), "按下主动按键，你的视野会被阻断，但你造成的伤害会逐渐提高");
         add(SHIELD_OF_THE_HIGH_RULER.get(), "至高统治之盾");
         add(getCommonText("shield_of_the_high_ruler", 1), "为了王国的命运!");
         add(getCommonText("shield_of_the_high_ruler", 2), "小概率使你免疫减益");
@@ -515,8 +514,8 @@ public class ModLangGen extends LanguageProvider {
         add(RANCOR.get(), "怨戾（未完成）");
         add(getCommonText("rancor", 1), "当被原谅之人尚未能饶恕自身时，");
         add(getCommonText("rancor", 2), "得到宽恕所带来的安慰也仅限于此了。");
-        add(CalamityEntity.RANCOR.get(), "怨戾法环");
-        add(CalamityEntity.RANCOR_LASER.get(), "怨戾光束");
+        add(getEntityType(RancorMagicCircle.class), "怨戾法环");
+        add(CalamityCurios.getEntityType(RancorLaserBeam.class), "怨戾光束");
         add(ASGARDIAN_AEGIS.get(), "阿斯加德之庇护");
         add(getCommonText("asgardian_aegis", 1), "获得被宇宙狱火加强的撞击冲刺能力");
         add(getCommonText("asgardian_aegis", 2), "此冲刺可以在不受伤害的情况下猛击穿过敌怪");
@@ -530,10 +529,10 @@ public class ModLangGen extends LanguageProvider {
         add(getCommonText("universe_splitter", 5), "在冷却时间内使用该武器会导致它短路，对你造成伤害");
         add(getCommonText("universe_splitter", 6), "一个来自上个时代的古老人造物体，它等待着你的命令。");
         add(getCommonText("universe_splitter", 7), "这真是个糟糕的想法，但无论如何它不是你的……对吗？");
-        add(CalamityEntity.USF.get(), "渊宇天基炮力场");
-        add(CalamityEntity.USB.get(), "小型激光光束");
-        add(CalamityEntity.USH.get(), "巨型激光光束");
-        add(CalamityEntity.ETERNITY_HEX.get(), "永恒之环");
+        add(CalamityCurios.getEntityType(UniverseSplitterField.class), "渊宇天基炮力场");
+        add(CalamityCurios.getEntityType(UniverseSplitterSmallBeam.class), "小型激光光束");
+        add(CalamityCurios.getEntityType(UniverseSplitterHugeBeam.class), "巨型激光光束");
+        add(CalamityCurios.getEntityType(EternityHex.class), "永恒之环");
         add(CalamitySounds.ZENITH_ATTACK.getLocationLang(), "天顶弹幕");
         add(CalamitySounds.MAJOR_LOSS.getLocationLang(), "肾上腺素流失");
         add(CalamitySounds.ADRENALINE_ACTIVATE.getLocationLang(), "肾上腺素激活");
@@ -550,9 +549,7 @@ public class ModLangGen extends LanguageProvider {
         add(EXCELSUS.get(), "宙能波纹剑");
         add(getCommonText("excelsus", 1), "发射旋转锋刃");
         add(getCommonText("excelsus", 2), "击中敌人时召唤激光束");
-        add(CalamityEntity.EXCELSUS_BLUE.get(), "宙魔之纹");
-        add(CalamityEntity.EXCELSUS_MAIN.get(), "宙魔之纹");
-        add(CalamityEntity.EXCELSUS_PINK.get(), "宙魔之纹");
+        add(CalamityCurios.getEntityType(ExcelsusPro.class), "宙魔之纹");
         add(CalamitySounds.EXCELSUS_RAY.getLocationLang(), "发射射线");
         add(ATARAXIA.get(), "禅心剑");
         add(getCommonText("ataraxia", 1), "解除攻速限制，攻速转化为额外的倍率。");
@@ -562,14 +559,14 @@ public class ModLangGen extends LanguageProvider {
         add(NEBULOUS_CATACLYSM.get(), "星云灾变");
         add(getCommonText("nebulous_cataclysm", 1), "长按可以释放星云体攻击敌人");
         add(getCommonText("nebulous_cataclysm", 2), "你的手中掌握着星云法师真正的力量……");
-        add(CalamityEntity.NEBULA_NOVA.get(), "星云新星");
-        add(CalamityEntity.NEBULA_CLOUD_CORE.get(), "星云");
+        add(CalamityCurios.getEntityType(NebulaNova.class), "星云新星");
+        add(CalamityCurios.getEntityType(NebulaCloudCore.class), "星云");
         add(CalamitySounds.NEBULA.getLocationLang(), "星云灾变发射");
         add(CalamitySounds.NEBULA_EXPLODE.getLocationLang(), "新星爆炸");
         add(GLADIATOR_LOCKET.get(), "角斗士的金锁");
         add(getCommonText("gladiator_locket", 1), "击杀敌人时会给予你生命恢复");
         add(getCommonText("gladiator_locket", 2), "你的移动速度和伤害会随着生命值的降低而增加，至多增加20%");
-        add(CalamityEntity.HEAL_ORB.get(), "生命珠");
+        add(CalamityCurios.getEntityType(GladiatorHealOrb.class), "生命珠");
         add(FROST_FLARE.get(), "霜冻之炎");
         add(getCommonText("frost_flare", 1), "所有攻击和弹幕都会造成缓慢减益");
         add(getCommonText("frost_flare", 2), "生命值高于50%时增加10%伤害");
@@ -602,9 +599,8 @@ public class ModLangGen extends LanguageProvider {
         add(getCommonText("amalgam", 1), "翻倍增益药水的持续时间并且在你死后增益也不会消失");
         add(getCommonText("amalgam", 2), "被击中时会对附近的敌人造成多种疫病相关减益");
         add(COIN_OF_DECEIT.get(), "欺诈硬币");
-        add(getCommonText("coin_of_deceit", 1), "触发原版暴击时有40%的概率增加30%的本次暴击伤害");
-        add(getCommonText("coin_of_deceit", 2), "为什么硬币的概率不是一半呢?");
-        add(CalamityEntity.JEWEL_SPIKE.get(), "潜遁者宝石钉");
+        add(getCommonText("coin_of_deceit"), "增加6%原版暴击伤害和原版暴击率");
+        add(CalamityCurios.getEntityType(JewelSpike.class), "潜遁者宝石钉");
         add(SCUTTLERS_JEWEL.get(), "潜遁者宝石");
         add(getCommonText("scuttlers_jewel", 1), "受击后破碎，并产生一些宝石");
         add(getCommonText("scuttlers_jewel", 2), "对攻击者及其周围敌对生物脚下生产一个反击的钉刺");
@@ -639,7 +635,7 @@ public class ModLangGen extends LanguageProvider {
         add(getCommonText("electricians_glove", 2), "同时也会附带8点护甲穿透、额外造成8%伤害并为你回复2点生命值");
         add(RUIN_MEDALLION.get(), "毁灭勋章");
         add(getCommonText("ruin_medallion", 1), "允许你在疾跑时触发暴击");
-        add(getCommonText("ruin_medallion", 2), "增加6%原版暴击伤害和原版暴击率");
+        add(getCommonText("ruin_medallion", 2), "增加8%原版暴击伤害和原版暴击率");
         add(VAMPIRIC_TALISMAN.get(), "吸血鬼符咒");
         add(getCommonText("vampiric_talisman", 1), "触发原版暴击时会吸血");
         add(getCommonText("vampiric_talisman", 2), "增加12%原版暴击伤害");
@@ -666,8 +662,8 @@ public class ModLangGen extends LanguageProvider {
         add(getCommonText("plagued_fuel_pack", 2), "在鞘翅滑翔时，按下跳跃键喷射，给予你一个加速度，并在沿途留下瘟疫毒云");
         add(getCommonText("plagued_fuel_pack", 3), "瘟疫毒云的生成有2秒冷却时间");
         add(DARK_MATTER_SHEATH.get(), "暗物质剑鞘");
-        add(getCommonText("dark_matter_sheath", 1), "增加6%原版暴击率，移动时再增加10%");
-        add(getCommonText("dark_matter_sheath", 2), "增加6%原版暴击伤害，允许你在疾跑时触发暴击");
+        add(getCommonText("dark_matter_sheath", 1), "增加10%原版暴击率，移动时再增加10%");
+        add(getCommonText("dark_matter_sheath", 2), "增加10%原版暴击伤害，允许你在疾跑时触发暴击");
         add(getCommonText("dark_matter_sheath", 3), "每10s强化你的下一次攻击，伤害翻倍");
         add(getAttribute("magic_reduction"), "法力减免");
         add(getCommonText("mana_potion"), "饮用后恢复%s点魔力值");
@@ -767,7 +763,7 @@ public class ModLangGen extends LanguageProvider {
         add(getCommonText("tesla"), "召唤一个会电击并减速敌人的电场");
         add(CalamityEffects.GALVANIC_CORROSION.get(), "电偶腐蚀");
         add(getEffectText("galvanic_corrosion"), "你的四肢正被腐蚀");
-        add(CalamityEntity.TESLA_AURA.get(), "特斯拉光环");
+        add(CalamityCurios.getEntityType(TeslaAura.class), "特斯拉光环");
         add(ZERG.get(), "虫潮药水");
         add(getCommonText("zerg"), "大幅度增加敌怪生成率");
         add(CalamityEffects.ZERG.get(), "虫潮");
@@ -783,7 +779,6 @@ public class ModLangGen extends LanguageProvider {
         add(CalamitySounds.SUPREME_CALAMITAS.getLocationLang(), "至尊灾厄");
         add(CalamityEffects.ASTRAL_INJECTION.get(), "星幻注射");
         add(getEffectText("astral_injection"), "持续受到伤害并大幅增加魔力值恢复速度");
-        add(getDeath("astral_injection"), "%s的血管由于药物过量爆裂了");
         add(ASTRAL_INJECTION.get(), "星幻注射剂");
         add(getCommonText("astral_injection"), "对你造成伤害并使你获得魔力疾病减益，但是你的魔力会快速恢复");
         add(CalamityEffects.CEASELESS_HUNGER.get(), "无尽空虚");
@@ -794,7 +789,7 @@ public class ModLangGen extends LanguageProvider {
         add(getEffectText("omniscience"), "你能看透世间万物。 当然，不要干坏事");
         add(OMNISCIENCE.get(), "全知药水");
         add(getCommonText("omniscience"), "高亮附近的敌人、敌人弹幕、矿石和宝藏");
-        add(CalamityEntity.LUNAR_FLARE.get(), "月耀");
+        add(CalamityCurios.getEntityType(LunarFlare.class), "月耀");
         add(MOONSTONE_CROWN.get(), "月长石头冠");
         add(getCommonText("moonstone_crown", 1), "增加15%弹幕速度");
         add(getCommonText("moonstone_crown", 2), "原版暴击在击中敌人时会召唤月亮耀斑");
@@ -860,8 +855,6 @@ public class ModLangGen extends LanguageProvider {
         add(DEUS_CORE.get(), "星神龙核");
         add(getCommonText("deus_core", 1), "将受到的伤害转化为星辉侵蚀，在一段时间内减少对应生命值");
         add(getCommonText("deus_core", 2), "攻击可将部分星辉侵蚀转移至目标，造成更高的伤害");
-        add(CMLangUtil.getDeath("astr_erosion"), "被星辉侵蚀的千疮百孔");
-        add(CMLangUtil.getDeathPlayer("astr_erosion"), "被星辉侵蚀的千疮百孔");
         add(FORESEE_ORB.get(), "预知宝珠");
         add(getCommonText("foresee_orb", 1), "当玩家受到伤害超过 8 点时，本次伤害降低至 8 点，随后预知宝珠破碎并失去所有效果，进入 30 秒冷却时间。");
         add(getCommonText("foresee_orb", 2), "破碎时卸下预知宝珠将对玩家造成 （90% 最大生命值） 的伤害。");
@@ -913,8 +906,8 @@ public class ModLangGen extends LanguageProvider {
         add(getCommonText("holy_moonlight", 2), "魔力护盾数值等同于最大魔力值的 50% ，魔力护盾存在期间能够为玩家提升 10% 移动速度并减少 10% 魔力消耗。");
         add(getCommonText("holy_moonlight", 3), "护盾会对触碰到的敌人造成伤害，当魔力护盾被击破时，消除自身所有减益并恢复至满魔力值。");
         add(getCommonText("holy_moonlight", 4), "当没有护盾时，魔法伤害能够吸血，玩家的当前魔力值越高，吸血量便越高。");
-        add(CalamityEntity.BLACK_HOLE.get(), "黑洞");
-        add(CalamityEntity.SUN.get(), "恒星");
+        add(CalamityCurios.getEntityType(BlackHolePet.class), "黑洞");
+        add(CalamityCurios.getEntityType(StarPet.class), "恒星");
         add(STAR_CHARM.get(), "星星符章");
         add(getCommonText("star_charm", 1), "大幅增加幸运值，召唤一个小玩意跟随着你");
         add(getCommonText("star_charm", 2), "我自己的设计！希望对你有用");
@@ -924,10 +917,6 @@ public class ModLangGen extends LanguageProvider {
         add(getCommonText("perverse_purse", 3), "蹲下右键可以在你所处的位置放出最先劫持的生物");
         add(getCommonText("perverse_purse", 4), "我通常用这个来旅行储物，轻装上阵。");
         add(getCommonText("perverse_purse", 5), "我很确信你也能找到类似的用途！");
-        add(getDeath("universe_splitter_beam"), "%s被分裂光束击碎了");
-        add(getDeathPlayer("universe_splitter_beam"), "%s被分裂光束击碎了");
-        add(getDeath("dragon_fire"), "%s被火焰烤熟了");
-        add(getDeathPlayer("dragon_fire"), "%s被火焰烤熟了");
         add(CalamityEffects.FUNGAL_CLUMP.get(), "真菌块");
         add(getEffectText("fungal_clump"), "真菌块会保护你");
         add(FUNGAL_CLUMP.get(), "真菌块");
@@ -941,12 +930,7 @@ public class ModLangGen extends LanguageProvider {
         add(getCurioKeyId(ANGELIC_ALLIANCE.get()), "圣天盟誓祝福");
         add(CalamitySounds.AA_ACTIVATION.getLocationLang(), "圣天盟誓激活");
         add(CalamityEffects.HOLY_FLAMES.get(), "放逐之火");
-        add(getDeath("holy_flames"), "%s的灵魂被送进了无间地狱");
-        add(getDeathPlayer("holy_flames"), "%s的灵魂被送进了无间地狱");
-        add(getDeath("plague"), "%s溃烂于自然瘟疫");
-        add(getDeathPlayer("plague"), "%s溃烂于自然瘟疫");
         add(getEffectText("holy_flames"), "你的罪孽不会被宽赦");
-        add(getDeath("foresee_orb"), "%s被因果报复了");
         add(CalamityEffects.DIVINE_BLESS.get(), "圣天祝福");
         add(ODINS_REFUGE.get(), "上神之佑");
         add(getCommonText("odins_refuge", 1), "当装备时，它能够为玩家增加 24 点防御，并免疫击退、火块和所有减益。");
@@ -965,7 +949,7 @@ public class ModLangGen extends LanguageProvider {
         add(getCommonText("dream_catcher", 3), "第二个浮标只钓宝藏");
         add(getCommonText("dream_catcher", 4), "第三个浮标只钓附魔书");
         add(getCommonText("dream_catcher", 5), "工作原理跟磁力差不多，只不过更酷！");
-        add(CalamityEntity.DREAM_CATCHER_HOOK.get(), "捕梦浮漂");
+        add(CalamityCurios.getEntityType(DreamCatcherHook.class), "捕梦浮漂");
         add(SILVAS_CROWN.get(), "始源冠冕");
         add(getCommonText("silvas_crown", 1), "基于你现有的属性增强你的所有属性，每秒恢复生命值");
         add(getCommonText("silvas_crown", 2), "她曾在此....");
@@ -984,8 +968,8 @@ public class ModLangGen extends LanguageProvider {
         add(getCommonText("xytheron"), "悲咏渊之哀歌");
         add(CalamityEffects.LIFE_OPPRESS.get(), "生命压制");
         add(getEffectText("life_oppress"), "你看见了你的死亡");
-        add(CalamityEntity.SAK.get(), "被召唤的骑士");
-        add(CalamityEntity.DEMON_GATE.get(), "恶魔之门");
+        add(CalamityCurios.getEntityType(SummonedAncientKnight.class), "被召唤的骑士");
+        add(CalamityCurios.getEntityType(DemonGate.class), "恶魔之门");
         add(DEMON_SHADE_HELMET.get(), "魔影头盔");
         add(getCommonText("demon_shade.helmet"), "装备时强化你的仆从");
         add(DEMON_SHADE_CHEST.get(), "魔影装甲");
@@ -1000,7 +984,7 @@ public class ModLangGen extends LanguageProvider {
         add(RegisterList.DEMON_SHADE_BLESS.get(), "魔影庇佑");
         add(CalamitySounds.DEMON_SHADE_ENRAGE.getLocationLang(), "魔影激怒");
         add(SHADOW_SPEC_BAR.get(), "魔影锭");
-        add(getCommonText("shadow_spec_bar", 1), "邪祟的、漆黑的金属，其悚骇与伟力超逾理解");
+        add(getCommonText("shadow_spec_bar"), "邪祟的、漆黑的金属，其悚骇与伟力超逾理解");
         add(TERMINUS.get(), "终末石（开发者物品，暂无用途）");
         add(getCommonText("terminus", 1), "使用激活BossRush模式，再次使用以退出BossRush模式");
         add(getCommonText("terminus", 2), "THE END HAS COME");
@@ -1021,6 +1005,8 @@ public class ModLangGen extends LanguageProvider {
         add(getCommonText("boss_rush_state", 13), "我想测试你的力量，我会用我原始之光的碎片捏造出你过往敌人的形象。");
         add(getCommonText("boss_rush_state", 14), "这不是什么简单的活，但只要你能证明自己足够强大，我会给你一个提案。");
         add(getCommonText("boss_rush_state", 15), "你觉得自己能赢下这场挑战么？");
+        add(getCommonText("boss_rush_state", 16), "到目前为止只是无足轻重的表演罢了，根本没达到我的期望。");
+        add(getCommonText("boss_rush_state", 17), "让你的身体和灵魂准备好面对接下来的一切。");
         add(getCommonText("boss_rush_state", 18), "着实完美的展演。看来我是对的！你确实可能是这个世界最强大的战士，但......");
         add(getCommonText("boss_rush_state", 19), "看来就算是那种力量......还是不够。恐怕我不能向你分享我的提案了。");
         add(getCommonText("boss_rush_state", 20), "尽管如此，虽然只是安慰奖，但我还是希望你拿着这块古代石头，它是我从巨龙天巢上刻下来的。");
@@ -1029,6 +1015,13 @@ public class ModLangGen extends LanguageProvider {
         add(getCommonText("boss_rush_state", 23), "继续寻求更为强大的力量吧，当我们再度相遇时，或许你的力量就够格了。");
         add(getCommonText("boss_rush_state", 24), "与此同时，我自己也还有必须要亲自处理的事情。");
         add(getCommonText("boss_rush_state", 25), "至于现在，先再见吧。");
+        add(getCommonText("boss_rush_state", 28), "我没错，你确实是一位值得令人敬重的战士。");
+        add(getCommonText("boss_rush_state", 29), "不过，你所展现的还不够。我们继续吧？");
+        add(getCommonText("boss_rush_state", 30), "你渴望变强的决心和意志......让我想起了自己，那时候我还只是一介凡人。");
+        add(getCommonText("boss_rush_state", 31), "但最为困难的挑战仍在前方，不要放松警惕，一刻也不要。");
+        add(getCommonText("boss_rush_state", 32), "试炼就将抵达它的高潮。");
+        add(getCommonText("boss_rush_state", 33), "是时候展现你的决心，和你力量与意志的真正限度了。");
+        add(getCommonText("boss_rush_state", 34), "向我证明，你足以超越自身。");
         add(AZURE_ABYSS_TALISMAN.get(), "苍溟护符");
         add(getCommonText("azure_abyss_talisman"), "苍蓝之海的幻妖龙吟");
         add(getCommonText("azure_abyss_talisman", 1), "每两秒恢复4点生命，并提升水下机动性和视野，同时能够在水中呼吸");
@@ -1036,6 +1029,77 @@ public class ModLangGen extends LanguageProvider {
         add(getCommonText("azure_abyss_talisman", 3), "护盾存在时，玩家的水下机动性和视野会进一步提升，且免疫所有减益");
         add(MOON_WALKERS.get(), "月亮行者翼靴");
         add(getCommonText("moon_walkers"), "荒诞的速度");
+        add(VOID_STRIDERS.get(), "虚空翼靴");
+        add(getCommonText("void_striders"), "更加荒诞的速度");
+        add(SERAPH_TRACERS.get(), "炽天使翼靴");
+        add(getCommonText("seraph_tracers"), "<<  请输入文本... >>");
+        add(CalamitySounds.GE_ACTIVATE.getLocationLang(), "异端侵蚀");
+        add(ARC_FLASH_RING.get(), "弧光指环");
+        add(getCommonText("arc_flash_ring", 1), "攻击有5%几率召唤从天而降的闪电，造成3倍伤害");
+        add(getCommonText("arc_flash_ring", 2), "单次攻击每击中一个敌怪，召唤闪电的几率就会降低");
+        add(getCommonText("arc_flash_ring", 3), "闪电的伤害基于非暴击伤害，但自身能够暴击");
+        add(getCommonText("arc_flash_ring", 4), "如果关闭饰品可见性，闪电效果会变得透明且安静");
+        add(getCommonText("arc_flash_ring", 5), "弧光闪闪");
+        add(getEntityType(ColorfulLightningBolt.class), "闪电");
+        add(STORM_MAIDENS_RETRIBUTION.get(), "风暴少女的复仇");
+        add(getCommonText("storm_maidens_retribution", 1), "射出长矛会释放红色的闪电");
+        add(getCommonText("storm_maidens_retribution", 2), "蓄力完成释放长矛后会追踪敌怪，命中后会天降闪电");
+        add(getCommonText("storm_maidens_retribution", 3), "一把由风暴女神所使用的神之长矛，由她强大的力量所锻造");
+        add(getCommonText("storm_maidens_retribution", 4), "这把武器本身似乎激荡着不可磨灭的苦痛，懊悔，和哀伤");
+        add(CalamitySounds.THROW.getLocationLang(), "投掷长矛");
+        add(CalamitySounds.MAGIC.getLocationLang(), "充能完毕");
+        add(CalamitySounds.LIGHTNING.getLocationLang(), "噼啪作响");
+        add(getCommonText("storm_maidens_spear"), "风暴长矛");
+        add(CalamitySounds.TERMINUS_CHARGE.getLocationLang(), "Boss Rush");
+        add(CalamitySounds.ENSEMBLE_OF_FOOLS.getLocationLang(), "痴愚合奏");
+        add(CalamitySounds.ONSLAUGHT_OF_BEASTS.getLocationLang(), "骇兽群潮");
+        add(CalamitySounds.REIGN_OF_LORDS.getLocationLang(), "众君分权");
+        add(CalamitySounds.TRIAL_OF_THE_INSANE.getLocationLang(), "癫狂神判");
+        add(PURIFIED_GEL.get(), "纯净凝胶");
+        add(BLIGHTED_GEL.get(), "枯萎凝胶");
+        add(SUNLIGHT_ESSENCE.get(), "日光精华");
+        add(getCommonText("sunlight_essence"), "沙暴生物之精华");
+        add(AURIC_INGOT.get(), "圣金源锭");
+        add(getCommonText("auric_ingot"), "散发出无限的能量");
+        add(YHARON_SOUL_FRAGMENT.get(), "龙魂碎片");
+        add(getCommonText("yharon_soul_fragment"), "巨龙的金源魄碎片");
+        add(NECROPLASMIC_BEACON.get(), "死灵魂炬");
+        add(getCommonText("necroplasmic_beacon", 1), "使用以召唤凋零");
+        add(getCommonText("necroplasmic_beacon", 2), "不消耗");
+        add(getCommonText("necroplasmic_beacon", 3), "幽魂的哀嚎惊动了更可怕的东西");
+        add(CalamitySounds.NECROPLASMIC_BEACON.getLocationLang(), "惊惧哀恸");
+        add(BLOOD_STONE.get(), "血石");
+        add(BLOODSTONE_CORE.get(), "血石核心");
+        add(ECLIPSE_MIRROR.get(), "日蚀魔镜");
+        add(getCommonText("eclipse_mirror", 1), "增加20%原版暴击伤害，暴击率");
+        add(getCommonText("eclipse_mirror", 2), "敌怪在远处很难发现你");
+        add(getCommonText("eclipse_mirror", 3), "静止不动时额外增加25原版暴击率且每2秒恢复5生命值");
+        add(getCommonText("eclipse_mirror", 4), "在移动但不攻击时，你的会累计额外原版暴击伤害倍率，上限为300%");
+        add(getCommonText("eclipse_mirror", 5), "使你获得闪避攻击的能力且可以免疫死亡，免死有三分钟冷却时间，冷却期间不会触发闪避");
+        add(getCommonText("eclipse_mirror", 6), "闪避攻击时会接下来15s内的两次攻击原版暴击率增长加150%且周围的敌人受到此次的三倍伤害，且眩晕四秒");
+        add(getCommonText("eclipse_mirror", 7), "它所映出的只有无边黑暗");
+        add(CalamitySounds.DARK_LIGHT.getLocationLang(), "暗日爆发");
+        add(ICE_SNOW_MIRROR.get(), "冰雪镜");
+        add(getCommonText("ice_mirror"), "盯着镜子便可回家");
+        add(getCommonText("teleport_fail"), "这个维度有什么阻止了你的返回");
+        add(CalamitySounds.MIRROR_TELEPORT.getLocationLang(), "冰雪镜传送");
+        add(LUMENYL.get(), "流明晶");
+        add("block.calamity_curios.lumenyl_druse", "流明晶簇");
+        add(SEAFOAM_BOMB.get(), "海沫炸弹");
+        add(getCommonText("seafoam_bomb"), "投掷一颗炸弹，爆炸时额外造成3点溺水伤害和施加深渊水压减益");
+        add(BRIMSTONE_BARRIER.get(), "硫火新月杖");
+        add(CalamityEffects.BRIMSTONE_BARRIER.get(), "硫火屏障");
+        add(getEffectText("brimstone_barrier"), "提供80%的伤害减免，受击时会产生爆炸，但伤害减少40%");
+        add("spell.calamity_curios.brimstone_barrier", "硫火屏障");
+        add("spell.calamity_curios.nebulous", "星云");
+        add(BALLISTIC_POISON_BOMB.get(), "渊毒子母雷");
+        add(getCommonText("ballistic_poison_bomb"), "投掷一颗炸弹，爆炸时额外造成5点凋零伤害和施加酸性毒液减益");
+        add(CalamitySounds.LIGHTNING_STRIKE.getLocationLang(), "风暴雷电");
+    }
+
+    public static void addAdditionalEntries(String key, String value) {
+        ADDITIONAL.add(key);
+        ADDITIONAL.add(value);
     }
 
     @SuppressWarnings("ConstantConditions")

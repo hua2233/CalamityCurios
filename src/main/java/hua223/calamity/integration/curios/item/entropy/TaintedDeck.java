@@ -3,7 +3,7 @@ package hua223.calamity.integration.curios.item.entropy;
 import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.Decks;
 import hua223.calamity.events.listeners.HurtListener;
-import hua223.calamity.register.Items.CalamityItems;
+import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.util.CMLangUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -19,11 +19,6 @@ public class TaintedDeck extends Decks {
     public final void onHurt(HurtListener listener) {
         if (listener.player.getHealth() < listener.player.getMaxHealth())
             listener.player.heal(listener.baseAmount * 0.08f);
-    }
-
-    @Override
-    public Item getUnsealingRope() {
-        return CalamityItems.ABYSS_THREAD.get();
     }
 
     @Override

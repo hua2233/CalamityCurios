@@ -1,6 +1,6 @@
 package hua223.calamity.mixins.client;
 
-import hua223.calamity.util.RenderUtil;
+import hua223.calamity.render.Item.ExhumedDecoratorSystem;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.protocol.game.ClientboundUpdateRecipesPacket;
 import net.minecraft.world.item.crafting.RecipeManager;
@@ -20,6 +20,6 @@ public abstract class ClientPacketMixin {
     @Inject(method = "handleUpdateRecipes", at = @At(value = "INVOKE", shift = At.Shift.AFTER,
         target = "Lnet/minecraft/network/protocol/PacketUtils;ensureRunningOnSameThread(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;Lnet/minecraft/util/thread/BlockableEventLoop;)V"))
     private void resetDecorator(ClientboundUpdateRecipesPacket packet, CallbackInfo ci) {
-        RenderUtil.clearOldDecorator(recipeManager, false);
+        ExhumedDecoratorSystem.clearOldDecorator(recipeManager, false);
     }
 }

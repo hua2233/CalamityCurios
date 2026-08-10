@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "X" : {
+      "item": "irons_spellbooks:fire_rune"
+    },
+    "N": {
+      "item": "minecraft:lava_bucket"
+    },
+    "Z": {
+      "item": "calamity_curios:sunlight_essence"
+    }
+  },
+  "pattern": [
+    "   ",
+    " XX",
+    " NZ"
+  ],
+  "result": {
+    "item": "calamity_curios:solar_fragment",
+    "count": 3
+  }
+}

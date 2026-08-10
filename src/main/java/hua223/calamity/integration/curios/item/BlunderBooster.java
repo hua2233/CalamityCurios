@@ -2,10 +2,12 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
+import hua223.calamity.events.LogoutRelease;
 import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.CriticalHitCheckListener;
 import hua223.calamity.events.listeners.ProjectileSpawnListener;
 import hua223.calamity.register.entity.TeslaAura;
+import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.ConflictChain;
 import hua223.calamity.util.ICuriosStorage;
@@ -46,10 +48,11 @@ public class BlunderBooster extends BaseCurio implements ICuriosStorage {
         killAffiliated(player);
     }
 
-    @Override
-    public void onLogOut(Player player) {
-        if (!player.isLocalPlayer())
-            killAffiliated((ServerPlayer) player);
+    @LogoutRelease
+    public static void onLogOut(ServerPlayer player) {
+        CalamityItems item = CalamityItems.BLUNDER_BOOSTER;
+        if (item.isEquip(player))
+            ((BlunderBooster) item.get()).killAffiliated(player);
     }
 
     private void killAffiliated(ServerPlayer player) {

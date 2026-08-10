@@ -1,6 +1,6 @@
 package hua223.calamity.register.attribute;
 
-import hua223.calamity.register.Items.EnumRegister;
+import hua223.calamity.register.items.EnumRegister;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import net.minecraftforge.eventbus.api.IEventBus;

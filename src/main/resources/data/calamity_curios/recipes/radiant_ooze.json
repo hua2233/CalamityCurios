@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "calamity_curios:purified_gel"
+    },
+    {
+      "item": "calamity_curios:blighted_gel"
+    }
+  ],
+  "result": {
+    "item": "calamity_curios:radiant_ooze"
+  }
+}

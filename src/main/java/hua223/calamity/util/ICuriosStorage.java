@@ -38,10 +38,10 @@ public interface ICuriosStorage {
 
         if (++count[index] >= max) {
             count[index] = 0;
-            return false;
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     default void zeroCount(Player player, int index) {

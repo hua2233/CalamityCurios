@@ -25,7 +25,7 @@ public class CeaselessHunger extends CalamityEffect {
     public void applyEffectTick(@NotNull LivingEntity target, int amplifier) {
         if (!target.level().isClientSide && target.calamity$IsPlayer)
             for (Entity entity : ((ServerLevel) target.level()).getEntities().getAll())
-                if (entity.getType() == EntityType.ITEM && entity.level() == target.level())
+                if (entity != null && entity.getType() == EntityType.ITEM && entity.level() == target.level())
                     entity.playerTouch(target.calamity$Player);
     }
 

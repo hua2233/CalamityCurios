@@ -2,8 +2,10 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMultimap;
+import hua223.calamity.events.LogoutRelease;
 import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.register.attribute.CalamityAttributes;
+import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.util.CMLangUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -11,7 +13,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -33,16 +34,20 @@ public class Affliction extends BaseCurio {
     }
 
     @Override
-    @SuppressWarnings("ConstantConditions")
+
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
+        remove(player);
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    private static void remove(ServerPlayer player) {
         if (--counter == 0) unEquipHandler(player.getServer().getPlayerList().getPlayers());
     }
 
-    @Override
-    public void onLogOut(Player player) {
+    @LogoutRelease
+    public static void onLogOut(ServerPlayer player) {
         //If the player exits, it should be considered as unEquip
-        if (!player.isLocalPlayer())
-            unEquipHandle((ServerPlayer) player, null);
+        if (CalamityItems.AFFLICTION.isEquip(player)) remove(player);
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -61,7 +66,7 @@ public class Affliction extends BaseCurio {
     }
 
     @SuppressWarnings("ConstantConditions")
-    private void unEquipHandler(List<ServerPlayer> players) {
+    private static void unEquipHandler(List<ServerPlayer> players) {
         UUID id = UUID.nameUUIDFromBytes("affliction".getBytes());
 
         Attribute[] attributes = {Attributes.MAX_HEALTH, CalamityAttributes.INJURY_OFFSET.get(),

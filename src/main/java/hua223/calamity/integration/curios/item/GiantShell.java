@@ -4,10 +4,7 @@ import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.HurtListener;
-import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.ConflictChain;
-import hua223.calamity.util.ICuriosStorage;
-import hua223.calamity.util.VariableAttributeModifier;
+import hua223.calamity.util.*;
 import hua223.calamity.util.delaytask.DelayRunnable;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -23,7 +20,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 import java.util.UUID;
 
-@ConflictChain(value = GiantShell.class)
+@CurioRepel(GiantTortoiseShell.class)
 public class GiantShell extends BaseCurio implements ICuriosStorage {
     public GiantShell(Properties properties) {
         super(properties);

@@ -2,19 +2,22 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
+import hua223.calamity.generators.DamageMapping;
 import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.HurtListener;
 import hua223.calamity.events.listeners.PlayerHealListener;
+import hua223.calamity.register.damage.DamageRequester;
+import hua223.calamity.register.damage.DamageSupplier;
 import hua223.calamity.register.particle.ParticleRegister;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.ConflictChain;
 import hua223.calamity.util.ICuriosStorage;
-import hua223.calamity.util.damage.CalamityDamageSource;
-import hua223.calamity.util.damage.CalamityDamageTypes;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -30,21 +33,32 @@ import java.util.UUID;
 
 @ConflictChain(value = BloodGodChalice.class, isRoot = true)
 public class BloodGodChalice extends BaseCurio implements ICuriosStorage {
+    @DamageRequester(key = DamageMapping.BLEEDING, msg = "blood_god",
+        style = ChatFormatting.DARK_RED, zh_cn = "%s成为了祭品")
+    public static DamageSupplier supplier;
+
     public BloodGodChalice(Properties properties) {
         super(properties);
+    }
+
+    @Override
+    protected void equipHandle(ServerPlayer player, ItemStack stack) {
+        super.equipHandle(player, stack);
+        getMemory(player).putTypeStorage(supplier.get());
     }
 
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
         syncHealth(player);
         float amount = getCount(player)[1];
-        if (amount > 0) player.hurt(CalamityDamageSource.source(CalamityDamageTypes.BLOOD_GOD, player), amount);
+        if (amount > 0) player.hurt(getMemory(player).getTypeStorage(DamageSource.class), amount);
     }
 
     @Override
     protected void setAttributeModifiers(
         UUID uuid, ItemStack stack, Multimap<Attribute, AttributeModifier> modifier, LivingEntity equipped) {
         modifier.put(Attributes.MAX_HEALTH, new AttributeModifier(uuid, "blood_god_chalice", 0.25, AttributeModifier.Operation.MULTIPLY_TOTAL));
+        modifier.put(AttributeRegistry.BLOOD_SPELL_POWER.get(), new AttributeModifier(uuid, "blood_god_chalice", 0.1, AttributeModifier.Operation.MULTIPLY_BASE));
     }
 
     @ApplyEvent
@@ -58,7 +72,7 @@ public class BloodGodChalice extends BaseCurio implements ICuriosStorage {
     @ApplyEvent(800)
     public final void onHurt(HurtListener listener) {
         float cache = listener.getCorrectionValue() - 2;
-        if (!listener.isCanceled() && cache > 0) {
+        if (cache > 0) {
             float[] count = getCount(listener.player);
             listener.setFinalAmount(2);
 
@@ -77,7 +91,7 @@ public class BloodGodChalice extends BaseCurio implements ICuriosStorage {
                 player.getY(), player.getZ(), level.random.nextInt(1, 4),
                 0, 0, 0 , 0);
 
-            player.hurt(CalamityDamageSource.source(CalamityDamageTypes.BLOOD_GOD, player),
+            player.hurt(memory.getTypeStorage(DamageSource.class),
                 ICuriosStorage.getReducedValue(memory.count, 1, memory.count[2]));
         }
 
@@ -85,8 +99,16 @@ public class BloodGodChalice extends BaseCurio implements ICuriosStorage {
             memory.count[0] = 0;
             double max = player.getMaxHealth();
             double health = player.getHealth();
-            if (health < max) player.heal((float) Math.max(1, (max - health) * 0.4f));
+            if (health < max) {
+                float value = (float) ((max - health) * 0.3f);
+                if (value > 0.2f) player.heal(value);
+            }
         }
+    }
+
+    @Override
+    public Class<?>[] defineStorageType() {
+        return new Class[] {DamageSource.class};
     }
 
     @Override

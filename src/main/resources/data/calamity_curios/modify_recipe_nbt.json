@@ -1,0 +1,7 @@
+[
+  {
+    "recipes_id": ["calamity_curios:tainted_deck_unsealing",
+      "calamity_curios:oracle_deck_unsealing"],
+    "nbt": "{unsealing:1b}"
+  }
+]

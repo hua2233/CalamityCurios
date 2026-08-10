@@ -4,10 +4,9 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import hua223.calamity.main.CalamityCurios;
-import hua223.calamity.register.entity.CalamityEntity;
-import hua223.calamity.util.damage.CalamityDamageSource;
+import hua223.calamity.register.damage.DamageSupplier;
+import hua223.calamity.register.entity.AutoEntityRegister;
 import hua223.calamity.util.RenderUtil;
-import hua223.calamity.util.damage.CalamityDamageTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -23,8 +22,8 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Quaternionf;
 
+@AutoEntityRegister(sized = {.2f, .2f}, trackingRange = 12)
 public class ShadowsRain extends BaseProjectile {
     @OnlyIn(Dist.CLIENT)
     private final RenderType type = RenderType.entityCutoutNoCull(
@@ -43,7 +42,7 @@ public class ShadowsRain extends BaseProjectile {
                 .yRot(degreePerNeedle * i * Mth.DEG_TO_RAD);
             Vec3 spawn = center.add(offset);
             Vec3 motion = center.subtract(spawn).normalize().scale(2);
-            ShadowsRain rain = CalamityEntity.SHADOWS_RAIN.get().create(level);
+            ShadowsRain rain = CalamityCurios.getEntityType(ShadowsRain.class).create(level);
             if (rain == null) return;
 
             rain.moveTo(spawn);
@@ -57,12 +56,12 @@ public class ShadowsRain extends BaseProjectile {
 
     @Override
     protected void attack(LivingEntity target) {
-        target.hurt(CalamityDamageSource.source(CalamityDamageTypes.MAGIC_PROJECTILE, this), 2);
+        target.hurt(DamageSupplier.MAGIC_PROJECTILE.get(this, getOwner()), 2);
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static final class Render extends EntityRenderer<ShadowsRain> {
-        public Render(EntityRendererProvider.Context context) {
+    public static final class Renderer extends EntityRenderer<ShadowsRain> {
+        public Renderer(EntityRendererProvider.Context context) {
             super(context);
         }
 

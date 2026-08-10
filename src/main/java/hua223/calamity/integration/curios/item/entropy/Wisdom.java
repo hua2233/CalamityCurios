@@ -4,8 +4,7 @@ import com.google.common.collect.Multimap;
 import hua223.calamity.integration.curios.Card;
 import hua223.calamity.loots.ApplyGlobalLoot;
 import hua223.calamity.loots.EntitiesLootContext;
-import hua223.calamity.loots.GlobalLoot;
-import hua223.calamity.register.Items.CalamityItems;
+import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.util.CMLangUtil;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
@@ -27,7 +26,6 @@ import java.util.UUID;
 public class Wisdom extends Card {
     public Wisdom(Properties properties) {
         super(properties);
-        GlobalLoot.mountTo(this);
     }
 
     @Override
@@ -40,8 +38,7 @@ public class Wisdom extends Card {
     }
 
     @ApplyGlobalLoot
-    public final void onGlobalEntityLoot(EntitiesLootContext context) {
-
+    public void onGlobalEntityLoot(EntitiesLootContext context) {
         if (context.onlyVerification(EntityType.WITCH) && context.source.is(DamageTypes.MAGIC)
             && context.chance(0.4f)) context.addLoot(this, 1);
     }

@@ -3,7 +3,6 @@ package hua223.calamity.register.effects;
 import hua223.calamity.util.CMLangUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
@@ -40,7 +39,7 @@ public class DragonBurn extends CalamityEffect implements IEffectsCallBack {
     }
 
     @Override
-    public void onRemove(MobEffectInstance effect, LivingEntity entity) {
+    public void onEffectRemoved(LivingEntity entity, int amplifier) {
         inactivationEffect(entity, false);
     }
 

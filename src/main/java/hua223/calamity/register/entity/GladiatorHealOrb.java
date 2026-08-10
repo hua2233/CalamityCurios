@@ -32,6 +32,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.joml.Vector4i;
 
+@AutoEntityRegister(sized = {.3f, .3f}, trackingRange = 32, name = "heal_orb")
 public class GladiatorHealOrb extends Entity {
     private static final int LIFETIME = 400;
     @OnlyIn(Dist.CLIENT)
@@ -63,7 +64,7 @@ public class GladiatorHealOrb extends Entity {
     }
 
     public static void create(LivingEntity target) {
-        GladiatorHealOrb orb = CalamityEntity.HEAL_ORB.get().create(target.level());
+        GladiatorHealOrb orb = CalamityCurios.getEntityType(GladiatorHealOrb.class).create(target.level());
         if (orb != null) {
             orb.setPos(target.getEyePosition());
 
@@ -161,8 +162,8 @@ public class GladiatorHealOrb extends Entity {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static class Render extends EntityRenderer<GladiatorHealOrb> {
-        public Render(EntityRendererProvider.Context context) {
+    public static class Renderer extends EntityRenderer<GladiatorHealOrb> {
+        public Renderer(EntityRendererProvider.Context context) {
             super(context);
         }
 

@@ -12,14 +12,11 @@ import hua223.calamity.register.entity.projectiles.Meteor;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.ICuriosStorage;
 import hua223.calamity.util.VariableAttributeModifier;
-import hua223.calamity.util.damage.CalamityDamageSource;
-import hua223.calamity.util.damage.DamageTags;
 import hua223.calamity.util.delaytask.DelayRunnable;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
@@ -42,8 +39,7 @@ public class AstrumDeusHide extends BaseCurio implements ICuriosStorage {
 
     @Override
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
-        getMemory(player).putTypeStorage(CalamityDamageSource.source(DamageTypes.PLAYER_ATTACK, player)
-            .addDamageTag(DamageTags.NOT_TRIGGER_EVENT.tag));
+        getMemory(player).putTypeStorage(player.level().damageSources().indirectMagic(player, player));
     }
 
     @Override

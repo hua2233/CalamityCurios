@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "minecraft:ink_sac"
+    },
+    "C": {
+      "item": "minecraft:splash_potion"
+    },
+    "B": {
+      "item": "minecraft:lingering_potion"
+    },
+    "E": {
+      "item": "irons_spellbooks:rare_ink"
+    }
+  },
+  "pattern": [
+    "AAA",
+    "BCB",
+    "EEE"
+  ],
+  "result": {
+    "item": "calamity_curios:ink_bomb"
+  }
+}

@@ -2,7 +2,7 @@ package hua223.calamity.integration.curios.item.entropy;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.integration.curios.Card;
-import hua223.calamity.register.Items.CalamityItems;
+import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.util.CMLangUtil;
 import net.minecraft.ChatFormatting;

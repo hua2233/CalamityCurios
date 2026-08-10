@@ -25,6 +25,8 @@ public abstract class BaseLootContextPacker {
         this.source = source;
     }
 
+    public abstract boolean triggeredByPlayers();
+
     public ObjectArrayList<ItemStack> getGeneratedLoot() {
         return generatedLoot;
     }
@@ -75,7 +77,7 @@ public abstract class BaseLootContextPacker {
     }
 
     public boolean chance(float rate) {
-        return source.nextFloat() < rate;
+        return source.nextFloat() <= rate;
     }
 
     public boolean chance(float rate, int count) {
@@ -87,8 +89,8 @@ public abstract class BaseLootContextPacker {
     }
 
     @Target(ElementType.TYPE)
-    @Retention(RetentionPolicy.RUNTIME)
-    public @interface GlobalLootType {
+    @Retention(RetentionPolicy.CLASS)
+    protected @interface GlobalLootType {
         GlobalLoot value();
     }
 }

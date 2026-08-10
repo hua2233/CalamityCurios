@@ -2,6 +2,8 @@ package hua223.calamity.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import hua223.calamity.events.LogoutRelease;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -13,6 +15,7 @@ import org.joml.Matrix4f;
 @OnlyIn(Dist.CLIENT)
 public class IllusionBufferSource implements MultiBufferSource {
     private static IllusionBufferSource source;
+    private static short reference;
     private MultiBufferSource hijackSource;
     private final IllusionVertexConsumer vertexConsumer;
 
@@ -21,20 +24,35 @@ public class IllusionBufferSource implements MultiBufferSource {
     }
 
     public static @NotNull MultiBufferSource getSource(MultiBufferSource source) {
-        IllusionBufferSource.source.hijackSource = source;
+        IllusionBufferSource.source.hijackSource = source ==
+            IllusionBufferSource.source ? IllusionBufferSource.source.hijackSource : source;
         return IllusionBufferSource.source;
     }
 
     public static void create() {
-        source = new IllusionBufferSource();
+        if (source == null) source = new IllusionBufferSource();
+        reference++;
     }
 
     public static void setColor(int r, int g, int b, int a) {
         source.vertexConsumer.defaultColor(r, g, b, a);
     }
 
-    public static void destroy() {
+    public static void setColor(float r, float g, float b, float a) {
+        source.vertexConsumer.defaultColor(r, g, b, a);
+    }
+
+    @LogoutRelease
+    public static void onLogOut(LocalPlayer player) {
+        reference = 0;
         source = null;
+    }
+
+    public static void destroy() {
+        if (reference - 1 == 0) {
+            reference--;
+            source = null;
+        }
     }
 
     @Override
@@ -77,10 +95,14 @@ public class IllusionBufferSource implements MultiBufferSource {
 
         @Override
         public void defaultColor(int r, int g, int b, int a) {
-            this.r = r / 255f;
-            this.g = g / 255f;
-            this.b = b / 255f;
-            this.a = a / 255f;
+            defaultColor(r / 255f, g / 255f, b / 255f, a / 255f);
+        }
+
+        public void defaultColor(float r, float g, float b, float a) {
+            this.r = r;
+            this.g = g;
+            this.b = b;
+            this.a = a;
         }
 
         @Override
@@ -97,12 +119,13 @@ public class IllusionBufferSource implements MultiBufferSource {
         @Override
         public void putBulkData(PoseStack.@NotNull Pose pose, @NotNull BakedQuad bakedQuad, float red, float green,
                                 float blue, float alpha, int packedLight, int packedOverlay, boolean readExistingColor) {
-            hijackConsumer.putBulkData(pose, bakedQuad, red, green, blue, alpha, packedLight, packedOverlay, readExistingColor);
+            hijackConsumer.putBulkData(pose, bakedQuad, r > 0 ? r : red, g > 0 ? g : green,
+                b > 0 ? b : blue, a > 0 ? a : alpha, packedLight, packedOverlay, readExistingColor);
         }
 
         @Override
-        public void putBulkData(PoseStack.Pose pose, BakedQuad quad, float[] vs, float r,
-                                float g, float b, float a, int[] uv, int light, boolean mulColor) {
+        public void putBulkData(PoseStack.@NotNull Pose pose, @NotNull BakedQuad quad, float @NotNull [] vs, float r,
+                                float g, float b, float a, int @NotNull [] uv, int light, boolean mulColor) {
             hijackConsumer.putBulkData(pose, quad, vs, this.r, this.g, this.b, this.a, uv, light, mulColor);
         }
 

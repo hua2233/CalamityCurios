@@ -3,10 +3,12 @@ package hua223.calamity.register.gui;
 import hua223.calamity.capability.EnchantmentProvider;
 import hua223.calamity.net.packets.SpellTypeSync;
 import hua223.calamity.net.NetMessages;
-import hua223.calamity.register.Items.CalamityItems;
+import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.register.RegisterList;
 import hua223.calamity.register.recipe.CalamityCurseRecipe;
 import hua223.calamity.util.CalamityHelp;
+import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -25,9 +27,7 @@ import net.minecraftforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class CalamityCurseMenu extends AbstractContainerMenu {
     public static final int VANILLA_FIRST_SLOT_INDEX = 0;
@@ -82,19 +82,6 @@ public class CalamityCurseMenu extends AbstractContainerMenu {
         }
     };
 
-    @OnlyIn(Dist.CLIENT)
-    private void checkCostSituation() {
-        enough = new boolean[spend.length];
-        Inventory inventory = player.getInventory();
-        Map<Integer, Integer> map = synthesis(false);
-        for (Map.Entry<Integer, Integer> entry : map.entrySet()) {
-            Item item = inventory.getItem(entry.getKey()).getItem();
-            for (int i = 0; i < spend.length; i++)
-                if (spend[i].getItem() == item)
-                    enough[i] = entry.getValue() > 0;
-        }
-    }
-
     public CalamityCurseMenu(@Nullable MenuType<?> menuType, int containerId, Player player) {
         super(menuType, containerId);
         Inventory inventory = player.getInventory();
@@ -112,40 +99,34 @@ public class CalamityCurseMenu extends AbstractContainerMenu {
         this(RegisterList.CALAMITY_CURES.get(), id, inventory.player);
     }
 
-    private static boolean matching(ItemStack stack, NonNullList<ItemStack> stacks, Map<Integer, Integer> slotChange) {
-        Item item = stack.getItem();
-        int count = stack.getCount();
-
-        for (int i = 0; i < stacks.size(); i++) {
-            ItemStack stack1 = stacks.get(i);
-            if (stack1.is(item)) {
-                int c = stack1.getCount();
-                if (c > count) {
-                    int difference = c - count;
-                    slotChange.put(i, difference);
-                    return true;
-                } else {
-                    count -= c;
-                    slotChange.put(i, 0);
+    @OnlyIn(Dist.CLIENT)
+    private void checkCostSituation() {
+        enough = new boolean[spend.length];
+        NonNullList<Slot> slots = this.slots;
+        for (int i = 0; i < spend.length; i++) {
+            ItemStack stack = spend[i];
+            Item item = stack.getItem();
+            int count = stack.getCount();
+            for (int j = 0; j < slots.size() - 1; j++) {
+                ItemStack stack1 = slots.get(j).getItem();
+                if (stack1.is(item)) {
+                    int c = stack1.getCount();
+                    if (c > count) {
+                        enough[i] = true;
+                    } else count -= c;
                 }
             }
         }
-
-        return count <= 0;
     }
 
     public void setCurseItemChanged(ItemStack stack) {
         curseSlot.setStackInSlot(0, stack);
     }
 
-    public void setShareRenderTag(ItemStack stack, String spell) {
-        stack.getCapability(EnchantmentProvider.CURSE_ENCHANTMENT).ifPresent(enchantment -> {
-            if (enchantment.isEffective()) {
-                CompoundTag tag = stack.getOrCreateTag();
-                tag.putInt(CalamityHelp.FONT_FLAG, 1);
-                tag.putString("spell", spell);
-            }
-        });
+    public void setShareRenderTag(ItemStack stack) {
+        CompoundTag tag = stack.getOrCreateTag();
+        tag.putInt(CalamityHelp.FONT_FLAG, 1);
+        tag.putString("spell", type.name());
     }
 
     public ItemStack getCurseSlotItem() {
@@ -190,19 +171,16 @@ public class CalamityCurseMenu extends AbstractContainerMenu {
     public void addPlayerInventory(Inventory inventory) {
         int x = 115;
         int y = 200;
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 9; j++) {
-                this.addSlot(new Slot(inventory, j + i * 9 + 9, x + j * 18, y + i * 18));
-            }
-        }
+        for (int i = 0; i < 3; i++)
+            for (int j = 0; j < 9; j++)
+                addSlot(new Slot(inventory, j + i * 9 + 9, x + j * 18, y + i * 18));
     }
 
     public void addPlayerHotbar(Inventory inventory) {
         int x = 115;
         int y = 258;
-        for (int i = 0; i < 9; i++) {
-            this.addSlot(new Slot(inventory, i, x + i * 18, y));
-        }
+        for (int i = 0; i < 9; i++)
+            addSlot(new Slot(inventory, i, x + i * 18, y));
     }
 
     private boolean isExhumed(ItemStack stack) {
@@ -227,7 +205,7 @@ public class CalamityCurseMenu extends AbstractContainerMenu {
                     screen.canRenderContent = true;
                 } else {
                     isExhumed = true;
-                    result = recipe.getResultItem(player.level().registryAccess());
+                    result = recipe.assemble(null, null);
                     reactantCount = recipe.getReactant().getCount();
                 }
 
@@ -252,13 +230,29 @@ public class CalamityCurseMenu extends AbstractContainerMenu {
         }
     }
 
-    public Map<Integer, Integer> synthesis(boolean interrupt) {
-        Inventory inventory = player.getInventory();
-        NonNullList<ItemStack> stacks = inventory.items;
-        Map<Integer, Integer> slotChange = new HashMap<>();
+    public Int2IntMap synthesis() {
+        Int2IntMap slotChange = new Int2IntArrayMap();
 
-        for (ItemStack ingredient : spend) {
-            if (!matching(ingredient, stacks, slotChange) && interrupt) return null;
+        loop: for (ItemStack ingredient : spend) {
+            Item item = ingredient.getItem();
+            int count = ingredient.getCount();
+
+            for (int i = 0; i < slots.size() - 1; i++) {
+                ItemStack stack1 = slots.get(i).getItem();
+                if (stack1.is(item)) {
+                    int c = stack1.getCount();
+                    if (c > count) {
+                        slotChange.put(i, c - count);
+                        continue loop;
+                    } else {
+                        count -= c;
+                        slotChange.put(i, 0);
+                    }
+                }
+            }
+
+
+            if (count > 0) return null;
         }
 
         return slotChange;

@@ -1,12 +1,11 @@
 package hua223.calamity.capability;
 
-import hua223.calamity.register.Items.CalamityItems;
+import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.register.sounds.CalamitySounds;
-import hua223.calamity.util.IDataPackResponse;
+import hua223.calamity.net.IDataPackResponse;
 import hua223.calamity.util.delaytask.DelayRunnable;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 
 public class Adrenaline implements BaseCap {
@@ -72,11 +71,11 @@ public class Adrenaline implements BaseCap {
         active = isActive;
         if (isActive) {
             if (isNanoMachinesMode) {
-                player.level().playSound(null, player, CalamitySounds.NANO_ACTIVATE.get(), SoundSource.PLAYERS, 1f, 1f);
+                CalamitySounds.NANO_ACTIVATE.playSound(player);
                 startNanoRepair(response);
             } else {
+                CalamitySounds.ADRENALINE_ACTIVATE.playSound(player);
                 startAdrenalineMode(response);
-                player.level().playSound(null, player, CalamitySounds.ADRENALINE_ACTIVATE.get(), SoundSource.PLAYERS, 1f, 1f);
             }
         }
     }
@@ -154,7 +153,7 @@ public class Adrenaline implements BaseCap {
             bitFlags = (byte) (bitFlags | 1 << flag);
             damageOffset += 0.05f;
             amplifier += 0.2f;
-            IDataPackResponse response = CalamityItems.DRAEDON_HEART.asPackHandler();
+            IDataPackResponse response = (IDataPackResponse) CalamityItems.DRAEDON_HEART.get();
             response.getPack().putByte("count", getAdrenalineItemCount());
             response.sendToClient(player);
             return true;
@@ -187,7 +186,7 @@ public class Adrenaline implements BaseCap {
     }
 
     public void syncData() {
-        IDataPackResponse response = CalamityItems.DRAEDON_HEART.asPackHandler();
+        IDataPackResponse response = (IDataPackResponse) CalamityItems.DRAEDON_HEART.get();
         CompoundTag tag = response.getPack();
         tag.putInt("value", value);
         tag.putBoolean("state", enabled);

@@ -11,24 +11,18 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.function.BiConsumer;
 
 public class MagicBurn extends CountFactorEffects {
     protected MagicBurn(MobEffectCategory pCategory, int pColor) {
         super(pCategory, pColor);
     }
-
-    @Override
-    public float[] initFactorData(MobEffectInstance instance) {
-        return new float[]{instance.getDuration()};
-    }
-
     @Override
     public boolean isDurationEffectTick(int pDuration, int pAmplifier) {
         return pDuration % 20 == 0;
     }
 
     @Override
+    @SuppressWarnings("ConstantConditions")
     public void applyEffectTick(@NotNull LivingEntity entity, int amplifier) {
         if (!entity.level().isClientSide) {
             MobEffectInstance instance = entity.getEffect(this);
@@ -36,6 +30,11 @@ public class MagicBurn extends CountFactorEffects {
             float heal = entity.getMaxHealth() * 0.1f;
             entity.hurt(entity.damageSources().magic(), (float) (Math.sqrt(intensity) * Math.pow(heal, 1 + intensity)));
         }
+    }
+
+    @Override
+    protected CountFactor factory() {
+        return new CountFactor(1);
     }
 
     @Override

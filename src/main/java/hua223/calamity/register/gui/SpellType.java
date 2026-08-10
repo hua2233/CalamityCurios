@@ -11,11 +11,10 @@ import hua223.calamity.main.CalamityCurios;
 import hua223.calamity.net.NetMessages;
 import hua223.calamity.net.packets.FatigueDataSync;
 import hua223.calamity.register.attribute.CalamityAttributes;
+import hua223.calamity.register.damage.DamageSupplier;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.register.entity.DemonGate;
 import hua223.calamity.util.CalamityHelp;
-import hua223.calamity.util.damage.CalamityDamageSource;
-import hua223.calamity.util.damage.CalamityDamageTypes;
 import hua223.calamity.util.delaytask.DelayRunnable;
 import io.redspace.ironsspellbooks.api.item.weapons.MagicSwordItem;
 import io.redspace.ironsspellbooks.item.CastingItem;
@@ -233,8 +232,7 @@ public enum SpellType {
         @SuppressWarnings("ConstantConditions")
         public void onMainHandChange(boolean to, ItemStack stack, ServerPlayer player) {
             super.onMainHandChange(to, stack, player);
-            player.Calamity$Player.getSpellData().oblatorySource = to ? CalamityDamageSource.source(
-                CalamityDamageTypes.POLARIZER_HURT, player) : null;
+            player.Calamity$Player.getSpellData().oblatorySource = to ? DamageSupplier.MAGIC_PROJECTILE.get(player) : null;
             UUID id = UUID.nameUUIDFromBytes(name().getBytes());
             AttributeInstance instance = player.getAttribute(CalamityAttributes.MAGIC_REDUCTION.get());
             if (to) instance.addTransientModifier(new AttributeModifier(id,

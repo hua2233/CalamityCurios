@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:nature_rune"
+    },
+    "C": {
+      "item": "calamity_curios:honey_dew"
+    },
+    "H": {
+      "item": "calamity_curios:sunlight_essence"
+    }
+  },
+  "pattern": [
+    "   ",
+    "HCH",
+    "AAA"
+  ],
+  "result": {
+    "item": "calamity_curios:living_dew"
+  }
+}

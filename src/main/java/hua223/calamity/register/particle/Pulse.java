@@ -1,11 +1,12 @@
 package hua223.calamity.register.particle;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import hua223.calamity.util.CalamityHelp;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
-import hua223.calamity.util.CurveSegment;
+import hua223.calamity.render.CurveSegment;
 import hua223.calamity.util.RenderUtil;
-import hua223.calamity.util.Vector2d;
+import hua223.calamity.util.Vector2f;
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.ParticleRenderType;
@@ -29,7 +30,7 @@ public class Pulse extends SingleTexturedParticle {
     private final float originalScale;
     private final float finalScale;
     private final Quaternionf rotation;
-    private final Vector2d squish;
+    private final Vector2f squish;
     private final Vector4i baseColor;
     private final boolean stationary;
     private final Vector4i color = RenderUtil.black();
@@ -42,7 +43,7 @@ public class Pulse extends SingleTexturedParticle {
     private float scaleOld;
 
     public Pulse(ClientLevel level, double x, double y, double z, Vector4i color, double speedX, double speedY,
-                 float originalScale, float finalScale, int lifeTime, float rotation, Vector2d squish) {
+                 float originalScale, float finalScale, int lifeTime, float rotation, Vector2f squish) {
         super(level, x, y, z);
         xd = speedX;
         yd = speedY;
@@ -77,7 +78,7 @@ public class Pulse extends SingleTexturedParticle {
         }
 
         float lifetimeCompletion = (float) age / lifetime;
-        float pulseProgress = RenderUtil.piecewiseAnimation(lifetimeCompletion, curveSegments);
+        float pulseProgress = CurveSegment.piecewiseAnimation(lifetimeCompletion, curveSegments);
 
         scaleOld = scale;
         scale = Mth.lerp(pulseProgress, originalScale, finalScale);
@@ -100,12 +101,12 @@ public class Pulse extends SingleTexturedParticle {
         float z = (float)  (this.z - position.z);
 
         float scaleLerp = Mth.lerp(partialTick, scaleOld, scale);
-        float height = (float) (squish.y * scaleLerp);
-        float width = (float) (squish.x * scaleLerp);
+        float height = squish.y * scaleLerp;
+        float width = squish.x * scaleLerp;
 
         //Hey, bro, if you see this comment, take a break, relax your eyes, go ahead, it's allowed by Miku! ~v·)
         Entity entity = camera.getEntity();
-        RenderUtil.reuseQuaternions(varQuaternion, 0, 1, 0, -Mth.rotLerp(partialTick, entity.yRotO, entity.getYRot()));
+        RenderUtil.reuseQuaternions(varQuaternion, CalamityHelp.UNIT_Y, -Mth.rotLerp(partialTick, entity.yRotO, entity.getYRot()));
         varQuaternion.mul(rotation);
         resetVertexData(x, y, z, height, width, varQuaternion);
 
@@ -126,7 +127,7 @@ public class Pulse extends SingleTexturedParticle {
         @Override
         protected SingleTexturedParticle getParticle(PulseOptions type, ClientLevel level, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
             return new Pulse(level, x, y, z, type.color, xSpeed, ySpeed,
-                type.originalScale, type.finalScale, type.lifetime, type.rotation, new Vector2d(type.squishX, type.squishY));
+                type.originalScale, type.finalScale, type.lifetime, type.rotation, new Vector2f(type.squishX, type.squishY));
         }
 
     }

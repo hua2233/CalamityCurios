@@ -52,7 +52,7 @@ public class Evolution extends BaseCurio implements ICuriosStorage {
                 projectile.yRotO = projectile.getYRot();
                 projectile.xRotO = projectile.getXRot();
                 projectile.setOwner(player);
-                projectile.calamity$Indestructible = true;
+                projectile.getTags().add("Indestructible");
                 projectile.getPersistentData().putBoolean("evolution", true);
 
                 memory.putTypeStorage(type);

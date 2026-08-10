@@ -3,7 +3,7 @@ package hua223.calamity.render;
 import hua223.calamity.register.gui.SpellType;
 import hua223.calamity.render.font.BurnishedAuric;
 import hua223.calamity.render.font.CurseFont;
-import hua223.calamity.util.ICalamityFont;
+import hua223.calamity.render.font.ICalamityFont;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -28,7 +28,7 @@ public class CalamityTooltipExtensions implements ClientTooltipComponent {
         switch (type) {
             case 1 -> {
                 String spell = tag.getString("spell");
-                component = spell.equals("EXHUMED") ? text : SpellType.valueOf(spell)
+                component = spell.isEmpty() ? text : SpellType.valueOf(spell)
                     .getTypeComponent().getString() + ' ' + text;
                 font = CurseFont.setOrCreateFormat(stack);
             }

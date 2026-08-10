@@ -2,8 +2,9 @@ package hua223.calamity.render.font;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import hua223.calamity.events.LogoutRelease;
 import hua223.calamity.render.CurseEnchantmentExtensions;
-import hua223.calamity.util.ICalamityFont;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.FormattedCharSequence;
@@ -48,7 +49,8 @@ public class CurseFont extends Font implements ICalamityFont {
         else return createDefaultFontFormat(stack);
     }
 
-    public static void reSet() {
+    @LogoutRelease
+    public static void reSet(LocalPlayer player) {
         EXTENSIONS.clear();
     }
 
@@ -98,7 +100,7 @@ public class CurseFont extends Font implements ICalamityFont {
         float backScale = Mth.lerp(backInterpolant, 1.0f, 1.2f);
 
         setMixedColor();
-        RenderUtil.multiplyColor(RenderUtil.interpolateColor(MIXED_COLOR, RenderUtil.DARK_RED, backInterpolant, MIXED_COLOR),
+        RenderUtil.multiplyColor(RenderUtil.interpolateColor(MIXED_COLOR, new Vector4i(139, 0, 0, 255), backInterpolant, MIXED_COLOR),
             (float) Math.pow(1f - backInterpolant, 0.46f), MIXED_COLOR);
 
         transientMatrix.set(sourceMatrix);

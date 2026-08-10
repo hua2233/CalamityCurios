@@ -2,10 +2,10 @@ package hua223.calamity.register.effects;
 
 import hua223.calamity.util.CMLangUtil;
 import net.minecraft.network.chat.Style;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
@@ -41,8 +41,7 @@ public class FungalClump extends CalamityEffect implements IEffectsCallBack {
 
     @Override
     public void onAdd(MobEffectInstance effect, LivingEntity entity, Entity source) {
-        if (source.getType() == EntityType.PLAYER)
-            entity.getPersistentData().putUUID("owner", source.getUUID());
+        if (source instanceof ServerPlayer) entity.getPersistentData().putUUID("owner", source.getUUID());
         else effect.calamity$SetProperties(0, effect.getDuration(), null);;
     }
 

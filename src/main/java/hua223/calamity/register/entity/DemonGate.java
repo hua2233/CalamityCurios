@@ -33,6 +33,7 @@ import org.joml.Matrix4f;
 
 import java.util.UUID;
 
+@AutoEntityRegister(sized = {1.65F + 0.185F * 6, 0.2f}, trackingRange = 32, velocityUpdates = false)
 public class DemonGate extends Entity {
     private float health;
     private UUID player;
@@ -55,7 +56,7 @@ public class DemonGate extends Entity {
     @SuppressWarnings("ConstantConditions")
     public static void spawn(ServerPlayer player) {
         ServerLevel level = player.serverLevel();
-        DemonGate gate = CalamityEntity.DEMON_GATE.get().create(level);
+        DemonGate gate = CalamityCurios.getEntityType(DemonGate.class).create(level);
         gate.noPhysics = true;
         gate.setNoGravity(true);
         gate.setPos(player.position().add(0, 0.05, 0));

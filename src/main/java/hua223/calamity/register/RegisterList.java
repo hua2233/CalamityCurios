@@ -3,16 +3,19 @@ package hua223.calamity.register;
 import hua223.calamity.integration.curios.Decks;
 import hua223.calamity.main.CalamityCurios;
 import hua223.calamity.main.CalamityLightBlock;
-import hua223.calamity.register.Items.CalamityItems;
+import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.register.enchantments.DemonShadeBless;
 import hua223.calamity.register.enchantments.SharedPain;
-import hua223.calamity.register.entity.CalamityEntity;
 import hua223.calamity.register.gui.CalamityCurseMenu;
 import hua223.calamity.register.recipe.CalamityCurseRecipe;
 import hua223.calamity.register.recipe.CalamityCurseSerializer;
 import hua223.calamity.register.sounds.CalamitySounds;
+import hua223.calamity.register.spell.BrimstoneBarrierSpell;
+import hua223.calamity.register.spell.NebulousSpell;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -20,7 +23,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.inventory.MenuType;
@@ -44,21 +46,30 @@ import java.util.Arrays;
 import java.util.List;
 
 import static hua223.calamity.main.CalamityCurios.MODID;
-import static hua223.calamity.register.Items.CalamityItems.YHARIM_GIFT;
-import static hua223.calamity.register.Items.CalamityItems.ZENITH;
+import static hua223.calamity.register.items.CalamityItems.YHARIM_GIFT;
+import static hua223.calamity.register.items.CalamityItems.ZENITH;
 
 public class RegisterList {
+    //Tag
 //    public static final TagKey<Item> WING = ItemTags.create(CalamityCurios.ModResource("wing"));
 //    public static final TagKey<Item> TREADS = ItemTags.create(CalamityCurios.ModResource("treads"));
 //    public static final TagKey<Item> SPRINT = ItemTags.create(CalamityCurios.ModResource("sprint"));
+
+    //Register
     public static DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
     public static DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, MODID);
-    public static DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, MODID);
+//    public static DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, MODID);
     public static DeferredRegister<MobEffect> EFFECTS = DeferredRegister.create(ForgeRegistries.MOB_EFFECTS, MODID);
     public static DeferredRegister<Attribute> ATTRIBUTES = DeferredRegister.create(ForgeRegistries.ATTRIBUTES, MODID);
     public static RegistryObject<MenuType<CalamityCurseMenu>> CALAMITY_CURES;
+
     public static RegistryObject<Enchantment> SHARED_PAIN;
     public static RegistryObject<Enchantment> DEMON_SHADE_BLESS;
+
+    public static RegistryObject<AbstractSpell> CRESCENT_STANCE;
+    public static RegistryObject<AbstractSpell> NEBULOUS;
+
+    //Properties
     public static Item.Properties CURIOS_COMMON = new Item.Properties().stacksTo(1);
     public static final Rarity CALAMITY = Rarity.create("CALAMITY", ChatFormatting.DARK_RED);
     public static Item.Properties CURIOS_UNCOMMON = new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON);
@@ -75,7 +86,7 @@ public class RegisterList {
     public static Item.Properties ITEM_CALAMITY = new Item.Properties().stacksTo(1).rarity(CALAMITY);
 
     public static int curiosIndex;
-    public static boolean fillCurios = true;
+//    public static boolean fillCurios = true;
     private static Item.Properties properties;
 
     public static void setUniqueProperties(@NotNull Item.Properties properties) {
@@ -162,7 +173,6 @@ public class RegisterList {
 
     public static void build(IEventBus bus) {
         CalamityItems.register(bus);
-        CalamityEntity.register(bus);
         CalamitySounds.register(bus);
         CalamityEffects.register(bus);
         CalamityAttributes.build(bus);
@@ -183,6 +193,13 @@ public class RegisterList {
         SHARED_PAIN = ENCHANTMENT.register("shared_pain", SharedPain::new);
         DEMON_SHADE_BLESS = ENCHANTMENT.register("demon_shade_bless", DemonShadeBless::new);
         ENCHANTMENT.register(bus);
+
+        DeferredRegister<AbstractSpell> SPELLS = DeferredRegister.create(SpellRegistry.SPELL_REGISTRY_KEY, MODID);
+        AbstractSpell stance = new BrimstoneBarrierSpell();
+        CRESCENT_STANCE = SPELLS.register(stance.getSpellName(), () -> stance);
+        AbstractSpell nebulous = new NebulousSpell();
+        NEBULOUS = SPELLS.register(nebulous.getSpellName(), () -> nebulous);
+        SPELLS.register(bus);
 
         DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
         TABS.register("calamity_item", () -> CreativeModeTab
@@ -221,7 +238,6 @@ public class RegisterList {
 
         ITEMS = null;
         SOUND_EVENTS = null;
-        ENTITIES = null;
         EFFECTS = null;
         ATTRIBUTES = null;
         CURIOS_COMMON = null;

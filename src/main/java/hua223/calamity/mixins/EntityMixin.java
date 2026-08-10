@@ -1,7 +1,5 @@
 package hua223.calamity.mixins;
 
-import hua223.calamity.events.BossRushEvent;
-import hua223.calamity.events.ClientRushEvent;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
@@ -9,7 +7,6 @@ import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -44,8 +41,7 @@ public abstract class EntityMixin {
             for (VoxelShape shape : level.getBlockCollisions(entity, collisionBox.expandTowards(vec)))
                 shapes.add(shape);
 
-            if (level.isClientSide ? ClientRushEvent.isBossRushEventActivating() : BossRushEvent.isBossRushEventActivating())
-                shapes.add(level.isClientSide ? ClientRushEvent.getVenueShape() : BossRushEvent.getVenueShape());
+            if (border.calamity$Shape != null) shapes.add(border.calamity$Shape);
         }
 
         return collideWithShapes(vec, collisionBox, shapes);

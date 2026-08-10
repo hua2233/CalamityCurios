@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:epic_ink"
+    },
+    "H": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "U": {
+      "item": "irons_spellbooks:arcane_essence"
+    }
+  },
+  "pattern": [
+    "HHH",
+    "HAH",
+    " U "
+  ],
+  "result": {
+    "item": "calamity_curios:aureus_cell",
+    "count": 3
+  }
+}

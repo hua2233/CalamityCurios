@@ -1,20 +1,34 @@
 package hua223.calamity.net;
 
+import hua223.calamity.main.AnnotationProcessor;
 import hua223.calamity.main.CalamityCurios;
-import hua223.calamity.net.packets.*;
-import net.jodah.typetools.TypeResolver;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Tuple;
+import net.minecraftforge.fml.loading.moddiscovery.ModAnnotation;
+import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 
+import java.lang.invoke.*;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.function.Function;
 
 public class NetMessages {
     private static SimpleChannel INSTANCE;
 
-    public static void registerNetPack() {
+    public static void registerNetPack(AnnotationProcessor annotationProcessor) {
+        ArrayList<Tuple<Class<?>, NetworkDirection>> packs = new ArrayList<>();
+        annotationProcessor.addStartProcessingEntries(CommunicationDirection.class, processor ->
+            packs.add(new Tuple<>(processor.getDataClass(), NetworkDirection.valueOf(
+                ((ModAnnotation.EnumHolder) processor.getAnnotationData().annotationData().get("value")).getValue()))));
+        annotationProcessor.addPostProcessor(() -> NetMessages.registerNetPack(packs));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void registerNetPack(ArrayList<Tuple<Class<?>, NetworkDirection>> communicationClass) {
         final String PROTOCOL_VERSION = "1.0";
 
         //initialization
@@ -25,43 +39,67 @@ public class NetMessages {
             .serverAcceptedVersions(PROTOCOL_VERSION::equals)
             .simpleChannel();
 
-        //Am I too lazy?...
-        registerPack(ApplySprint::new, ApplyKeyEvent::new, CurseEnchantmentPack::new,
-            SpellTypeSync::new, PersistentCurseFontSync::new, OpenEnchantGui::new,
-            FatigueDataSync::new, ClientLongPressTrigger::new, DataPackActive::new,
-            ItemResponsePack::new, ReduceCooldown::new, OutlineDetected::new,
-            EffectSync::new);
-    }
+        MethodType constructorType = MethodType.methodType(void.class, FriendlyByteBuf.class);
+        MethodHandles.Lookup lookup = MethodHandles.lookup();
+        MethodType factoryType = MethodType.methodType(Function.class);
+        MethodType interfaceType = MethodType.methodType(Object.class, Object.class);
 
-    @SafeVarargs
-    private static <T extends DataPack> void registerPack(Function<FriendlyByteBuf, T>... decoders) {
-        for (int i = 0; i < decoders.length; i++) {
-            Class<T> pack = getPackType(decoders[i]);
-            INSTANCE.messageBuilder(pack, i, pack.getAnnotation(CommunicationDirection.class).value())
-                .decoder(decoders[i])
-                .encoder(T::toBytes)
-                .consumerMainThread(T::processOnSide).add();
+        final byte[] indexSet = new byte[256];
+        //There must be a public constructor that only accepts FriendlyByteBuf, otherwise NoSuchMethodException will be thrown
+        try {
+            //Ensure consistency of linear detection IDs
+            communicationClass.sort(Comparator.comparingInt(v -> v.getA().getSimpleName().hashCode()));
+            for (Tuple<Class<?>, NetworkDirection> entry : communicationClass) {
+                Class<?> clazz = entry.getA();
+                MethodHandle ctorHandle = lookup.findConstructor(clazz, constructorType);
+                registerPack(indexSet, clazz, (Function<FriendlyByteBuf, DataPack>) LambdaMetafactory.metafactory(
+                    lookup, "apply", factoryType, interfaceType, ctorHandle,
+                    MethodType.methodType(clazz, FriendlyByteBuf.class)).getTarget().invokeExact(), entry.getB());
+            }
+        } catch (Throwable e) {
+            CalamityCurios.LOGGER.error("Construct packet classes for illegal communication!", e);
+            throw new RuntimeException(e);
         }
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> Class<T> getPackType(Function<FriendlyByteBuf, T> decoder) {
-        Class<?> type = TypeResolver.resolveRawArguments(Function.class, decoder.getClass())[1];
-        if (type != TypeResolver.Unknown.class) return (Class<T>) type;
+    private static <T extends DataPack> void registerPack(byte[] indexSet, Class<?> tClass, Function<FriendlyByteBuf, T> decoders, NetworkDirection direction) {
+        final int initial = tClass.getSimpleName().hashCode() & 255;
+        int id = initial;
+        while (true) {
+            if (indexSet[id] == 0) {
+                indexSet[id] = 1;
+                break;
+            } else {
+                if (++id == indexSet.length) id = 0;
+                else if(id == initial) throw new UnsupportedOperationException("This channel has reached the maximum limit for processing data packets");
+            }
+        }
 
-        CalamityCurios.LOGGER.error("Failed to resolve data pack type for \"{}\"", decoder);
-        throw new IllegalStateException("Failed to parse illegal packet types");
+        INSTANCE.messageBuilder((Class<T>) tClass, id, direction)
+            .decoder(decoders)
+            .encoder(T::toBytes)
+            .consumerMainThread(T::processOnSide).add();
     }
 
-    public static <MSG> void sendToServer(MSG messages) {
+//    @SuppressWarnings("unchecked")
+//    private static <T> Class<T> getPackType(Function<FriendlyByteBuf, T> decoder) {
+//        Class<?> type = TypeResolver.resolveRawArguments(Function.class, decoder.getClass())[1];
+//        if (type != TypeResolver.Unknown.class) return (Class<T>) type;
+//
+//        CalamityCurios.LOGGER.error("Failed to resolve data pack type for \"{}\"", decoder);
+//        throw new IllegalStateException("Failed to parse illegal packet types");
+//    }
+
+    public static <MSG extends DataPack> void sendToServer(MSG messages) {
         INSTANCE.sendToServer(messages);
     }
 
-    public static <MSG> void sendToClient(MSG messages, ServerPlayer player) {
+    public static <MSG extends DataPack> void sendToClient(MSG messages, ServerPlayer player) {
         INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), messages);
     }
 
-    public static <MSG> void sendToAllClient(MSG messages) {
+    public static <MSG extends DataPack> void sendToAllClient(MSG messages) {
         INSTANCE.send(PacketDistributor.ALL.noArg(), messages);
     }
 }

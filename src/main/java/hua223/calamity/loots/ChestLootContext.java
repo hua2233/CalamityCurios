@@ -24,4 +24,9 @@ public class ChestLootContext extends BaseLootContextPacker {
     public boolean fromFuzzyType(String type) {
         return idString.contains(type);
     }
+
+    @Override
+    public boolean triggeredByPlayers() {
+        return player != null;
+    }
 }

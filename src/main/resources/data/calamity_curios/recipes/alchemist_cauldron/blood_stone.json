@@ -1,0 +1,15 @@
+{
+  "type": "irons_spellbooks:alchemist_cauldron_brew",
+  "base_fluid": {
+    "Amount": 250,
+    "FluidName": "irons_spellbooks:blood"
+  },
+  "input": {
+    "item": "minecraft:blackstone"
+  },
+  "byproduct": {
+    "item": "calamity_curios:blood_stone",
+    "count": 4
+  },
+  "results": []
+}

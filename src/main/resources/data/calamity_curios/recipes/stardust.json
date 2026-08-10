@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "X" : {
+      "item": "irons_spellbooks:ice_rune"
+    },
+    "N": {
+      "item": "irons_spellbooks:frosted_helve"
+    }
+  },
+  "pattern": [
+    "   ",
+    " XX",
+    " NN"
+  ],
+  "result": {
+    "item": "calamity_curios:stardust_fragment",
+    "count": 3
+  }
+}

@@ -42,7 +42,7 @@ public class Community extends BaseCurio implements ICuriosStorage {
     @Override
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
         CompoundTag tag = stack.getOrCreateTag();
-        if (!tag.contains("heal")) init(tag);
+        if (!tag.contains("damage")) applyNbt(tag);
         getCount(player)[1] = tag.getFloat("heal");
         player.Calamity$Player.extraFlyTime += tag.getFloat("flyTime");
     }
@@ -54,12 +54,12 @@ public class Community extends BaseCurio implements ICuriosStorage {
 
     @Override
     public @NotNull ItemStack getDefaultInstance() {
-        ItemStack stack = super.getDefaultInstance();
-        init(stack.getOrCreateTag());
+        ItemStack stack = new ItemStack(this);
+        applyNbt(stack.getOrCreateTag());
         return stack;
     }
 
-    private static void init(CompoundTag tag) {
+    private static void applyNbt(CompoundTag tag) {
         tag.putFloat("damage", 0.05f);
         tag.putFloat("critical", 0.02f);
         tag.putFloat("armor", 2f);

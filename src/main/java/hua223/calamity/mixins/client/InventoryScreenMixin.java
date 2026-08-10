@@ -1,7 +1,6 @@
 package hua223.calamity.mixins.client;
 
-import hua223.calamity.render.EnchantedParticleSet;
-import hua223.calamity.util.RenderUtil;
+import hua223.calamity.render.screen.particleset.EnchantedParticleSet;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
@@ -23,27 +22,24 @@ public abstract class InventoryScreenMixin extends AbstractContainerScreen<Inven
 
     @Inject(method = "containerTick", at = @At("TAIL"))
     private void updateEnchanted(CallbackInfo ci) {
-        if (RenderUtil.renderGuiEnchantParticle) {
-            RenderUtil.renderGuiEnchantParticle = false;
-            EnchantedParticleSet.update();
-        }
+        EnchantedParticleSet.getInstance().update();
     }
 
     @Inject(method = "render", at = @At("HEAD"))
     private void startEnchanted(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
-        EnchantedParticleSet.isInventory = true;
+        EnchantedParticleSet.getInstance().isInventory = true;
     }
 
     @Inject(method = "render", at = @At("TAIL"))
     private void endEnchanted(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
-        EnchantedParticleSet.isInventory = false;
+        EnchantedParticleSet.getInstance().isInventory = false;
     }
 
     @SuppressWarnings("ConstantConditions")
     @Inject(method = "init", at = @At(value = "INVOKE", shift = At.Shift.AFTER,
         target = "Lnet/minecraft/client/gui/screens/inventory/EffectRenderingInventoryScreen;init()V"))
     private void initEnchanted(CallbackInfo ci) {
-        EnchantedParticleSet.initializationParticlePool();
+        EnchantedParticleSet.create(minecraft.level.getRandom());
 
     }
 

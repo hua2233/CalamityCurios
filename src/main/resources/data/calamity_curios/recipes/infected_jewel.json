@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "calamity_curios:crown_jewel"
+    },
+    "U": {
+      "item": "irons_spellbooks:nature_rune"
+    },
+    "H": {
+      "item": "calamity_curios:aureus_cell"
+    }
+  },
+  "pattern": [
+    "HUH",
+    "HAH",
+    "HUH"
+  ],
+  "result": {
+    "item": "calamity_curios:infected_jewel"
+  }
+}

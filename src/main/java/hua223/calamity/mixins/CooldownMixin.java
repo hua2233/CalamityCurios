@@ -22,6 +22,7 @@ public class CooldownMixin {
     @Shadow
     private int tickCount;
 
+    @Unique
     public void calamity$ReduceCooldown(Item item, int tick, @Nullable ServerPlayer player) {
         ItemCooldowns.CooldownInstance instance = cooldowns.get(item);
         if (instance.calamity$ReduceCooldown(tick) && player != null)
@@ -63,7 +64,7 @@ public class CooldownMixin {
         @Shadow @Final
         int startTime;
 
-
+        @Unique
         public boolean calamity$ReduceCooldown(int tick) {
             if (calamity$GetEndTime() > 0) {
                 calamity$AccelerateTick += tick;
@@ -73,10 +74,12 @@ public class CooldownMixin {
             return false;
         }
 
+        @Unique
         public int calamity$GetEndTime() {
            return endTime - calamity$AccelerateTick;
         }
 
+        @Unique
         public float calamity$CalculatePercent(int tickCount, float partialTick) {
             return Mth.clamp((calamity$GetEndTime() - tickCount - partialTick) / (endTime - startTime), 0.0F, 1.0F);
         }

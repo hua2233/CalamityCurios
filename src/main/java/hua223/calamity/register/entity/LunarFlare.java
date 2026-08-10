@@ -3,8 +3,8 @@ package hua223.calamity.register.entity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import hua223.calamity.main.CalamityCurios;
+import hua223.calamity.register.damage.DamageSupplier;
 import hua223.calamity.register.sounds.CalamitySounds;
-import hua223.calamity.util.damage.CalamityDamageSource;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -17,9 +17,7 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -33,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
+@AutoEntityRegister(sized = {1f, 1f}, trackingRange = 16, velocityUpdates = false)
 public class LunarFlare extends Entity {
     private ServerPlayer owner;
     private DamageSource source;
@@ -44,17 +43,17 @@ public class LunarFlare extends Entity {
     @OnlyIn(Dist.CLIENT)
     private final RenderType type = RenderType.entityCutout(CalamityCurios.ModResource("textures/entity/lunar_flare.png"));
 
-    LunarFlare(EntityType<?> entityType, Level level) {
+    public LunarFlare(EntityType<?> entityType, Level level) {
         super(entityType, level);
         noPhysics = true;
     }
 
     public static void create(ServerPlayer player, Vec3 position) {
         ServerLevel level = player.serverLevel();
-        LunarFlare flare = CalamityEntity.LUNAR_FLARE.get().create(level);
+        LunarFlare flare = CalamityCurios.getEntityType(LunarFlare.class).create(level);
         if (flare != null) {
             flare.owner = player;
-            flare.source = CalamityDamageSource.source(DamageTypes.MAGIC, player);
+            flare.source = DamageSupplier.MAGIC_PROJECTILE.get(player);
             flare.setPos(position);
             level.addFreshEntity(flare);
         }
@@ -63,8 +62,7 @@ public class LunarFlare extends Entity {
     @Override
     public void tick() {
         if (tickCount == 9) {
-            if (level().isClientSide)
-                level().playSound(null, this, CalamitySounds.LUNAR_FLARE.get(), SoundSource.AMBIENT, 1f, 1f);
+            if (level().isClientSide)  CalamitySounds.LUNAR_FLARE.playSound(this);
              else {
                 final float damage = (float) owner.getAttributeValue(Attributes.ATTACK_DAMAGE);
                 level().getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(1.5))
@@ -105,8 +103,8 @@ public class LunarFlare extends Entity {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static class Render extends EntityRenderer<LunarFlare> {
-        public Render(EntityRendererProvider.Context context) {
+    public static class Renderer extends EntityRenderer<LunarFlare> {
+        public Renderer(EntityRendererProvider.Context context) {
             super(context);
         }
 

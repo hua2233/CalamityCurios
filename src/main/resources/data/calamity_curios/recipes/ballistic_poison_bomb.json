@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A" : {
+      "item": "irons_spellbooks:nature_rune"
+    },
+    "C": {
+      "item": "calamity_curios:seafoam_bomb"
+    }
+  },
+  "pattern": [
+    "AAA",
+    "ACA",
+    "AAA"
+  ],
+  "result": {
+    "item": "calamity_curios:ballistic_poison_bomb"
+  }
+}

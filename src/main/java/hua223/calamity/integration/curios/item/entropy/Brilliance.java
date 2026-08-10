@@ -3,11 +3,9 @@ package hua223.calamity.integration.curios.item.entropy;
 import hua223.calamity.integration.curios.Card;
 import hua223.calamity.loots.ApplyGlobalLoot;
 import hua223.calamity.loots.EntitiesLootContext;
-import hua223.calamity.loots.GlobalLoot;
 import hua223.calamity.main.CalamityLightBlock;
-import hua223.calamity.register.Items.CalamityItems;
+import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.ICuriosStorage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -23,7 +21,6 @@ import java.util.List;
 public class Brilliance extends Card implements ICuriosStorage {
     public Brilliance(Properties properties) {
         super(properties);
-        GlobalLoot.mountTo(this);
     }
 
     @Override
@@ -37,7 +34,7 @@ public class Brilliance extends Card implements ICuriosStorage {
     }
 
     @ApplyGlobalLoot
-    public final void onGlobalEntityLoot(EntitiesLootContext context) {
+    public void onGlobalEntityLoot(EntitiesLootContext context) {
         if (context.onlyVerification(EntityType.WANDERING_TRADER)
             && context.player.level().isDay() && context.chance(0.2f))
             context.addLoot(this, 1);

@@ -1,0 +1,45 @@
+{
+	"format_version": "1.21.11",
+	"credit": "Made with Blockbench",
+	"parent": "minecraft:item/generated",
+	"textures": {
+		"layer0": "calamity_curios:item/storm_maidens_retribution"
+	},
+	"display": {
+		"thirdperson_righthand": {
+			"rotation": [55, 90, 0],
+			"translation": [0, 10, 4],
+			"scale": [2, 2, 0.85]
+		},
+		"thirdperson_lefthand": {
+			"rotation": [55, -90, 0],
+			"translation": [0, 10, 4],
+			"scale": [2, 2, 0.85]
+		},
+		"firstperson_righthand": {
+			"rotation": [40, 90, 5],
+			"translation": [0.75, 2.5, 0.25],
+			"scale": [1.5, 1.5, 0.4]
+		},
+		"firstperson_lefthand": {
+			"rotation": [40, -90, 5],
+			"translation": [0.75, 2.5, 0.25],
+			"scale": [1.5, 1.5, 0.4]
+		},
+		"ground": {
+			"translation": [0, 7, 0],
+			"scale": [1.7, 1.7, 0.7]
+		},
+		"fixed": {
+			"scale": [1.7, 1.7, 0.7]
+		}
+	},
+	"overrides": [
+		{
+			"predicate": {
+				"calamity_curios:storm_maidens": 1
+			},
+			"model": "calamity_curios:item/storm_maidens_throwing"
+		}
+	]
+}

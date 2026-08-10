@@ -28,7 +28,7 @@ public class CalamityCurseSerializer implements RecipeSerializer<CalamityCurseRe
 
     private static void parseRenderData(CalamityCurseRecipe recipe, JsonObject serializedRecipe) {
         JsonObject render = GsonHelper.getAsJsonObject(serializedRecipe, "renderer");
-        ItemStack stack = recipe.getResult();
+        ItemStack stack = recipe.getResultItem(null);
 
         if (GsonHelper.getAsBoolean(render, "isDefault")) {
             EnchantmentProvider.addDefaultProvider(stack);
@@ -83,7 +83,7 @@ public class CalamityCurseSerializer implements RecipeSerializer<CalamityCurseRe
 
     @Override
     public void toNetwork(FriendlyByteBuf buffer, CalamityCurseRecipe recipe) {
-        buffer.writeItemStack(recipe.getResult(), false);
+        buffer.writeItemStack(recipe.getResultItem(null), false);
         buffer.writeItemStack(recipe.getReactant(), false);
         NonNullList<Ingredient> ingredients = recipe.getIngredients();
         buffer.writeVarInt(ingredients.size());

@@ -1,34 +1,17 @@
 package hua223.calamity.util;
 
-import com.google.common.collect.ImmutableMap;
-import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.*;
-import dev.kosmx.playerAnim.api.firstPerson.FirstPersonConfiguration;
-import dev.kosmx.playerAnim.api.firstPerson.FirstPersonMode;
-import dev.kosmx.playerAnim.api.layered.KeyframeAnimationPlayer;
-import dev.kosmx.playerAnim.core.data.AnimationFormat;
-import dev.kosmx.playerAnim.core.data.KeyframeAnimation;
-import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationAccess;
-import hua223.calamity.events.ClientRushEvent;
 import hua223.calamity.main.CalamityCurios;
-import hua223.calamity.register.effects.CalamityEffects;
-import hua223.calamity.register.recipe.CalamityCurseRecipe;
 import hua223.calamity.render.*;
-import hua223.calamity.util.delaytask.DelayRunnable;
+import hua223.calamity.render.screen.ErosionScreenRenderer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.ParticleRenderType;
-import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.entity.ItemRenderer;
-import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureManager;
@@ -41,43 +24,25 @@ import net.minecraft.server.packs.resources.ResourceProvider;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraft.world.item.Item;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.IItemDecorator;
-import net.minecraftforge.client.ItemDecoratorHandler;
 import net.minecraftforge.client.event.RegisterShadersEvent;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.client.event.RenderLivingEvent;
 import org.jetbrains.annotations.NotNull;
 import org.joml.*;
 
-import java.io.IOException;
+import java.awt.*;
 import java.lang.Math;
-import java.lang.reflect.Constructor;
-import java.util.*;
-import java.util.Random;
+import java.util.function.Supplier;
 
 //To be refactored...
 @OnlyIn(Dist.CLIENT)
 public final class RenderUtil {
-    public static final Vector4i MAGENTA = new Vector4i(255, 0, 255, 255);
-    public static final Vector4i CYAN = new Vector4i(0, 255, 255, 255);
-    public static final Vector4i BLUE = new Vector4i(0, 0, 255, 255);
-    public static final Vector4i RED = new Vector4i(255, 0, 0, 255);
-    public static final Vector4i WHITE = new Vector4i(255, 255, 255, 255);
-    public static final Vector4i DARK_VIOLET = new Vector4i(148, 0, 211, 255);
-    public static final Vector4i DARK_ORCHID = new Vector4i(153, 50, 204, 255);
-    public static final Vector4i INDIAN_RED = new Vector4i(205, 92, 204, 255);
-    public static final Vector4i DARK_RED = new Vector4i(139, 0, 0, 255);
     public static final Matrix4f TRANSIENT_MATRIX = new Matrix4f();
+
     public static final HumanoidModel.ArmPose HOLD_POSE = HumanoidModel.ArmPose.create(
         "HOLD", true, (model, entity, arm) -> {
             float xRot = (entity.getXRot() + 8) * Mth.DEG_TO_RAD;
@@ -91,17 +56,7 @@ public final class RenderUtil {
             model.leftArm.yRot = 0.6981f + offsetsYRot;
         });
 
-    public static boolean renderGuiEnchantParticle;
-    public static final IItemDecorator EXHUMED_DECORATOR = (gui, font, itemStack, x, y) -> {
-        if (renderGuiEnchantParticle) {
-            EnchantedParticleSet.drawSet(x, y, gui);
-            return true;
-        }
 
-        return false;
-    };
-
-    private static boolean init = true;
     private static short tick;
 
     private RenderUtil() {
@@ -111,77 +66,94 @@ public final class RenderUtil {
         if (tick++ == 3600) tick = 0;
     }
 
-    private static short rainbowR = 255;
-    private static short rainbowG = 0;
-    private static short rainbowB = 0;
-    private static byte rainbowStyle = 0;
+    private static int rainbowStyle = 0x00FF0000;
     private static short lastRainbowTime;
-    public static Component getRainbow(MutableComponent component) {
+
+    private static void rainbowTick() {
         if (lastRainbowTime != tick) {
             lastRainbowTime = tick;
-            switch (rainbowStyle) {
+            int currentStyle = FastColor.ARGB32.alpha(rainbowStyle);
+            //Rotational chromatography
+            switch (currentStyle) {
                 case 0 -> {
-                    rainbowG += 7;
-                    if (rainbowG >= 255) {
-                        rainbowG = 255;
-                        rainbowStyle++;
-                    }
+                    int  rainbowG = Math.min(255, FastColor.ARGB32.green(rainbowStyle) + 7) << 8;
+                    if (rainbowG >> 8 == 255) {
+                        //默认的G分量，其他位信息为0x00
+                        rainbowG |= ((currentStyle + 1) << 24);
+                        rainbowStyle &= 0x00FF00FF;
+                    } else rainbowStyle &= 0xFFFF00FF;
+
+                    rainbowStyle |= rainbowG;
                 }
 
                 case 1 -> {
-                    rainbowR -= 7;
-                    if (rainbowR <= 0) {
-                        rainbowR = 0;
-                        rainbowStyle++;
-                    }
+                    int rainbowR = Math.max(0, FastColor.ARGB32.red(rainbowStyle) - 7) << 16;
+                    if (rainbowR >> 16 == 0) {
+                        rainbowR |= ((currentStyle + 1) << 24);
+                        rainbowStyle &= 0x0000FFFF;
+                    } else rainbowStyle &= 0xFF00FFFF;
+
+                    rainbowStyle |= rainbowR;
                 }
 
                 case 2 -> {
-                    rainbowB += 7;
-                    if (rainbowB >= 255) {
-                        rainbowB = 255;
-                        rainbowStyle++;
-                    }
+                    int rainbowB = Math.min(255, FastColor.ARGB32.blue(rainbowStyle) + 7);
+                    if (rainbowB == 255) {
+                        rainbowB |= ((currentStyle + 1) << 24);
+                        rainbowStyle &= 0x00FFFF00;
+                    } else rainbowStyle &= 0xFFFFFF00;
+
+                    rainbowStyle |= rainbowB;
                 }
 
                 case 3 -> {
-                    rainbowG -= 7;
-                    if (rainbowG <= 0) {
-                        rainbowG = 0;
-                        rainbowStyle++;
-                    }
+                    int rainbowG = Math.max(0, FastColor.ARGB32.green(rainbowStyle) - 7) << 8;
+                    if (rainbowG >> 8 == 0) {
+                        rainbowG |= ((currentStyle + 1) << 24);
+                        rainbowStyle &= 0x00FF00FF;
+                    } else rainbowStyle &= 0xFFFF00FF;
+
+                    rainbowStyle |= rainbowG;
                 }
 
                 case 4 -> {
-                    rainbowR += 7;
-                    if (rainbowR >= 255) {
-                        rainbowR = 255;
-                        rainbowStyle++;
-                    }
+                    int rainbowR = Math.min(255, FastColor.ARGB32.red(rainbowStyle) + 7) << 16;
+                    if (rainbowR >> 16 == 255) {
+                        rainbowR |= ((currentStyle + 1) << 24);
+                        rainbowStyle &= 0x0000FFFF;
+                    } else rainbowStyle &= 0xFF00FFFF;
+
+                    rainbowStyle |= rainbowR;
                 }
 
                 case 5 -> {
-                    rainbowB -= 7;
-                    if (rainbowB <= 0) {
-                        rainbowB = 0;
-                        rainbowStyle = 0;
-                    }
+                    int rainbowB = Math.max(0, FastColor.ARGB32.blue(rainbowStyle) - 7);
+                    if (rainbowB == 0) rainbowStyle &= 0x00FFFF00;
+                    else rainbowStyle &= 0xFFFFFF00;
+                    rainbowStyle |= rainbowB;
                 }
             }
         }
+    }
 
-        return component.setStyle(Style.EMPTY.withColor(((rainbowR & 0xFF) << 16) |
-            ((rainbowG & 0xFF) << 8) |
-            ((rainbowB & 0xFF))));
+    public static Component getRainbow(MutableComponent component) {
+        return component.setStyle(Style.EMPTY.withColor(getRainbowStyle()));
+    }
+
+    public static int getRainbowStyle() {
+        rainbowTick();
+        //It won't use the Alpha channel
+        return rainbowStyle;
     }
 
     public static short getLocalTick() {
         return tick;
     }
 
-    public static void clear(LocalPlayer player) {
-        clearOldDecorator(player.level().getRecipeManager(), true);
-        Shaders.renderHighlightBlocks(true);
+    public static int processingCycleTime(short startTime) {
+        short localTick = tick;
+        if (localTick < startTime) localTick += 3600;
+        return localTick - startTime;
     }
 
     /**
@@ -208,7 +180,7 @@ public final class RenderUtil {
         boolean fabulous = Minecraft.useFancyGraphics();
         for (BakedModel bakedModel : model.getRenderPasses(stack, fabulous)) {
             for (RenderType type : bakedModel.getRenderTypes(stack, fabulous)) {
-                VertexConsumer consumer = ItemRenderer.getFoilBuffer(source, type, true, stack.hasFoil());
+                    VertexConsumer consumer = ItemRenderer.getFoilBuffer(source, type, true, stack.hasFoil());
                 renderer.renderModelLists(bakedModel, stack, combinedLight, combinedOverlay, pose, consumer);
             }
         }
@@ -223,20 +195,24 @@ public final class RenderUtil {
         renderTexture(last.pose(), last.normal(), consumer, packedLight);
     }
 
-    public static Vector2d directionTo(Vec3 vec3, double x, double y) {
+    public static Vector2f directionTo(Vec3 vec3, double x, double y) {
         double dx = vec3.x - x;
         double dy = vec3.y - y;
         double length = Math.sqrt(dx * dx + dy * dy);
 
         if (length == 0) {
-            return new Vector2d(0, 0);
+            return new Vector2f(0, 0);
         }
 
-        return new Vector2d(dx / length, dy / length);
+        return new Vector2f(dx / length, dy / length);
     }
 
     public static Vector4i black() {
         return new Vector4i(0, 0, 0, 255);
+    }
+
+    public static Vector4i fromColorGet(Color color) {
+        return new Vector4i(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
     }
 
     //handler r, g, b color component and reset a
@@ -266,78 +242,49 @@ public final class RenderUtil {
         return container;
     }
 
-    public static float clampLerp(float from, float to, float t, boolean clamped) {
-        if (clamped) {
-            if (from < to) {
-                if (t < from) {
-                    return 0f;
-                }
-                if (t > to) {
-                    return 1f;
-                }
-            } else {
-                if (t < to) {
-                    return 1f;
-                }
-                if (t > from) {
-                    return 0f;
-                }
+    public static float clampLerp(float from, float to, float t) {
+        if (from < to) {
+            if (t < from) {
+                return 0f;
+            }
+            if (t > to) {
+                return 1f;
+            }
+        } else {
+            if (t < to) {
+                return 1f;
+            }
+            if (t > from) {
+                return 0f;
             }
         }
         return (t - from) / (to - from);
     }
 
-    public static float piecewiseAnimation(float progress, CurveSegment... segments) {
-        if (segments.length == 0) return 0f;
-
-        //If for whatever reason you try to not play by the rules, get fucked
-        if (segments[0].startingX != 0) segments[0].startingX = 0;
-
-        //Clamp the progress
-        progress = Mth.clamp(progress, 0f, 1f);
-        float ratio = 0f;
-
-        for (int i = 0; i <= segments.length - 1; i++) {
-            CurveSegment segment = segments[i];
-            float startPoint = segment.startingX;
-            float endPoint = 1f;
-
-            //Too early. This should never get reached,
-            //Since by the time you'd have gotten there you'd have found the appropriate segment and broken out of the for loop
-            if (progress < segment.startingX) continue;
-
-            if (i < segments.length - 1) {
-                //Too late
-                if (segments[i + 1].startingX <= progress) continue;
-                endPoint = segments[i + 1].startingX;
-            }
-
-            float segmentLength = endPoint - startPoint;
-            float segmentProgress = (progress - segment.startingX) / segmentLength; //How far along the specific segment
-            ratio = segment.startingHeight;
-
-            //Failsafe because somehow it can fail? what
-            ratio += Objects.requireNonNullElse(segment.easing, CurveSegment.EasingType.LINEAR)
-                .easingFunction(segmentProgress, segment.degree) * segment.elevationShift;
-
-            break;
-        }
-        return ratio;
+    public static void reuseQuaternions(Quaternionf quaternion, Vec3 vec3, float degrees) {
+        radianQuaternions(quaternion, vec3, degrees * ((float) Math.PI / 180F));
     }
 
-    public static Vec3 subtractVec2(Vec3 start, Vec3 end) {
-        return new Vec3(end.x - start.x, end.y - start.y, end.z);
-    }
-
-    public static void reuseQuaternions(Quaternionf quaternion, float x, float y, float z, float degrees) {
-        float rotationAngle = degrees * ((float) Math.PI / 180F);
-        float f = (float) Math.sin(rotationAngle / 2.0d);
-
-        quaternion.set(x * f, y * f, z * f, (float) Math.cos(rotationAngle / 2f));
+    public static void radianQuaternions(Quaternionf quaternion, Vec3 vec3, float radian) {
+        float f = (float) Math.sin(radian / 2.0d);
+        quaternion.set((float) (vec3.x * f), (float) (vec3.y * f), (float) (vec3.z * f), (float) Math.cos(radian / 2f));
     }
 
     public static float smoothStep(float from, float to, float amount) {
         return hermite(from, 0f, to, 0f, Mth.clamp(amount, 0f, 1f));
+    }
+
+    public static float inverseLerpBump(float start, float riseEnd, float plateauEnd, float end, float value) {
+        if (value < start) return 0;
+        if (value > end) return 0;
+
+        if (value <= riseEnd)
+            return Mth.inverseLerp(value, start, riseEnd);
+
+        if (value <= plateauEnd)
+            return 1;
+
+        return Mth.inverseLerp(value, end, plateauEnd);
     }
 
     public static float hermite(float value1, float tangent1, float value2, float tangent2, float amount) {
@@ -351,21 +298,17 @@ public final class RenderUtil {
                 tangent1 * amount + value1;
     }
 
-    public static Vec3 catmullRomVec(Vec3 value1, Vec3 value2, Vec3 value3, Vec3 value4, float amount, boolean calculationZAxis) {
+    public static Vector2f catmullRomVec(Vector2f value1, Vector2f value2, Vector2f value3, Vector2f value4, float amount) {
         float squared = amount * amount;
         float cubed = amount * squared;
-        return new Vec3(
+        return new Vector2f(
             0.5f * ((2.0f * value2.x) + (-value1.x + value3.x) *
                 amount + (2.0f * value1.x - 5.0f * value2.x + 4.0f * value3.x - value4.x)
                 * squared + (-value1.x + 3.0f * value2.x - 3.0f * value3.x + value4.x) * cubed),
 
             0.5f * ((2.0f * value2.y) + (-value1.y + value3.y) *
                 amount + (2.0f * value1.y - 5.0f * value2.y + 4.0f * value3.y - value4.y)
-                * squared + (-value1.y + 3.0f * value2.y - 3.0f * value3.y + value4.y) * cubed),
-
-            calculationZAxis ? 0.5f * ((2.0f * value2.z) + (-value1.z + value3.z) *
-                amount + (2.0f * value1.z - 5.0f * value2.z + 4.0f * value3.z - value4.z)
-                * squared + (-value1.z + 3.0f * value2.z - 3.0f * value3.z + value4.z) * cubed) : value3.z);
+                * squared + (-value1.y + 3.0f * value2.y - 3.0f * value3.y + value4.y) * cubed));
     }
 
     public static float rotLerpRadians(float delta, float start, float end) {
@@ -383,12 +326,12 @@ public final class RenderUtil {
         return result;
     }
 
-    public static Vec3[] sampleRadialPosAndTangentVel(Vec3[] axis, RandomSource source, Vector2d direction,
+    public static Vec3[] sampleRadialPosAndTangentVel(Vec3[] axis, RandomSource source, Vector2f direction,
                                                       float pi, double radius, double minSpeed, double maxSpeed) {
-        Vector2d pos2D = direction.rotatedByRandom(source, Vector2d.ZERO, pi, false).mul(radius);
+        Vector2f pos2D = direction.rotatedByRandom(source, Vector2f.ZERO, pi, false).mul(radius);
         Vec3[] posAndVelocity = new Vec3[2];
         posAndVelocity[0] = sampleRadialPos(axis, source, null, pi, pos2D, radius);
-        Vector2d speed = pos2D.rotatedBy(Mth.HALF_PI, Vector2d.ZERO, true);
+        Vector2f speed = pos2D.rotatedBy(Mth.HALF_PI, Vector2f.ZERO, true);
 
         Vec3 velocityDir = axis[0].scale(speed.x).add(axis[1].scale(speed.y));
         double speedValue = minSpeed + source.nextDouble() * (maxSpeed - minSpeed);
@@ -396,88 +339,13 @@ public final class RenderUtil {
         return posAndVelocity;
     }
 
-    public static Vec3 sampleRadialPos(Vec3[] axis, RandomSource source, Vector2d direction, float pi, Vector2d pos, double radius) {
-        Vector2d pos2D = pos == null ? direction.rotatedByRandom(source, Vector2d.ZERO, pi, false).mul(radius) : pos;
+    public static Vec3 sampleRadialPos(Vec3[] axis, RandomSource source, Vector2f direction, float pi, Vector2f pos, double radius) {
+        Vector2f pos2D = pos == null ? direction.rotatedByRandom(source, Vector2f.ZERO, pi, false).mul(radius) : pos;
         return mapToRelativePlaneCoordinates(axis, pos2D);
     }
 
-    public static Vec3 mapToRelativePlaneCoordinates(Vec3[] axis, Vector2d pos2D) {
+    public static Vec3 mapToRelativePlaneCoordinates(Vec3[] axis, Vector2f pos2D) {
         return axis[0].scale(pos2D.x).add(axis[1].scale(pos2D.y));
-    }
-
-    @SuppressWarnings("all")
-    public static void registerExhumedItemDecorator(RecipeManager manager) {
-        //Error! Please do not do this in the Register Item Decorations Event, as the recipe does not exist on the client side at this time,
-        //and do not attempt to obtain it locally, as the recipe should be synchronized from the server side
-        //Minecraft.getBlackInstance().level.getRecipeManager().getAllRecipesFor(CalamityCurseRecipe.CurseRecipeType.INSTANCE);
-
-        //Register after migrating to recipes update event, as the client has already been synchronized at this time
-
-        /**
-         *  * Fired when the {@link RecipeManager} has received and synced the recipes from the server to the client.
-         *  *
-         *  * <p>This event is not {@linkplain Cancelable cancellable}, and does not {@linkplain HasResult have a result}.</p>
-         *  *
-         *  * <p>This event is fired on the {@linkplain MinecraftForge#EVENT_BUS main Forge event bus},
-         *  * only on the {@linkplain LogicalSide#CLIENT logical client}.</p>
-         */
-        List<CalamityCurseRecipe> recipes = manager.getAllRecipesFor(CalamityCurseRecipe.CurseRecipeType.INSTANCE);
-        Map<Item, ItemDecoratorHandler> decoratorMap = ItemDecoratorHandler.DECORATOR_LOOKUP;
-        if (recipes.isEmpty()) {
-            ImmutableMap.Builder<Item, ItemDecoratorHandler> builder = ImmutableMap.builder();
-            ItemDecoratorHandler.DECORATOR_LOOKUP = builder.putAll(decoratorMap).build();
-            return;
-        }
-
-
-        ItemDecoratorHandler handler = new ItemDecoratorHandler(List.of(EXHUMED_DECORATOR));
-        for (CalamityCurseRecipe recipe : recipes) {
-            Item item = recipe.getReactant().getItem();
-            decoratorMap.compute(item, (k, v) -> {
-                //Each item should have only one decorative renderer
-                if (v == null) return handler;
-                else if (!v.itemDecorators.contains(EXHUMED_DECORATOR))
-                    v.itemDecorators.add(EXHUMED_DECORATOR);
-
-                return v;
-            });
-        }
-
-        //After the setting is completed, it will be reverted back to immutable
-        ImmutableMap.Builder<Item, ItemDecoratorHandler> builder = ImmutableMap.builder();
-        ItemDecoratorHandler.DECORATOR_LOOKUP = builder.putAll(decoratorMap).build();
-    }
-
-    @SuppressWarnings("all")
-    public static void clearOldDecorator(RecipeManager manager, boolean isLogout) {
-        HashMap<Item, ItemDecoratorHandler> map = new HashMap<>(ItemDecoratorHandler.DECORATOR_LOOKUP);
-        ItemDecoratorHandler.DECORATOR_LOOKUP = map;
-
-        if (init) {
-            //When entering the world and not yet initialized, the client has not accepted synchronization,
-            //has no old values, and is only set as HashMap, providing a mutable container for future synchronization changes
-            init = false;
-            return;
-        }
-
-        for (CalamityCurseRecipe recipe : manager.getAllRecipesFor(CalamityCurseRecipe.CurseRecipeType.INSTANCE)) {
-            Item reactant = recipe.getReactant().getItem();
-            if (map.containsKey(reactant)) {
-                List<IItemDecorator> decorators = map.get(reactant).itemDecorators;
-
-                if (decorators.size() == 1) map.remove(reactant);
-                else decorators.remove(EXHUMED_DECORATOR);
-            }
-        }
-
-        if (isLogout) {
-            //Restore initialization upon exit and set it to immutable
-            //Client data is automatically reset only upon JVM restart,
-            //so manually set to an immutable default value upon exit to prevent confusion of client data caused by entering multiple servers
-            init = true;
-            ImmutableMap.Builder<Item, ItemDecoratorHandler> builder = ImmutableMap.builder();
-            ItemDecoratorHandler.DECORATOR_LOOKUP = builder.putAll(map).build();
-        }
     }
 
     public static float angleLerp(float	curAngle, float	targetAngle, float amount) {
@@ -493,29 +361,6 @@ public final class RenderUtil {
             angle = Mth.lerp(amount, curAngle, (targetAngle - curAngle > curAngle - num2) ? num2 : amount);
         }
         return Mth.wrapDegrees(angle);
-    }
-
-    @SuppressWarnings("unchecked")
-    public static void onlyThirdPersonRender(AbstractClientPlayer player, boolean showRightArm,
-                                             boolean showLeftArm, boolean showRightItem, boolean showLeftItem) {
-        try {
-            Class<KeyframeAnimation> animationClass = KeyframeAnimation.class;
-            Constructor<KeyframeAnimation> constructor =
-                (Constructor<KeyframeAnimation>) animationClass.getDeclaredConstructors()[0];
-            constructor.setAccessible(true);
-            HashMap<?, ?> empty = new HashMap<>();
-            KeyframeAnimation emptyKey = constructor.newInstance(0, 9999, 9999, true, 9999, empty, true, false, null, AnimationFormat.UNKNOWN, empty);
-            KeyframeAnimationPlayer key = new KeyframeAnimationPlayer(emptyKey);
-            key.setFirstPersonMode(FirstPersonMode.THIRD_PERSON_MODEL);
-            key.setFirstPersonConfiguration(new FirstPersonConfiguration(showRightArm, showLeftArm, showRightItem, showLeftItem));
-            PlayerAnimationAccess.getPlayerAnimLayer(player).addAnimLayer(18, key);
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static void cancelThirdPersonRendering(AbstractClientPlayer player) {
-        PlayerAnimationAccess.getPlayerAnimLayer(player).removeLayer(18);
     }
 
     public static Quaternionf directionToQuaternion(Vec3 direction) {
@@ -559,28 +404,19 @@ public final class RenderUtil {
     //My previous knowledge of shaders was only in the hints for game loading. I don't even know what it is. this is too bad
     @OnlyIn(Dist.CLIENT)
     public static final class Shaders extends RenderType {
-        private static final ResourceLocation FLASH = CalamityCurios.ModResource("textures/misc/flash.png");
         private static ShaderStateShard FADED_UV_MAP_STREAK_STATE_SHARD;
         private static ShaderStateShard RANCOR_STATE_SHARD;
         private static ShaderStateShard FLAME_STATE_SHARD;
         public static ShaderStateShard BASE_SHARD;
         private static ShaderStateShard RADIAL_SHINE;
         private static ShaderStateShard DISINTEGRATION;
+        private static ShaderStateShard ENERGY;
+        private static Supplier<ShaderInstance> SCARLET_LIGHTNING_SHADER;
 
         private static final ShaderStateShard BLACK_HOLE_SHARD =
             new ShaderStateShard(CalamityCelestialBodyShader::getBlackInstance);
         private static final ShaderStateShard SUN_SHARD =
             new ShaderStateShard(CalamityCelestialBodyShader::getSunInstance);
-        //It should just be a shader, borrowed for post-processing, because Minecraft's post-processing is singleton
-        private static PostChain LIGHT;
-
-        private static long flashStartTime;
-        private static float baseFlashIntensity;
-        private static float[] flashColor;
-        private static int fadeInTime;
-        private static boolean flashEffect;
-        private static double flashTime;
-        private static boolean notRenderBlock = true;
 
         @SuppressWarnings("deprecation")
         public static final ParticleRenderType GENERIC_BLOOM = new ParticleRenderType() {
@@ -641,13 +477,26 @@ public final class RenderUtil {
                     shader -> RADIAL_SHINE = new ShaderStateShard(() -> shader));
 
                 event.registerShader(new CalamityCelestialBodyShader.SunShader(manager), CalamityCelestialBodyShader::setInstance);
+
+                event.registerShader(new ShaderInstance(manager, CalamityCurios.ModResource("converging_genesis_energy"),
+                    DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP), shader -> ENERGY = new ShaderStateShard(() -> shader));
+
+                event.registerShader(new ShaderInstance(manager, CalamityCurios.ModResource("fleshy_vignette"),
+                    DefaultVertexFormat.POSITION_TEX), ErosionScreenRenderer::setErosionShader);
+
+                event.registerShader(new ShaderInstance(manager, CalamityCurios.ModResource("lightning_arc"),
+                    DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP), shader -> SCARLET_LIGHTNING_SHADER = () -> shader);
             } catch (Exception e) {
                 throw new RuntimeException("a fatal error occurred when registering shaders", e);
             }
         }
 
+        public static Supplier<ShaderInstance> getScarletLightningShader() {
+            return SCARLET_LIGHTNING_SHADER;
+        }
+
         public static RenderType getLemniscateRenderType(ResourceLocation texture) {
-            return RenderType.create("lemniscate_shader", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.TRIANGLES,
+            return RenderType.create("primitive", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.TRIANGLES,
                 256, false, false, CompositeState.builder()
                     .setShaderState(FADED_UV_MAP_STREAK_STATE_SHARD)
                     .setTextureState(new TextureStateShard(texture, false, true))
@@ -655,7 +504,6 @@ public final class RenderUtil {
                     .setOverlayState(RenderStateShard.NO_OVERLAY)
                     .setCullState(RenderStateShard.NO_CULL)
                     .createCompositeState(false)
-
             );
         }
 
@@ -694,18 +542,6 @@ public final class RenderUtil {
             );
         }
 
-//        public static RenderType getAddBlendText() {
-//            return RenderType.create("burnished_auric",
-//                DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP,
-//                VertexFormat.Mode.QUADS, 256,
-//                false, true, RenderType.CompositeState.builder()
-//                    .setShaderState(RenderStateShard.RENDERTYPE_TEXT_SHADER)
-//                    .setTextureState(new RenderStateShard.TextureStateShard(CalamityCurios.resource("default/0"),
-//                        ForgeRenderTypes.enableTextTextureLinearFiltering, false))
-//                    .setTransparencyState(RenderStateShard.ADDITIVE_TRANSPARENCY)
-//                    .setLightmapState(LIGHTMAP).createCompositeState(false));
-//        }
-
         public static RenderType getBlackHole() {
             return RenderType.create("black_hole", DefaultVertexFormat.POSITION_COLOR_TEX, VertexFormat.Mode.QUADS,
                 256, false, false, CompositeState.builder()
@@ -713,9 +549,20 @@ public final class RenderUtil {
                     .setTextureState(new MultiTextureStateShard.Builder()
                         .add(CalamityCelestialBodyShader.BASE_TEXTURE, true, false)
                         .add(CalamityCelestialBodyShader.FIRE_NOISE, true, false).build())
-                    .setTransparencyState(RenderStateShard.ADDITIVE_TRANSPARENCY)
                     .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
                     .setOverlayState(RenderStateShard.NO_OVERLAY)
+                    .setCullState(RenderStateShard.CULL)
+                    .createCompositeState(false)
+            );
+        }
+
+        public static RenderType getConvergingGenesisEnergy() {
+            return RenderType.create("converging_genesis_energy", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP,
+                VertexFormat.Mode.TRIANGLES, 256, false, false, CompositeState.builder()
+                    .setShaderState(ENERGY)
+                    .setTextureState(new TextureStateShard(CalamityCelestialBodyShader.PERLIN, false, false))
+                    .setDepthTestState(RenderStateShard.NO_DEPTH_TEST)
+                    .setWriteMaskState(RenderStateShard.COLOR_WRITE)
                     .setCullState(RenderStateShard.CULL)
                     .createCompositeState(false)
             );
@@ -727,11 +574,22 @@ public final class RenderUtil {
                     .setShaderState(RENDERTYPE_ENTITY_TRANSLUCENT_SHADER)
                     .setTextureState(new TextureStateShard(texture, false, false))
                     .setTransparencyState(ADDITIVE_TRANSPARENCY)
-                    .setWriteMaskState(COLOR_WRITE)
+                    .setWriteMaskState(COLOR_WRITE)//
                     .setCullState(NO_CULL)
                     .setLightmapState(LIGHTMAP)
                     .setOverlayState(OVERLAY)
                     .createCompositeState(false));
+        }
+
+        public static RenderType getStormMaidensGlow() {
+            return create("storm_maidens", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS,
+                256, true, true, CompositeState.builder()
+                    .setShaderState(RENDERTYPE_ENTITY_TRANSLUCENT_CULL_SHADER)
+                    .setTextureState(new TextureStateShard(InventoryMenu.BLOCK_ATLAS, false, false))
+                    .setTransparencyState(LIGHTNING_TRANSPARENCY).setLightmapState(LIGHTMAP)
+                    .setWriteMaskState(RenderStateShard.COLOR_DEPTH_WRITE)
+                    .setDepthTestState(RenderStateShard.NO_DEPTH_TEST)
+                    .setOverlayState(OVERLAY).createCompositeState(true));
         }
 
         public static RenderType getEnchanmentRenderType(ResourceLocation texture) {
@@ -786,205 +644,6 @@ public final class RenderUtil {
                     })).setWriteMaskState(RenderStateShard.COLOR_WRITE)
                     .setCullState(CULL)
                     .createCompositeState(false));
-        }
-
-        @SuppressWarnings("ConstantConditions")
-        public static void setScreenFlashEffect(int time, float intensity, int c) {
-            if (!flashEffect) {
-                flashStartTime = Minecraft.getInstance().level.getGameTime();
-                flashTime = time;
-                fadeInTime = (int) (time * 0.5f);
-                baseFlashIntensity = intensity;
-                flashEffect = true;
-                flashColor = new float[] {
-                    FastColor.ARGB32.red(c) / 255f,
-                    FastColor.ARGB32.green(c) / 255f,
-                    FastColor.ARGB32.blue(c) / 255f};
-            }
-        }
-
-        public static void setScreenFlashEffect(int time, float intensity) {
-            setScreenFlashEffect(time, intensity, 0xFFFFFF);
-        }
-
-        public static void preScreenRender(float partialTick, Minecraft minecraft) {
-            if (flashEffect) {
-                ClientLevel level = minecraft.level;
-                long age;
-                if (level == null || (age = level.getGameTime() - flashStartTime) >= flashTime) {
-                    flashEffect = false;
-                    flashColor = null;
-                    return;
-                }
-
-                RenderSystem.setShaderTexture(0, FLASH);
-                RenderSystem.setShaderColor(flashColor[0], flashColor[1],
-                    flashColor[2], getIntensity(partialTick, age, minecraft));
-                renderMask(minecraft);
-            } else ClientRushEvent.BossRushSky.applyFilter(minecraft);
-        }
-
-        public static void renderMask(Minecraft minecraft) {
-            RenderSystem.disableDepthTest();
-            RenderSystem.depthMask(false);
-            RenderSystem.enableBlend();
-            RenderSystem.defaultBlendFunc();
-            RenderSystem.setShader(GameRenderer::getPositionTexShader);
-            int width = minecraft.getWindow().getGuiScaledWidth();
-            int height = minecraft.getWindow().getGuiScaledHeight();
-            Tesselator tesselator = Tesselator.getInstance();
-            BufferBuilder bufferbuilder = tesselator.getBuilder();
-            bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-            bufferbuilder.vertex(0.0D, height, -90.0D).uv(0.0F, 1.0F).endVertex();
-            bufferbuilder.vertex(width, height, -90.0D).uv(1.0F, 1.0F).endVertex();
-            bufferbuilder.vertex(width, 0.0D, -90.0D).uv(1.0F, 0.0F).endVertex();
-            bufferbuilder.vertex(0.0D, 0.0D, -90.0D).uv(0.0F, 0.0F).endVertex();
-            tesselator.end();
-            RenderSystem.depthMask(true);
-            RenderSystem.enableDepthTest();
-            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        }
-
-        private static float getIntensity(float partialTick, long age, Minecraft minecraft) {
-            float adjustedAge = age + partialTick;
-            float screen = minecraft.options.screenEffectScale().get().floatValue();
-
-            if (age <= fadeInTime) {
-                return baseFlashIntensity * (adjustedAge / fadeInTime) * screen;
-            } else {
-                float fadeOutDuration = (float) (flashTime - fadeInTime);
-                float fadeOutProgress = (adjustedAge - fadeInTime) / fadeOutDuration;
-                return baseFlashIntensity * (1.0f - fadeOutProgress) * screen;
-            }
-        }
-
-        public static void renderBlockPerspective(RenderLevelStageEvent event) {
-            if (notRenderBlock || CalamityOutlineRenderer.notRender()) return;
-            Minecraft minecraft = Minecraft.getInstance();
-            Window window = minecraft.getWindow();
-            RenderTarget lightFbo = LIGHT.getTempTarget("final");
-            checkFboSize(lightFbo, window.getScreenWidth(), window.getScreenHeight());
-
-            lightFbo.clear(Minecraft.ON_OSX);
-            lightFbo.bindWrite(false);
-
-            RenderSystem.disableBlend();
-            RenderSystem.disablePolygonOffset();
-            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-            CalamityOutlineRenderer.renderOutlineList(minecraft, event.getPoseStack(), LIGHT, event.getPartialTick());
-
-            minecraft.getMainRenderTarget().bindWrite(false);
-            RenderSystem.enableBlend();
-            RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA,
-                GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA,
-                GlStateManager.SourceFactor.ZERO, GlStateManager.DestFactor.ONE);
-            lightFbo.blitToScreen(lightFbo.width, lightFbo.height, false);
-        }
-
-        public static void renderHighlightBlocks(boolean close) {
-            if (close) {
-                RenderSystem.recordRenderCall(() -> {
-                    notRenderBlock = true;
-                    CalamityOutlineRenderer.close();
-                    if (LIGHT != null) {
-                        LIGHT.close();
-                        DelayRunnable.removeTask(LIGHT);
-                        LIGHT = null;
-                    }
-                });
-            } else if (notRenderBlock) {
-                RenderSystem.recordRenderCall(() -> {
-                    final Minecraft minecraft = Minecraft.getInstance();
-                    try {
-                        LIGHT = new PostChain(minecraft.textureManager, minecraft.getResourceManager(),
-                            minecraft.getMainRenderTarget(), CalamityCurios.ModResource("shaders/post/outline.json"));
-                        LIGHT.resize(minecraft.getWindow().getScreenWidth(), minecraft.getWindow().getScreenHeight());
-                    } catch (IOException e) {
-                        CalamityCurios.LOGGER.error("Cannot find outline shader file!!!");
-                        return;
-                    }
-
-                    notRenderBlock = false;
-                    CalamityOutlineRenderer.init(minecraft);
-                    MobEffect effect = CalamityEffects.OMNISCIENCE.get();
-                    DelayRunnable.addUniqueLoopTask(() -> {
-                        if (minecraft.player == null || !minecraft.player.hasEffect(effect)) {
-                            renderHighlightBlocks(true);
-                            return true;
-                        } else {
-                            CalamityOutlineRenderer.updateOutlineTarget(minecraft);
-                            return false;
-                        }
-                    }, 0, LIGHT);
-                });
-            }
-        }
-
-        //Hallucinogenic
-        private static boolean trippy;
-        private static boolean notTrippyRender = true;
-        private static Random random;
-
-        public static void startHallucinogenic() {
-            if (!trippy) {
-                MobEffect effect = CalamityEffects.TRIPPY.get();
-                final Minecraft minecraft = Minecraft.getInstance();
-                RenderSystem.recordRenderCall(() -> {
-                    minecraft.gameRenderer.loadEffect(CalamityCurios.ModResource("shaders/post/heat_distortion.json"));
-                    trippy = true;
-                    random = new Random();
-                    IllusionBufferSource.create();
-                });
-
-                DelayRunnable.conditionsLoop(() -> {
-                    Player player = minecraft.player;
-                    if (player == null || !player.hasEffect(effect)) {
-                        RenderSystem.recordRenderCall(() -> {
-                            PostChain shader = minecraft.gameRenderer.currentEffect();
-                            if (shader != null && shader.getName().equals("calamity_curios:shaders/post/heat_distortion.json"))
-                                minecraft.gameRenderer.shutdownEffect();
-                            trippy = false;
-                            random = null;
-                            IllusionBufferSource.destroy();
-                        });
-                        return true;
-                    }
-
-                    IllusionBufferSource.setColor(rainbowR, rainbowG, rainbowB, 255);
-                    return false;
-                }, 1);
-            }
-        }
-
-        public static void checkFboSize(RenderTarget fbo, int width, int height) {
-            if ((width != fbo.width || height != fbo.height) && width * height > 0)
-                LIGHT.resize(width, height);
-        }
-
-        @SuppressWarnings("unchecked")
-        public static void psychedelic(RenderLivingEvent.Pre<? extends LivingEntity, ? extends EntityModel<? extends LivingEntity>> event) {
-            if (trippy && notTrippyRender) {
-                event.setCanceled(true);
-                MultiBufferSource buffer = IllusionBufferSource.getSource(event.getMultiBufferSource());
-                PoseStack pose = event.getPoseStack();
-                LivingEntityRenderer<LivingEntity, ? extends EntityModel<? extends LivingEntity>> renderer =
-                    (LivingEntityRenderer<LivingEntity, ? extends EntityModel<? extends LivingEntity>>) event.getRenderer();
-                float partialTicks = event.getPartialTick();
-                int packedLight = event.getPackedLight();
-                LivingEntity entity = event.getEntity();
-                boolean transformable = tick % 100 == 0;
-                Vector2d[] offsets = entity.calamity$GetPhantomOffset();
-                notTrippyRender = false;
-                for (Vector2d offset : offsets) {
-                    pose.pushPose();
-                    if (transformable) offset.set((random.nextDouble(1.6) + 0.8) * (random.nextBoolean() ? 1 : -1),
-                        (random.nextDouble(1.6) + 0.8) * (random.nextBoolean() ? 1 : -1));
-                    pose.translate(offset.x, 0, offset.y);
-                    renderer.render(entity, entity.getYRot(), partialTicks, pose, buffer, packedLight);
-                    pose.popPose();
-                }
-                notTrippyRender = true;
-            }
         }
     }
 }

@@ -3,7 +3,7 @@ package hua223.calamity.mixins;
 import hua223.calamity.mixed.ISelfCast;
 import hua223.calamity.net.NetMessages;
 import hua223.calamity.net.packets.EffectSync;
-import hua223.calamity.register.Items.CalamityItems;
+import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.register.effects.factor.UniversalFactorEffect;
 import hua223.calamity.util.GlobalCuriosStorage;
 import net.minecraft.nbt.CompoundTag;
@@ -70,6 +70,7 @@ public abstract class EffectMixin {
         private MobEffect effect;
 
         @Shadow private int amplifier;
+
         @Unique
         private boolean calamity$Factor;
         @Unique
@@ -130,6 +131,7 @@ public abstract class EffectMixin {
             return calamity$Factor ? Optional.empty() : factorData;
         }
 
+        @Unique
         public void calamity$SetProperties(int duration, int amplifier, @Nullable LivingEntity owner) {
             this.duration = duration;
             if (owner != null) {
@@ -143,7 +145,9 @@ public abstract class EffectMixin {
             }
         }
 
-        public <T extends UniversalFactorEffect.UniversalFactor<?>> T calamity$GetUniversalFactor() {
+        @Unique
+        @SuppressWarnings("all")
+        public <T extends UniversalFactorEffect.UniversalFactor<?>> T calamity$GetUniversalFactor(UniversalFactorEffect<?, T> effect) {
             return (T) factorData.get();
         }
     }

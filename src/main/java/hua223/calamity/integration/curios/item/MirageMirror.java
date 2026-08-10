@@ -4,7 +4,7 @@ import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.CriticalHitCheckListener;
 import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.ConflictChain;
+import hua223.calamity.util.CurioRepel;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -14,7 +14,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.List;
 
-@ConflictChain(value = MirageMirror.class, isRoot = true)
+@CurioRepel(AbyssalMirror.class)
 public class MirageMirror extends BaseCurio {
     public MirageMirror(Properties properties) {
         super(properties);
@@ -22,12 +22,12 @@ public class MirageMirror extends BaseCurio {
 
     @Override
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
-        player.Calamity$Player.changeInvisible(0.5f);
+        player.Calamity$Player.changeInvisible(-.4f);
     }
 
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
-        player.Calamity$Player.changeInvisible(-0.5f);
+        player.Calamity$Player.changeInvisible(.4f);
     }
 
     @ApplyEvent

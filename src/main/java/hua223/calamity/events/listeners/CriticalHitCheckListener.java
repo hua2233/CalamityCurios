@@ -4,10 +4,8 @@ import hua223.calamity.events.EventConstructor;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.event.entity.player.CriticalHitEvent;
-import net.minecraftforge.eventbus.api.Cancelable;
 import net.minecraftforge.eventbus.api.Event;
 
-@Cancelable
 public class CriticalHitCheckListener extends BaseListener<CriticalHitEvent> {
     public float probability;
     public final ServerPlayer player;

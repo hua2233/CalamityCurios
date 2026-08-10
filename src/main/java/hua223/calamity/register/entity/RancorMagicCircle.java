@@ -4,7 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import hua223.calamity.main.CalamityCurios;
-import hua223.calamity.register.Items.CalamityItems;
+import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.util.RenderUtil;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
+@AutoEntityRegister(sized = {0.1f, 0.1f}, trackingRange = 32, name = "rancor")
 public class RancorMagicCircle extends Entity {
     @OnlyIn(Dist.CLIENT)
     private final RenderType circle =
@@ -72,7 +73,7 @@ public class RancorMagicCircle extends Entity {
 
     public static void create(Player owner) {
         Level level = owner.level();
-        RancorMagicCircle circle = CalamityEntity.RANCOR.get().create(level);
+        RancorMagicCircle circle = CalamityCurios.getEntityType(RancorMagicCircle.class).create(level);
         if (circle != null) {
             circle.owner = owner;
             circle.setPos(owner.getEyePosition().add(owner.getLookAngle().normalize().multiply(2f, 2f, 2f)));
@@ -165,13 +166,13 @@ public class RancorMagicCircle extends Entity {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static class Render extends EntityRenderer<RancorMagicCircle> {
+    public static class Renderer extends EntityRenderer<RancorMagicCircle> {
         //以原像素大小到3d中的m进行缩放矩阵
         private static final float GLOW_MASK_SCALE = 118f / 114f;
         private static final float INNER_SCALE = 42f / 114f;
         private static final float INNER_GLOW_MASK_SCALE = 38f / 114f;
 
-        public Render(EntityRendererProvider.Context pContext) {
+        public Renderer(EntityRendererProvider.Context pContext) {
             super(pContext);
         }
 

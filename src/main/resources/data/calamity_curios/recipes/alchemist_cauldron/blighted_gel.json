@@ -1,0 +1,18 @@
+{
+  "type": "irons_spellbooks:alchemist_cauldron_brew",
+  "base_fluid": {
+    "Amount": 500,
+    "Tag": {
+      "irons_spellbooks:bottle_type": "REGULAR",
+      "Potion": "minecraft:weakness"
+    },
+    "FluidName": "irons_spellbooks:potion"
+  },
+  "input": {
+    "tag": "forge:slimeballs"
+  },
+  "byproduct": {
+    "item": "calamity_curios:blighted_gel"
+  },
+  "results": []
+}

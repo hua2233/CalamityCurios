@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "X": {
+      "item": "irons_spellbooks:arcane_rune"
+    },
+    "N": {
+      "item": "minecraft:diamond"
+    }
+  },
+  "pattern": [
+    "   ",
+    " XX",
+    " NN"
+  ],
+  "result": {
+    "item": "calamity_curios:vortex_fragment",
+    "count": 5
+  }
+}

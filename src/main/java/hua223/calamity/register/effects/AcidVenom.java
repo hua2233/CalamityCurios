@@ -35,10 +35,9 @@ public class AcidVenom extends CalamityEffect implements IEffectsCallBack {
         inactivationEffect(entity, true);
     }
 
-
     @Override
-    public void onRemove(MobEffectInstance effect, LivingEntity entity) {
-        inactivationEffect(entity, false);
+    public void onEffectRemoved(LivingEntity entity, int amplifier) {
+        IEffectsCallBack.super.onEffectRemoved(entity, amplifier);
     }
 
     @Override

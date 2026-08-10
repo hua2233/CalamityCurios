@@ -5,11 +5,9 @@ import hua223.calamity.integration.curios.Card;
 import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.loots.ApplyGlobalLoot;
 import hua223.calamity.loots.EntitiesLootContext;
-import hua223.calamity.loots.GlobalLoot;
-import hua223.calamity.register.Items.CalamityItems;
+import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.CalamityHelp;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -27,7 +25,6 @@ import java.util.List;
 public class Confuse extends Card {
     public Confuse(Properties properties) {
         super(properties);
-        GlobalLoot.mountTo(this);
     }
 
     @ApplyEvent
@@ -41,7 +38,7 @@ public class Confuse extends Card {
     }
 
     @ApplyGlobalLoot
-    public final void onEntityGlobalLoot(EntitiesLootContext context) {
+    public void onEntityGlobalLoot(EntitiesLootContext context) {
         EnderMan man = context.verification(EntityType.ENDERMAN);
         if (man != null && man.getTarget() == null && context.player.hasEffect(MobEffects.INVISIBILITY)
             && context.entity.level().getBiome(context.entity.getOnPos()).is(Biomes.WARPED_FOREST))

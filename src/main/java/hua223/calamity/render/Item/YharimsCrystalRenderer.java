@@ -3,13 +3,15 @@ package hua223.calamity.render.Item;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
-import hua223.calamity.register.Items.YharimsCrystal;
+import hua223.calamity.main.CalamityCurios;
+import hua223.calamity.register.items.YharimsCrystal;
 import hua223.calamity.util.RenderUtil;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.ItemTransform;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -18,56 +20,45 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RenderPlayerEvent;
 
-/**
- * Under construction......
- */
+//Now, it depends on the player rather than the overall situation to avoid affecting multiple people
 @OnlyIn(Dist.CLIENT)
-public class YharimsCrystalRenderer {
-    public static boolean crystalRayRender;
-    public static Vec3[] endPos;
-    public static Vec3[] lastEndPos;
-    public static float circleStartAngle;
-    public static float scale;
-    public static float lastRotateAngle;
-    public static float spinRate;
-    public static float rotateAngle;
-    private static int[] color;
+public class YharimsCrystalRenderer implements IPrismRender {
+    public final ResourceLocation TEXTURE =
+        CalamityCurios.resource("textures/entity/beacon_beam.png");
+    private final AbstractClientPlayer player;
+    public final Vec3[] endPos;
+    public final Vec3[] lastEndPos;
+    public float circleStartAngle;
+    public float scale = .05f;
+    public float lastRotateAngle;
+    public float spinRate;
+    public float rotateAngle;
+    private final int[] color;
 
-    private YharimsCrystalRenderer() {}
-
-    public static void start(LocalPlayer init) {
-        if (init == null) {
-            crystalRayRender = true;
-            endPos = new Vec3[6];
-            lastEndPos = new Vec3[6];
-            setColor();
-        } else RenderUtil.onlyThirdPersonRender(init, true, true, true, false);
+    public YharimsCrystalRenderer(AbstractClientPlayer player) {
+        this.player = player;
+        endPos = new Vec3[6];
+        lastEndPos = new Vec3[6];
+        color = new int[18];
+        setColor();
+        onlyThirdPersonRender(true, true, true, false);
     }
 
-    public static void stop(LocalPlayer player) {
-        if (crystalRayRender) {
-            crystalRayRender = false;
-            endPos = null;
-            color = null;
-            lastEndPos = null;
-            lastRotateAngle = 0;
-            rotateAngle = 0;
-            circleStartAngle = 0;
-            scale = 0.05f;
-            spinRate = 0;
-            RenderUtil.cancelThirdPersonRendering(player);
-        }
+    @Override
+    public void onStop() {
+        cancelThirdPersonRendering();
     }
 
+    @Override
     @SuppressWarnings("deprecation")
-    public static BakedModel updateModelTransform(PoseStack pose, BakedModel model, ItemDisplayContext type) {
+    public void updateModelTransform(PoseStack pose, BakedModel model, ItemDisplayContext type) {
         ItemTransform transform = model.getTransforms().getTransform(type);
         transform.rotation.y = Mth.rotLerp(Minecraft.getInstance().getFrameTime(), lastRotateAngle, rotateAngle);
         transform.apply(false, pose);
-        return model;
     }
 
-    public static void renderYharimsCrystal(RenderPlayerEvent.Post event) {
+    @Override
+    public void render(RenderPlayerEvent.Post event) {
         PoseStack pose = event.getPoseStack();
         pose.pushPose();
 
@@ -77,7 +68,7 @@ public class YharimsCrystalRenderer {
         pose.translate(forward.x, forward.y + player.getEyeHeight() * 0.7f, forward.z);
 
         float uv = RenderUtil.getLocalTick() * 0.3f;
-        RenderType type = RenderType.energySwirl(CrusherRender.TEXTURE, uv, uv);
+        RenderType type = RenderType.energySwirl(TEXTURE, uv, uv);
         for (int i = 0; i < endPos.length; i++) {
             pose.pushPose();
             PoseStack.Pose last = pose.last();
@@ -104,9 +95,13 @@ public class YharimsCrystalRenderer {
         pose.popPose();
     }
 
+    @Override
+    public AbstractClientPlayer getOwner() {
+        return player;
+    }
+
     //Something in the range of red to yellow
-    private static void setColor() {
-        color = new int[18];
+    private void setColor() {
         for (int indexing = 0; indexing < 6; indexing++) {
             float hue = indexing / 6f % 0.12f;
             float sat = 0.66f;

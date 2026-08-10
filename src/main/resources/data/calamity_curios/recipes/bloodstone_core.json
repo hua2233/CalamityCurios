@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:blood_vial"
+    },
+    "B": {
+      "item": "calamity_curios:necroplasm"
+    },
+    "C": {
+      "item": "calamity_curios:blood_stone"
+    }
+  },
+  "pattern": [
+    "CCC",
+    "BAB",
+    "CAC"
+  ],
+  "result": {
+    "item": "calamity_curios:bloodstone_core"
+  }
+}

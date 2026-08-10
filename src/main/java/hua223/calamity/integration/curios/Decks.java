@@ -4,7 +4,7 @@ import com.google.common.collect.Multimap;
 import hua223.calamity.register.RegisterList;
 import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.ICuriosStorage;
-import hua223.calamity.util.IDataPackResponse;
+import hua223.calamity.net.IDataPackResponse;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
@@ -92,8 +92,9 @@ public abstract class Decks extends BaseCurio implements IDataPackResponse {
         }
     }
 
+    @SuppressWarnings("ConstantConditions")
     protected final boolean isUnsealing(ItemStack stack) {
-        return stack.getOrCreateTag().getBoolean("Unsealing");
+        return stack.hasTag() && stack.getTag().getBoolean("unsealing");
     }
 
     @Override
@@ -118,10 +119,6 @@ public abstract class Decks extends BaseCurio implements IDataPackResponse {
         return isUnsealing(stack);
     }
 
-    public void unblock(ItemStack stack) {
-        stack.getOrCreateTag().putBoolean("Unsealing", true);
-    }
-
     @Override
     public @NotNull Component getName(@NotNull ItemStack stack) {
         boolean unsealing = isUnsealing(stack);
@@ -131,23 +128,14 @@ public abstract class Decks extends BaseCurio implements IDataPackResponse {
         return component;
     }
 
-    @Override
-    public @NotNull ItemStack getDefaultInstance() {
-        ItemStack stack = new ItemStack(this);
-        stack.getOrCreateTag().putBoolean("Unsealing", false);
-        return stack;
-    }
-
     public void fillItemCategory(CreativeModeTab.Output output) {
         output.accept(getDefaultInstance());
         ItemStack stack = new ItemStack(this);
-        unblock(stack);
+        stack.getOrCreateTag().putBoolean("unsealing", true);
         output.accept(stack);
     }
 
     public final Set<Card> getCards() {
         return subCards;
     }
-
-    public abstract Item getUnsealingRope();
 }

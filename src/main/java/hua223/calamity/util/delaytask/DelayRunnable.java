@@ -1,6 +1,6 @@
 package hua223.calamity.util.delaytask;
 
-import net.minecraftforge.event.server.ServerStartedEvent;
+import net.minecraft.server.MinecraftServer;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,8 +22,8 @@ public final class DelayRunnable {
         TASK_TABLE.add(new DelayTask(runTick, task));
     }
 
-    public static void setDist(ServerStartedEvent event) {
-        INTEGRATED_SERVER = event.getServer().isSingleplayer();
+    public static void setDist(MinecraftServer server) {
+        INTEGRATED_SERVER = server.isSingleplayer();
     }
 
     public static void nextTickRun(Runnable task) {

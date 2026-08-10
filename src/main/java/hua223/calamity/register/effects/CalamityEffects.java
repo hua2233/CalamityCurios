@@ -71,9 +71,6 @@ public class CalamityEffects {
     public static final RegistryObject<MobEffect> GOD_SLAYER_INFERNO = EFFECTS.register("god_slayer_inferno",
         () -> new GodSlayerInferno(MobEffectCategory.HARMFUL, 0xBC28C9));
 
-    public static final RegistryObject<MobEffect> GRUESOME_EVIL_SPIRITS = EFFECTS.register("gruesome_evil_spirits",
-        () -> new GruesomeEvilSpirits(MobEffectCategory.NEUTRAL, 11141290));
-
     public static final RegistryObject<MobEffect> DODGE_CD = EFFECTS.register("dodge_cd",
         () -> new DodgeCD(MobEffectCategory.NEUTRAL, 0xD3D3D3));
 
@@ -181,6 +178,8 @@ public class CalamityEffects {
 
     public static final RegistryObject<MobEffect> ENRAGE = EFFECTS.register("enrage",
         () -> new Enrage(MobEffectCategory.HARMFUL,  11141120));
+
+    public static final RegistryObject<MobEffect> BRIMSTONE_BARRIER = EFFECTS.register("brimstone_barrier", BrimstoneBarrier::new);
 
     public static void register(IEventBus bus) {
         EFFECTS.register(bus);

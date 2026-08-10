@@ -7,9 +7,12 @@ import hua223.calamity.events.EventTypes;
 import hua223.calamity.events.MethodHandlerSorter;
 import hua223.calamity.main.CalamityCurios;
 import hua223.calamity.mixed.ICalamityHeartType;
-import hua223.calamity.register.Items.edible.LifeFruit;
-import hua223.calamity.register.Items.edible.ManaPotion;
+import hua223.calamity.net.IDataPackResponse;
+import hua223.calamity.register.items.edible.LifeFruit;
+import hua223.calamity.register.items.edible.ManaPotion;
 import hua223.calamity.register.gui.SpellType;
+import hua223.calamity.render.IPlayerPostRenderer;
+import hua223.calamity.util.delaytask.DelayRunnable;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
@@ -27,7 +30,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.event.entity.living.LivingEvent;
-import top.theillusivec4.curios.api.CuriosApi;
 
 import java.util.*;
 
@@ -53,7 +55,7 @@ public final class CalamityPlayer {
     public boolean noAttackCooling;
     public boolean fireImmune;
     public boolean cardDeck;
-    private byte magicItemLeveL;
+    private byte magicItemLevel;
     public boolean automaticUsePotion;
     private SpellType.SpellData spellData;
     ObjectOpenHashSet<GlobalCuriosStorage.CuriosMemory> curiosStorage;
@@ -61,7 +63,7 @@ public final class CalamityPlayer {
 
     //#Client
     @OnlyIn(Dist.CLIENT)
-    public ICalamityHeartType ASTR;
+    public ICalamityHeartType astr;
     @OnlyIn(Dist.CLIENT)
     private ICalamityHeartType renderHeart;
     @OnlyIn(Dist.CLIENT)
@@ -69,11 +71,19 @@ public final class CalamityPlayer {
     @OnlyIn(Dist.CLIENT)
     public boolean freeze;
     @OnlyIn(Dist.CLIENT)
+    public boolean crescent;
+    @OnlyIn(Dist.CLIENT)
     public boolean sneakingSpeedBonus;
     @OnlyIn(Dist.CLIENT)
     public boolean fluidStand;
     @OnlyIn(Dist.CLIENT)
     public float jumpPower = 1f;
+    @OnlyIn(Dist.CLIENT)
+    public boolean canClimbable;
+    @OnlyIn(Dist.CLIENT)
+    private IPlayerPostRenderer renderer;
+    @OnlyIn(Dist.CLIENT)
+    public byte nihilityShell;
 
     public CalamityPlayer(Player player) {
         if (player.level().isClientSide) {
@@ -92,14 +102,14 @@ public final class CalamityPlayer {
     }
 
     public void save(CompoundTag tag) {
-        magicItemLeveL = tag.getByte("MagicItemLeveL");
+        tag.putByte("MagicItemLeveL", magicItemLevel);
         adrenaline.save(tag);
         rage.save(tag);
         calamityCap.save(tag);
     }
 
     public void load(CompoundTag tag) {
-        tag.putByte("MagicItemLeveL", magicItemLeveL);
+        magicItemLevel = tag.getByte("MagicItemLeveL");
         adrenaline.load(tag);
         rage.load(tag);
         calamityCap.load(tag);
@@ -112,15 +122,12 @@ public final class CalamityPlayer {
             adrenaline.onClone(old, isDeath);
             rage.onClone(old, isDeath);
             calamityCap.onClone(old, isDeath);
+            VariableAttributeModifier.readOldValuesOfDeath(player, old);
+            if (isDeath) GlobalCuriosStorage.addPlayerStorage(player);
+            else GlobalCuriosStorage.fromOldDataClone(player, old);
 
-            if (isDeath) {
-                var events = old.Calamity$Player.curioEvents;
-                if (events != null)
-                    for (Map.Entry<EventTypes<?>, List<MethodHandlerSorter>> entry : events.entrySet())
-                        entry.getKey().removeBatch(entry.getValue());
-                addPlayerStorage();
-                VariableAttributeModifier.readOldValuesOfDeath(player, old);
-            }
+            final Map<EventTypes<?>, List<MethodHandlerSorter>> curioEvents = old.Calamity$Player.curioEvents;
+            if (curioEvents != null) DelayRunnable.nextTickRun(() -> EventTypes.removeBatch(player));
         }
     }
 
@@ -129,20 +136,7 @@ public final class CalamityPlayer {
         adrenaline.syncData();
         rage.syncData();
         LifeFruit.setTexture(player);
-        addPlayerStorage();
-    }
-
-
-    private void addPlayerStorage() {
-        //The Curios author defaults to not processing the first frame, possibly to prevent excessive noise, so manual registration is required here
-        //If FirstTick is set to true when a player instance is created, it should be manually reset, such low frequency events are acceptable
-        CuriosApi.getCuriosInventory(player).ifPresent(handler -> {
-            for (int i = 0; i < handler.getSlots(); i++) {
-                ItemStack stack = handler.getEquippedCurios().getStackInSlot(i);
-                if (!stack.isEmpty() && stack.getItem() instanceof ICuriosStorage storage)
-                    storage.addToStorage(player);
-            }
-        });
+        GlobalCuriosStorage.addPlayerStorage(player);
     }
 
     public SpellType.SpellData getSpellData() {
@@ -207,8 +201,8 @@ public final class CalamityPlayer {
     public boolean tryUseMagicItem(int level) {
         if (level > 7) {
             CalamityCurios.LOGGER.warn("Invalid magic item bit index");
-        } else if ((magicItemLeveL & 1 << level) == 0) {
-            magicItemLeveL = (byte) (magicItemLeveL | 1 << level);
+        } else if ((magicItemLevel & 1 << level) == 0) {
+            magicItemLevel = (byte) (magicItemLevel | 1 << level);
             UUID uuid = UUID.nameUUIDFromBytes("MagicItem".getBytes());
             VariableAttributeModifier.createOrIncrease(player, AttributeRegistry.MAX_MANA.get(), uuid,
                 "MagicItem", 75, 600, AttributeModifier.Operation.ADDITION);
@@ -231,12 +225,12 @@ public final class CalamityPlayer {
         return false;
     }
 
-    //#Base
     public void changeMana(float mana, boolean sync) {
         data.addMana(mana);
         if (sync) PacketDistributor.sendToPlayer(player, new SyncManaPacket(data));
     }
 
+    //#Base
     public void canBeSeen(LivingEvent.LivingVisibilityEvent event) {
         if (invisible < 1f) event.modifyVisibility(invisible);
     }
@@ -245,13 +239,17 @@ public final class CalamityPlayer {
         invisible = Mth.clamp(invisible + value, 0f, 1f);
     }
 
+    public ServerPlayer getPlayer() {
+        return player;
+    }
+
     //HEART
     @OnlyIn(Dist.CLIENT)
     public void setAstrHeart(int value) {
         astrAmount = value;
-        if (value > 0 && ASTR == null)
-            ASTR = createNewHeartType(70);
-        else if (value <= 0) ASTR = null;
+        if (value > 0 && astr == null)
+            astr = createNewHeartType(70);
+        else if (value <= 0) astr = null;
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -272,7 +270,7 @@ public final class CalamityPlayer {
     }
 
     @OnlyIn(Dist.CLIENT)
-    private static ICalamityHeartType createNewHeartType(int baseX) {
+    private static ICalamityHeartType createNewHeartType(final int baseX) {
         return new ICalamityHeartType() {
             @Override
             public int calamity$GetX(boolean halfHeart, boolean renderHighlight) {
@@ -287,5 +285,25 @@ public final class CalamityPlayer {
                 return 18;
             }
         };
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public void stopPlayerPostRender() {
+        if (renderer != null) {
+            renderer.onStop();
+            renderer = null;
+        }
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public void startPlayerPostRender(IPlayerPostRenderer renderer) {
+        if (this.renderer != null) stopPlayerPostRender();
+        this.renderer = renderer;
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    @SuppressWarnings("unchecked")
+    public <T extends IPlayerPostRenderer> T getRenderer() {
+        return (T) renderer;
     }
 }

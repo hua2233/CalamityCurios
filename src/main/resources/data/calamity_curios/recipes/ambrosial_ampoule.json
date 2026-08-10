@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "minecraft:netherite_scrap"
+    },
+    "C": {
+      "item": "calamity_curios:radiant_ooze"
+    },
+    "B": {
+      "item": "calamity_curios:living_dew"
+    },
+    "H": {
+      "item": "calamity_curios:solar_fragment"
+    }
+  },
+  "pattern": [
+    " B ",
+    "HCH",
+    "AAA"
+  ],
+  "result": {
+    "item": "calamity_curios:ambrosial_ampoule"
+  }
+}

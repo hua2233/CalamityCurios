@@ -2,7 +2,7 @@ package hua223.calamity.integration.curios;
 
 import hua223.calamity.net.NetMessages;
 import hua223.calamity.net.packets.ApplyKeyEvent;
-import hua223.calamity.util.IDataPackResponse;
+import hua223.calamity.net.IDataPackResponse;
 import hua223.calamity.util.delaytask.DelayRunnable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;

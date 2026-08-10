@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import hua223.calamity.main.CalamityCurios;
+import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.RenderUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -37,6 +38,7 @@ import org.joml.Quaternionf;
 
 import java.util.List;
 
+@AutoEntityRegister(sized = {1f, 1f}, trackingRange = 16, velocityUpdates = false)
 public class JewelSpike extends Entity {
     private int lifeTime;
     private boolean expanding = true;
@@ -72,7 +74,7 @@ public class JewelSpike extends Entity {
     }
 
     private static void spawn(ServerPlayer player, LivingEntity target) {
-        JewelSpike spike = CalamityEntity.JEWEL_SPIKE.get().create(player.level());
+        JewelSpike spike = CalamityCurios.getEntityType(JewelSpike.class).create(player.level());
         if(spike != null) {
             spike.setPos(target.position());
             spike.owner = player;
@@ -124,15 +126,15 @@ public class JewelSpike extends Entity {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static class Render extends EntityRenderer<JewelSpike> {
-        public Render(EntityRendererProvider.Context context) {
+    public static class Renderer extends EntityRenderer<JewelSpike> {
+        public Renderer(EntityRendererProvider.Context context) {
             super(context);
         }
 
         @Override
         public void render(JewelSpike entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
             VertexConsumer consumer = buffer.getBuffer(entity.type);
-            RenderUtil.reuseQuaternions(entity.varQuaternion, 0, 1, 0,
+            RenderUtil.reuseQuaternions(entity.varQuaternion, CalamityHelp.UNIT_Y,
                 -Mth.rotLerp(partialTick, entity.owner.yRotO, entity.owner.getYRot()));
 
             //Afterwards, there was no further operation, just rotate the source matrix directly

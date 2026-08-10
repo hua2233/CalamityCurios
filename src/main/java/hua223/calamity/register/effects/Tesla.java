@@ -19,13 +19,6 @@ public class Tesla extends CalamityEffect implements IEffectsCallBack {
 
     @Override
     public void onAdd(MobEffectInstance effect, LivingEntity entity, Entity source) {
-        if (entity.calamity$IsPlayer && !entity.hasEffect(this))
-            TeslaAura.create(entity, false);
-    }
-
-    @Override
-    public void onLoad(MobEffectInstance instance, LivingEntity entity) {
-        //When re entering the world, callbacks occur after the MobEffectInstance is loaded
         if (entity.calamity$IsPlayer) TeslaAura.create(entity, false);
     }
 

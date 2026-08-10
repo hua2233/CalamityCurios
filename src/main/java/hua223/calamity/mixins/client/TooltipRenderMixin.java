@@ -1,6 +1,6 @@
 package hua223.calamity.mixins.client;
 
-import hua223.calamity.util.ICustomBackgroundRender;
+import hua223.calamity.render.Item.ICustomBackgroundRender;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.tooltip.TooltipRenderUtil;
 import net.minecraft.world.item.ItemStack;

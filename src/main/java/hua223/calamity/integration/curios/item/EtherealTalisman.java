@@ -42,13 +42,6 @@ public class EtherealTalisman extends BaseCurio {
     }
 
     @Override
-    public @NotNull ItemStack getDefaultInstance() {
-        ItemStack stack = super.getDefaultInstance();
-        stack.getOrCreateTag().putBoolean("disable_apply", true);
-        return stack;
-    }
-
-    @Override
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
         player.Calamity$Player.automaticUsePotion = stack.getOrCreateTag().getBoolean("disable_apply");
     }

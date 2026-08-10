@@ -82,7 +82,7 @@ public abstract class GuiMixin {
             if (j2 < currentHealth) {
                 boolean flag3 = j2 + 1 == currentHealth;
                 calamity$RenderHeart(graphics, calamity.astrAmount > 0 && j2 >= currentHealth -
-                    calamity.astrAmount ? calamity.ASTR : type, l1, i2, i, false, flag3);
+                    calamity.astrAmount ? calamity.astr : type, l1, i2, i, false, flag3);
             }
         }
     }

@@ -203,6 +203,7 @@ public class AdrenalineHud implements IGuiOverlay {
             hasAdrenalineItem = false;
             isNanoMachinesMode = false;
             adrenalineItemCount = 0;
+            setNanoAnimation(false);
         }
     }
 

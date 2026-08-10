@@ -1,6 +1,6 @@
 package hua223.calamity.mixins.client;
 
-import hua223.calamity.util.RenderUtil;
+import hua223.calamity.render.screen.ScreenEffectRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import org.spongepowered.asm.mixin.Final;
@@ -27,6 +27,6 @@ public abstract class GameRendererMixin {
     @Inject(method = "render(FJZ)V", at = @At(value = "INVOKE",
         target = "Lcom/mojang/blaze3d/platform/Lighting;setupFor3DItems()V", shift = At.Shift.AFTER))
     private void preRender(float partialTick, long nanoTime, boolean renderLevel, CallbackInfo ci) {
-        RenderUtil.Shaders.preScreenRender(partialTick, minecraft);
+        ScreenEffectRenderer.preScreenRender(partialTick, minecraft);
     }
 }

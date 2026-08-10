@@ -1,9 +1,10 @@
 package hua223.calamity.register.entity;
 
-import hua223.calamity.register.Items.CalamityItems;
+import hua223.calamity.main.CalamityCurios;
+import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.register.sounds.CalamitySounds;
-import hua223.calamity.util.IDataPackResponse;
-import hua223.calamity.util.Vector2d;
+import hua223.calamity.net.IDataPackResponse;
+import hua223.calamity.util.Vector2f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleEngine;
@@ -30,6 +31,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 
 //I wonder if there are any entities that don't need an EntityRenderer，this doesn't t have to be rendered at all...
+@AutoEntityRegister(sized = {0, 0}, trackingRange = 16)
 public class UniverseSplitterField extends Entity {
     private Player player;
     private LivingEntity target;
@@ -41,7 +43,7 @@ public class UniverseSplitterField extends Entity {
     @OnlyIn(Dist.CLIENT)
     private final int TIME_LEFT = 240;
     @OnlyIn(Dist.CLIENT)
-    private final Vector2d pos = new Vector2d(getX(), getY());
+    private final Vector2f pos = new Vector2f(getX(), getY());
     @OnlyIn(Dist.CLIENT)
     private final ParticleEngine particleEngine = Minecraft.getInstance().particleEngine;
     @OnlyIn(Dist.CLIENT)
@@ -55,7 +57,7 @@ public class UniverseSplitterField extends Entity {
     @SuppressWarnings("ConstantConditions")
     public static void create(Level level, IDataPackResponse response, Player player, LivingEntity entity) {
         Vec3 pos;
-        UniverseSplitterField field = CalamityEntity.USF.get().create(level);
+        UniverseSplitterField field = CalamityCurios.getEntityType(UniverseSplitterField.class).create(level);
 
         if (entity != null) {
             pos = entity.position().add(0, entity.getBoundingBox().getYsize() / 2, 0);
@@ -94,7 +96,7 @@ public class UniverseSplitterField extends Entity {
     }
 
     private void unLockEntity() {
-        IDataPackResponse response = CalamityItems.UNIVERSE_SPLITTER.asPackHandler();
+        IDataPackResponse response = (IDataPackResponse) CalamityItems.UNIVERSE_SPLITTER.get();
         CompoundTag tag = response.getPack();
         target.calamity$NoMoving = false;
         tag.putInt("id", target.getId());
@@ -106,7 +108,7 @@ public class UniverseSplitterField extends Entity {
     private void generateIdleDust() {
         // Generate a dust ring that pulsates
         for (int i = 0; i < 80; i++) {
-            Vector2d direction = Vector2d.toRotationVector2(i / 80f * Mth.TWO_PI).mul(dustRadius);
+            Vector2f direction = Vector2f.toRotationVector2(i / 80f * Mth.TWO_PI).mul(dustRadius);
             Particle particle = particleEngine.makeParticle(ParticleTypes.END_ROD,
                 getX() + direction.x, getY() + direction.y, getZ(), 0, 0, 0);
             if (particle != null) {
@@ -121,7 +123,7 @@ public class UniverseSplitterField extends Entity {
         for (int i = 0; i < SPIRAL_PRECISION; i++) {
             for (int direction = -1; direction <= 1; direction += 2) {
                 for (int j = 0; j < SPIRAL_RINGS; j++) {
-                    Vector2d spawnPos = Vector2d.NUNIT_Y.rotatedBy(tickCount / SPIRAL_PRECISION * direction, pos, false)
+                    Vector2f spawnPos = Vector2f.NUNIT_Y.rotatedBy(tickCount / SPIRAL_PRECISION * direction, pos, false)
                         .rotatedBy(j / SPIRAL_RINGS * Mth.TWO_PI, pos, true)
                         .rotatedBy(i / SPIRAL_PRECISION * Mth.TWO_PI / SPIRAL_RINGS * direction, pos, true)
                         .mul(dustRadius * i / SPIRAL_PRECISION);
@@ -143,7 +145,7 @@ public class UniverseSplitterField extends Entity {
         boolean firingGiantLaserBeam = tickCount > TIME_LEFT - 60;
         for (int i = 0; i < (firingGiantLaserBeam ? 30 : 16); i++) {
             float scale = dustRadius / 5;
-            Vector2d velocity = Vector2d.nextVector2Circular(scale, scale, level().random);
+            Vector2f velocity = Vector2f.nextVector2Circular(scale, scale, level().random);
             Particle particle = particleEngine.makeParticle(ParticleTypes.END_ROD,
                 getX(), getY(), getZ(), velocity.x, velocity.y, 0);
             if (particle != null) {
@@ -159,7 +161,7 @@ public class UniverseSplitterField extends Entity {
             float outwardCircleRadius = Mth.lerp(Mth.clamp((tickCount -
                 (TIME_LEFT - 100)) / 14f, 0f, 1f), 0f, dustRadius * 1.2f);
             for (int i = 0; i < 95; i++) {
-                Vector2d pos = Vector2d.toRotationVector2(i / 95f * Mth.TWO_PI).mul(outwardCircleRadius).add(getX(), getY());
+                Vector2f pos = Vector2f.toRotationVector2(i / 95f * Mth.TWO_PI).mul(outwardCircleRadius).add(getX(), getY());
                 Vec2 velocity = level().random.nextInt(7) == 0 ? new Vec2((float) (getX() - pos.x), (float) (getY() - pos.y)).normalized() : Vec2.ZERO;
                 Particle particle = particleEngine.makeParticle(ParticleTypes.END_ROD,
                     pos.x, pos.y, getZ(), velocity.x, velocity.y, 0);
@@ -180,11 +182,11 @@ public class UniverseSplitterField extends Entity {
         if (tickCount > 40 &&
             tickCount < TIME_LEFT - 60 &&
             tickCount % 30 == 0f) {
-            Vector2d pos = new Vector2d(random.nextInt(-10, 10) + random.nextFloat(), 20f);
-            UniverseSplitterSmallBeam beam = CalamityEntity.USB.get().create(level());
+            Vector2f pos = new Vector2f(random.nextInt(-10, 10) + random.nextFloat(), 20f);
+            UniverseSplitterSmallBeam beam = CalamityCurios.getEntityType(UniverseSplitterSmallBeam.class).create(level());
             beam.owner = player;
             beam.setPos(getX() + pos.x, getY() + pos.y, getZ());
-            beam.velocity = new Vector2d(-pos.x, -pos.y).normalize(true);
+            beam.velocity = new Vector2f(-pos.x, -pos.y).normalize(true);
             beam.ai = beam.velocity.toRotation();
             level().addFreshEntity(beam);
             level().playSound(null, this, CalamitySounds.PLASMA_BOLT.get(), SoundSource.AMBIENT, 4f, 1f);
@@ -194,12 +196,12 @@ public class UniverseSplitterField extends Entity {
         if (tickCount == TIME_LEFT - UniverseSplitterHugeBeam.TIME_LEFT) {
             float zOffset = 0f;
             if (player != null) zOffset = player.getLookAngle().z < 0 ? 0.01f : -0.01f;
-            UniverseSplitterHugeBeam beam = CalamityEntity.USH.get().create(level());
+            UniverseSplitterHugeBeam beam = CalamityCurios.getEntityType(UniverseSplitterHugeBeam.class).create(level());
             beam.owner = player;
             beam.setPos(getX(), getY() + 30, getZ() + zOffset);
             beam.setStrikePoint();
             level().addFreshEntity(beam);
-            level().playSound(null, this, CalamitySounds.PHANTOM_DEATH_RAY.get(), SoundSource.AMBIENT, 5f, 1f);
+            CalamitySounds.PHANTOM_DEATH_RAY.playSound(this);
         }
     }
 
@@ -226,8 +228,8 @@ public class UniverseSplitterField extends Entity {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static class Render extends EntityRenderer<UniverseSplitterField> {
-        public Render(EntityRendererProvider.Context pContext) {
+    public static class Renderer extends EntityRenderer<UniverseSplitterField> {
+        public Renderer(EntityRendererProvider.Context pContext) {
             super(pContext);
         }
 

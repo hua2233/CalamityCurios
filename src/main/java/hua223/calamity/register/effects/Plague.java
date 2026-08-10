@@ -1,17 +1,20 @@
 package hua223.calamity.register.effects;
 
+import com.mojang.datafixers.util.Pair;
+import hua223.calamity.register.damage.DamageRequester;
+import hua223.calamity.register.damage.DamageSupplier;
 import hua223.calamity.register.effects.factor.UniversalFactorEffect;
 import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.damage.CalamityDamageSource;
-import hua223.calamity.util.damage.CalamityDamageTypes;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.AreaEffectCloud;
@@ -27,9 +30,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiConsumer;
 
 public class Plague extends UniversalFactorEffect<float[], Plague.PlagueFactor> implements IEffectsCallBack {
+    @DamageRequester(key = "magic", id = "minecraft", msg = "plague",
+        style = ChatFormatting.DARK_GREEN, zh_cn = "%s溃烂于自然瘟疫")
+    public static DamageSupplier supplier;
+
     protected Plague(MobEffectCategory category, int color) {
         super(category, color);
         addAttributeModifier(Attributes.MOVEMENT_SPEED, "50cd184c-6dc0-486d-b52b-bb73cb5cc4c1", -0.03, AttributeModifier.Operation.MULTIPLY_BASE);
@@ -42,6 +48,7 @@ public class Plague extends UniversalFactorEffect<float[], Plague.PlagueFactor> 
     }
 
     @Override
+    @SuppressWarnings("ConstantConditions")
     public void applyEffectTick(@NotNull LivingEntity target, int amplifier) {
         if (!target.level().isClientSide) {
             MobEffectInstance source = target.getEffect(this);
@@ -49,7 +56,7 @@ public class Plague extends UniversalFactorEffect<float[], Plague.PlagueFactor> 
             int value = amplifier + 1;
             //If the host has no transmission value, the plague will kill it
             if (target.getHealth() > value || (source.getDuration() < 20 || --factor.getFactor()[4] == 0))
-                target.hurt(CalamityDamageSource.source(CalamityDamageTypes.PLAGUE, factor.getOwner()), value);
+                target.hurt(factor.getSource(), value);
 
             if (factor.infect) {
                 List<LivingEntity> entities = target.level().getEntitiesOfClass(LivingEntity.class, target.getBoundingBox().inflate(5));
@@ -71,24 +78,7 @@ public class Plague extends UniversalFactorEffect<float[], Plague.PlagueFactor> 
 
     @Override
     protected PlagueFactor factory() {
-        return new PlagueFactor(this);
-    }
-
-    @Override
-    public BiConsumer<MobEffectInstance, PlagueFactor> createFactorUpdater() {
-        return ((instance, factor) -> {
-            float[] f = factor.getFactor();
-            if (++f[0] > 40) {
-                f[0] = 0;
-                factor.infect = true;
-            }
-        });
-    }
-
-    @Override
-    //MobEffectInstance Cannot be reverse associated to a specific owner instance, not initialized here
-    public float[] initFactorData(MobEffectInstance instance) {
-        return new float[] {0, instance.getDuration(), instance.getAmplifier(), instance.getAmplifier(), 1};
+        return new PlagueFactor();
     }
 
     @Override
@@ -145,27 +135,48 @@ public class Plague extends UniversalFactorEffect<float[], Plague.PlagueFactor> 
     public static class PlagueFactor extends UniversalFactorEffect.UniversalFactor<float[]> {
         private CompoundTag nbt;
         private boolean infect;
-        public PlagueFactor(UniversalFactorEffect<float[], ?> supplier) {
-            super(supplier);
+        public PlagueFactor() {
+            super();
         }
 
         public PlagueFactor(float[] factor) {
             super(factor);
         }
 
+        public DamageSource getSource() {
+            return getOwner() != null ? supplier.get(getOwner()) : supplier.get();
+        }
+
+        @Override
+        public void initFactorData(MobEffectInstance instance) {
+            factor = new float[] {0, instance.getDuration(), instance.getAmplifier(), instance.getAmplifier(), 1};
+        }
+
         @Override
         public LivingEntity getOwner() {
             if (owner == null && nbt != null) {
                 MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-                ResourceKey<Level> key = Level.RESOURCE_KEY_CODEC.decode(NbtOps.INSTANCE,
-                    nbt.get("world")).result().get().getFirst();
-                ServerLevel level = server.getLevel(key);
-                LivingEntity owner = (LivingEntity) level.getEntity(nbt.getUUID("owner"));
-                if (owner != null) setOwner(owner);
+                Optional<Pair<ResourceKey<Level>, Tag>> key = Level.RESOURCE_KEY_CODEC.decode(NbtOps.INSTANCE, nbt.get("world")).result();
+                if (key.isPresent()) {
+                    ServerLevel level = server.getLevel(key.get().getFirst());
+                    if (level != null) {
+                        LivingEntity owner = (LivingEntity) level.getEntity(nbt.getUUID("owner"));
+                        if (owner != null) setOwner(owner);
+                    }
+                }
+
                 nbt = null;
             }
 
             return owner;
+        }
+
+        @Override
+        public void tick(@NotNull MobEffectInstance instance) {
+            if (++factor[0] > 40) {
+                factor[0] = 0;
+                infect = true;
+            }
         }
 
         private void setLazyLoadingNbt(CompoundTag tag) {
@@ -175,7 +186,7 @@ public class Plague extends UniversalFactorEffect<float[], Plague.PlagueFactor> 
         }
 
         public int getInfectionTime() {
-            return (int) Mth.lerp(factor[2] / factor[3], 20, factor[1]);
+            return (int) Mth.lerp(factor[3] == 0 ? 0 : factor[2] / factor[3], 40, factor[1]);
         }
 
         public int getInfectionLevel(int remaining) {

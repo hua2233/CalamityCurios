@@ -1,5 +1,6 @@
 package hua223.calamity.util;
 
+import hua223.calamity.events.LogoutRelease;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.server.level.ServerPlayer;
@@ -12,8 +13,9 @@ import java.lang.annotation.Target;
 import java.util.Set;
 import java.util.UUID;
 
-@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+//@Deprecated(since = "1.20.1", forRemoval = true)
 public @interface ConflictChain {
     //Indicate the root conflict path that this accessory relies on
     Class<?> value();
@@ -70,11 +72,11 @@ public @interface ConflictChain {
             }
         }
 
+        @LogoutRelease
         public static void delete(ServerPlayer player) {
             UUID playerId = player.getUUID();
-            for (Set<UUID> chain : GLOBAL_CONFLICT_CHAIN.values()) {
+            for (Set<UUID> chain : GLOBAL_CONFLICT_CHAIN.values())
                 chain.remove(playerId);
-            }
         }
     }
 }

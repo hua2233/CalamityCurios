@@ -2,11 +2,12 @@ package hua223.calamity.events;
 
 import hua223.calamity.events.listeners.*;
 import hua223.calamity.main.CalamityCurios;
-import hua223.calamity.register.gui.SpellType;
 import hua223.calamity.util.CalamityHelp;
+import hua223.calamity.util.CalamityPlayer;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.jodah.typetools.TypeResolver;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.Item;
+import net.minecraft.world.entity.player.Player;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -15,6 +16,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class EventTypes<T extends BaseListener<?>> {
     private static final List<EventTypes<?>> EVENT_TYPES = new ArrayList<>();
@@ -86,12 +88,18 @@ public class EventTypes<T extends BaseListener<?>> {
         return (T) supplier.invokeExact(args);
     }
 
+    @LogoutRelease
     @SuppressWarnings("ALL")
-    public void removeBatch(List<MethodHandlerSorter> list) {
-        for (MethodHandlerSorter sorter : list) {
-            sorter.pop();
-            if (sorter.removable()) eventCaches.remove(sorter.owner);
+    public static void removeBatch(ServerPlayer player) {
+        if (player.Calamity$Player.getActiveEvents() == null) return;
+        for (Map.Entry<EventTypes<?>, List<MethodHandlerSorter>> entry : player.Calamity$Player.getActiveEvents().entrySet()) {
+            EventTypes types = entry.getKey();
+            for (MethodHandlerSorter sorter : entry.getValue()) {
+                sorter.pop();
+                if (sorter.removable()) types.eventCaches.remove(sorter.holder);
+            }
         }
+
     }
 
     private static EventTypes<?> fromClassGet(Class<?> clazz) {
@@ -99,7 +107,7 @@ public class EventTypes<T extends BaseListener<?>> {
             if (type.listenerClass == clazz)
                 return type;
 
-        throw new IllegalStateException("Event method with parameter type mismatch");
+        throw new IllegalArgumentException("Event method with parameter type mismatch");
     }
 
     public static List<Method> collectEvents(Class<?> eventClass) {
@@ -116,35 +124,34 @@ public class EventTypes<T extends BaseListener<?>> {
         return methods;
     }
 
-    public static void applyEvent(Item curio, ServerPlayer player, final boolean apply) {
-        applyToEventHandler(curio, collectEvents(curio.getClass()), player, apply);
-    }
-
-    public static void applyEvent(SpellType spell, ServerPlayer player, final boolean apply) {
-        applyToEventHandler(spell, collectEvents(spell.getClass()), player, apply);
-    }
-
     @SuppressWarnings("ALL")
-    private static void applyToEventHandler(Object eventOwner, List<Method> methods, ServerPlayer player, final boolean apply) {
-        for (Method method : methods) {
-            //fromClassGet
-            EventTypes<?> type = fromClassGet(method.getParameterTypes()[0]);
-            MethodHandlerSorter sorter;
+    public static void applyEvent(Object eventHolder, ServerPlayer player, final boolean apply) {
+        try {
+            Class<?> eClass = eventHolder.getClass();
+            MethodHandles.Lookup lookup = eClass.isEnum() ? MethodHandles.privateLookupIn(
+                eClass, MethodHandles.lookup()) : MethodHandles.publicLookup();
 
-            if (type.eventCaches.contains(eventOwner)) sorter = type.eventCaches.get(eventOwner) ;
-            else {
-                if (!apply) return;
+            for (Method method : collectEvents(eClass)) {
+                //fromClassGet
+                EventTypes<?> type = fromClassGet(method.getParameterTypes()[0]);
+                MethodHandlerSorter sorter;
 
-                sorter = new MethodHandlerSorter(method, eventOwner,
-                    method.getAnnotation(ApplyEvent.class).value());
-                type.eventCaches.add(sorter);
+                if (type.eventCaches.contains(eventHolder)) sorter = type.eventCaches.get(eventHolder) ;
+                else {
+                    if (!apply) return;
+
+                    sorter = new MethodHandlerSorter(method, eventHolder, method.getAnnotation(ApplyEvent.class).value(), lookup);
+                    type.eventCaches.add(sorter);
+                }
+
+                if (apply) player.Calamity$Player.addEvent(type, sorter.push());
+                else {
+                    player.Calamity$Player.removeEvent(type, sorter.pop());
+                    if (sorter.removable()) type.eventCaches.remove(eventHolder);
+                }
             }
-
-            if (apply) player.Calamity$Player.addEvent(type, sorter.push());
-            else {
-                player.Calamity$Player.removeEvent(type, sorter.pop());
-                if (sorter.removable()) type.eventCaches.remove(eventOwner);
-            }
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
         }
     }
 }

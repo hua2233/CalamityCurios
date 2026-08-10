@@ -4,9 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import hua223.calamity.main.CalamityCurios;
 import hua223.calamity.register.sounds.CalamitySounds;
 import hua223.calamity.util.RenderUtil;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
@@ -157,7 +155,7 @@ public class RageHud implements IGuiOverlay {
     @SuppressWarnings("ConstantConditions")
     public static void playAnimation() {
         animationFrameTime = true;
-        Minecraft.getInstance().player.playSound(CalamitySounds.FULL_RAGE.get());
+        CalamitySounds.FULL_RAGE.playLocalSound();
     }
 
     public static int getLevelBonus() {

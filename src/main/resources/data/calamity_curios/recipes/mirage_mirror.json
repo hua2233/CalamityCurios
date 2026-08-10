@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "tag": "forge:bones"
+    },
+    "C": {
+      "item": "calamity_curios:ice_mirror"
+    },
+    "B": {
+      "tag": "forge:ender_pearls"
+    }
+  },
+  "pattern": [
+    " A ",
+    "BCB",
+    " A "
+  ],
+  "result": {
+    "item": "calamity_curios:mirage_mirror"
+  }
+}

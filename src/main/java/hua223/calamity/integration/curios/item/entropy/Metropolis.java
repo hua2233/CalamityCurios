@@ -3,11 +3,10 @@ package hua223.calamity.integration.curios.item.entropy;
 import hua223.calamity.integration.curios.Card;
 import hua223.calamity.loots.ApplyGlobalLoot;
 import hua223.calamity.loots.ChestLootContext;
-import hua223.calamity.loots.GlobalLoot;
-import hua223.calamity.register.Items.CalamityItems;
+import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.CalamityHelp;
-import hua223.calamity.util.IDataPackResponse;
+import hua223.calamity.net.IDataPackResponse;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -22,7 +21,6 @@ import java.util.List;
 public class Metropolis extends Card implements IDataPackResponse {
     public Metropolis(Properties properties) {
         super(properties);
-        GlobalLoot.mountTo(this);
     }
 
     @Override
@@ -44,7 +42,7 @@ public class Metropolis extends Card implements IDataPackResponse {
     }
 
     @ApplyGlobalLoot
-    public final void onGlobalChestLoot(ChestLootContext context) {
+    public void onGlobalChestLoot(ChestLootContext context) {
         if (context.fromSpecificName("ancient_city_ice_box") && context.chance(0.75f))
             context.addLoot(this, 1);
     }

@@ -5,6 +5,7 @@ import hua223.calamity.capability.Rage;
 import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.PlayerAttackListener;
+import hua223.calamity.net.IDataPackResponse;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.keys.IKeyDataPackResponse;
 import hua223.calamity.render.hud.RageHud;
@@ -38,29 +39,29 @@ public class ShatteredCommunity extends BaseCurio implements
     @ApplyEvent(1200)
     public final void onAttack(PlayerAttackListener listener) {
         Rage rage = listener.player.Calamity$Player.rage;
-        rage.addValue(Math.min(3, listener.baseAmount / 7), this);
+        rage.addValue(Math.min(3, listener.baseAmount / 7));
         if (rage.isActive()) {
             listener.amplifier += rage.getLevelBonus();
-            rage.addLevelUpProgress((int) listener.getCorrectionValue(), this);
+            rage.addLevelUpProgress((int) listener.getCorrectionValue());
         }
     }
 
     @Override
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
         setKeyMapping(player, true);
-        player.Calamity$Player.rage.setEnabled(true, this);
+        player.Calamity$Player.rage.setEnabled(true);
     }
 
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
         setKeyMapping(player, false);
-        player.Calamity$Player.rage.setEnabled(false, this);
+        player.Calamity$Player.rage.setEnabled(false);
         syncHealth(player);
     }
 
     @Override
     public void onServerResponse(ServerPlayer player, CompoundTag tag) {
-        player.Calamity$Player.rage.activeRage(this);
+        player.Calamity$Player.rage.activeRage();
     }
 
     @Override
@@ -70,8 +71,7 @@ public class ShatteredCommunity extends BaseCurio implements
 
     @Override
     protected void onPlayerTick(Player player) {
-        if (addCount(player, 0) >= 200) {
-            zeroCount(player, 0);
+        if (resetOrUpdate(player, 0, 200)) {
             float maxHealth = player.getMaxHealth();
             if (player.getHealth() < maxHealth)
                 player.heal(maxHealth * 0.15f);
@@ -107,12 +107,18 @@ public class ShatteredCommunity extends BaseCurio implements
     @Override
     @OnlyIn(Dist.CLIENT)
     public void onClientResponse(CompoundTag tag) {
-        if (tag.contains("value")) RageHud.setRageProgress(tag.getFloat("value"));
+        if (tag.contains("count")) RageHud.setRageCount(tag.getByte("count"));
         if (tag.contains("state")) RageHud.rageEnabled = tag.getBoolean("state");
         if (tag.contains("level")) RageHud.setShatteredLevel(tag.getByte("level"), tag.getInt("upDamage"));
         if (tag.contains("damage")) RageHud.setCurrentDamage(tag.getInt("damage"));
-        if (tag.contains("count")) RageHud.setRageCount(tag.getByte("count"));
-        if (tag.contains("play")) RageHud.playAnimation();
+        if (tag.contains("value")) {
+            float v = tag.getFloat("value");
+            if (v < 0) {
+                RageHud.playAnimation();
+                v = -v;
+            }
+            RageHud.setRageProgress(v);
+        }
     }
 
     @Override

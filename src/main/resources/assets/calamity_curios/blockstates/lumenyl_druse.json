@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "": [
+      { "model": "calamity_curios:block/lumenyl_druse0" },
+      { "model": "calamity_curios:block/lumenyl_druse1" },
+      { "model": "calamity_curios:block/lumenyl_druse2" },
+      { "model": "calamity_curios:block/lumenyl_druse3" }
+    ]
+  }
+}

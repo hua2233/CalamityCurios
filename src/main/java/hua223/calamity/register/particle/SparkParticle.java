@@ -1,9 +1,10 @@
 package hua223.calamity.register.particle;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import hua223.calamity.util.RenderUtil;
-import hua223.calamity.util.Vector2d;
+import hua223.calamity.util.Vector2f;
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.ParticleRenderType;
@@ -24,7 +25,7 @@ public class SparkParticle extends SingleTexturedParticle {
     protected final boolean stationary;
     protected float scale;
     protected float scaleOld;
-    protected Vector2d squash = new Vector2d(0.5, 1.6);
+    protected Vector2f squash = new Vector2f(0.5, 1.6);
 
     public SparkParticle(ClientLevel level, double x, double y, double z, double xSpeed, double ySpeed, float gravity,
                          int lifeTime, float scale, Vector4i color) {
@@ -78,15 +79,15 @@ public class SparkParticle extends SingleTexturedParticle {
     }
 
     protected float getHeight(float partialTick, float scaleLerp) {
-        return (float) squash.y * scaleLerp;
+        return squash.y * scaleLerp;
     }
 
     protected float getWidth(float partialTick, float scaleLerp) {
-        return (float) squash.x * scaleLerp;
+        return squash.x * scaleLerp;
     }
 
     @Override
-    public void render(VertexConsumer buffer, Camera camera, float partialTick) {
+    public void render(@NotNull VertexConsumer buffer, Camera camera, float partialTick) {
         Vec3 position = camera.getPosition();
         float x = (float) (stationary ? this.x : Mth.lerp(partialTick, this.xo, this.x) - position.x);
         float y = (float) (stationary ? this.y : Mth.lerp(partialTick, this.yo, this.y) - position.y);

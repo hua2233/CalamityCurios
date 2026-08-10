@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A" : {
+      "item": "calamity_curios:vortex_fragment"
+    },
+    "B": {
+      "item": "calamity_curios:nebula_fragment"
+    },
+    "C": {
+      "item": "calamity_curios:stardust_fragment"
+    },
+    "D": {
+      "item": "calamity_curios:solar_fragment"
+    },
+    "E": {
+      "item": "minecraft:netherite_ingot"
+    }
+  },
+  "pattern": [
+    "ADA",
+    "BEB",
+    "CDC"
+  ],
+  "result": {
+    "item": "calamity_curios:galactica_singularity",
+    "count": 6
+  }
+}

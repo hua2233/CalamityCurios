@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "X": {
+      "item": "minecraft:honeycomb"
+    },
+    "D": {
+      "item": "minecraft:jungle_leaves"
+    },
+    "A": {
+      "item": "minecraft:honey_bottle"
+    }
+  },
+  "pattern": [
+    "X X",
+    "XAX",
+    "DAD"
+  ],
+  "result": {
+    "item": "calamity_curios:honey_dew"
+  }
+}

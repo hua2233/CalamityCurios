@@ -11,7 +11,6 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -39,8 +38,8 @@ public class LifeOppress extends FragileEffect {
     }
 
     @Override
-    protected float getFragileAmplifier(@NotNull MobEffectInstance effect, @NotNull LivingEntity entity, @Nullable Entity source) {
-        return effect.getAmplifier() * 0.2f;
+    protected float getFragileAmplifier(int amplifier, @NotNull LivingEntity entity) {
+        return (amplifier + 1) * 0.2f;
     }
 
     @Override
@@ -52,8 +51,7 @@ public class LifeOppress extends FragileEffect {
     }
 
     @Override
-    public void onRemove(MobEffectInstance effect, LivingEntity entity) {
-        super.onRemove(effect, entity);
+    public void onEffectRemoved(LivingEntity entity, int amplifier) {
         entity.getPersistentData().remove("LifeOppress");
         inactivationEffect(entity, false);
     }

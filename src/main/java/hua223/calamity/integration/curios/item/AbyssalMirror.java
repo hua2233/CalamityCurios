@@ -10,7 +10,6 @@ import hua223.calamity.util.delaytask.DelayRunnable;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.item.ItemStack;
@@ -19,7 +18,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.List;
 
-@ConflictChain(MirageMirror.class)
+@CurioRepel(EclipseMirror.class)
 public class AbyssalMirror extends BaseCurio implements ICuriosStorage {
     public AbyssalMirror(Properties properties) {
         super(properties);
@@ -27,36 +26,44 @@ public class AbyssalMirror extends BaseCurio implements ICuriosStorage {
 
     @Override
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
-        player.Calamity$Player.changeInvisible(0.3f);
+        player.Calamity$Player.changeInvisible(-.6f);
     }
 
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
-        player.Calamity$Player.changeInvisible(-0.3f);
+        player.Calamity$Player.changeInvisible(.6f);
     }
 
     @ApplyEvent
     public final void onHurt(HurtListener listener) {
-        if (listener.isTriggerByLiving && CalamityHelp.isCanDodge(listener.player, listener.baseAmount,
-                listener.player.getMaxHealth() * 0.05f, (int) Mth.clamp(listener.baseAmount * 100, 300, 1800))) {
+        if (listener.isTriggerByLiving && CalamityHelp.isCanDodge(
+            listener.player, listener.getCorrectionValue(), listener.player.getMaxHealth() * 0.05f, -1)) {
             listener.canceledEvent();
             getCount(listener.player)[0] = 0.5f;
-            List<Mob> entities = listener.player.level().getEntitiesOfClass(Mob.class, listener.player.getBoundingBox().inflate(5));
-            if (!entities.isEmpty()) {
-                for (Mob mob : entities)
-                    mob.setNoAi(true);
+            stun(CalamityHelp.getAttackableEntity(Mob.class, listener.player, 5), 40);
 
-                DelayRunnable.addRunTask(40, () -> {
-                    for (Mob mob : entities)
-                        if (!mob.isDeadOrDying())
-                            mob.setNoAi(false);
-                });
-            }
 
             new FriendlyEffectCloudBuilder(listener.player, listener.player.position(), 360, 4f)
                 .setEffects(new MobEffectInstance(CalamityEffects.EUTROPHICATION.get(), 60, 1),
                     new MobEffectInstance(CalamityEffects.CRUSH_DEPTH.get(), 60, 1))
                 .setWaitTime(5).build();
+        }
+    }
+
+    static void stun(List<Mob> list, int time) {
+        if (!list.isEmpty()) {
+            for (Mob mob : list) {
+                mob.setNoAi(true);
+                mob.setXRot(70);
+            }
+
+            DelayRunnable.addRunTask(time, () -> {
+                for (Mob mob : list)
+                    if (!mob.isDeadOrDying()) {
+                        mob.setNoAi(false);
+                        mob.setXRot(0);
+                    }
+            });
         }
     }
 

@@ -3,15 +3,12 @@ package hua223.calamity.register.effects;
 import hua223.calamity.util.CMLangUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.world.effect.MobEffectCategory;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -23,8 +20,8 @@ public class NaturePain extends FragileEffect {
     }
 
     @Override
-    protected float getFragileAmplifier(@NotNull MobEffectInstance effect, @NotNull LivingEntity entity, @Nullable Entity source) {
-        return (effect.getAmplifier() + 1) * 0.1f;
+    protected float getFragileAmplifier(int amplifier, @NotNull LivingEntity entity) {
+        return (amplifier + 1) * .1f;
     }
 
     @Override

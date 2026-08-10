@@ -3,8 +3,9 @@ package hua223.calamity.register.entity.projectiles;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import hua223.calamity.loots.GlobalLoot;
 import hua223.calamity.main.CalamityCurios;
-import hua223.calamity.register.entity.CalamityEntity;
+import hua223.calamity.register.entity.AutoEntityRegister;
 import hua223.calamity.util.RenderUtil;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.client.Minecraft;
@@ -55,6 +56,7 @@ import java.util.Collections;
 import java.util.function.Consumer;
 
 //抓住你的梦!
+@AutoEntityRegister(sized = {.5f, .5f}, trackingRange = 16, updateInterval = 2, velocityUpdates = false)
 public class DreamCatcherHook extends FishingHook implements IEntityAdditionalSpawnData {
     byte id;
     @OnlyIn(Dist.CLIENT)
@@ -73,7 +75,7 @@ public class DreamCatcherHook extends FishingHook implements IEntityAdditionalSp
         float f4 = -Mth.cos(-f * angle);
         float f5 = Mth.sin(-f * angle);
         for (int i = -1; i < 2; i++) {
-            DreamCatcherHook hook = new DreamCatcherHook(CalamityEntity.DREAM_CATCHER_HOOK.get(), level);
+            DreamCatcherHook hook = CalamityCurios.getEntityType(DreamCatcherHook.class).create(level);
             hook.id = (byte) (i + 2);
             tag.putUUID("DreamCatcherHook" + hook.id, hook.getUUID());
             hook.lureSpeed += 2;
@@ -299,13 +301,13 @@ public class DreamCatcherHook extends FishingHook implements IEntityAdditionalSp
             try {
                 Consumer<ItemStack> lootPoolConsumer = LootItemFunction.decorate(pool.compositeFunction, stack -> lootWrapper[0] = stack, context);
                 container = pool.entries[random.nextInt(pool.entries.length)];
-                container.calamity$SetAbsoluteOperation = true;
+                GlobalLoot.absoluteOperation = true;
                 container.expand(context, lootPoolEntry -> lootPoolEntry.createItemStack(lootPoolConsumer, context));
             } catch (Exception e) {
                 if (container instanceof LootItem lootItem) return lootItem.item.getDefaultInstance();
                 CalamityCurios.LOGGER.warn("Incompatible loot table types {}", pool.getName());
             } finally {
-                container.calamity$SetAbsoluteOperation = false;
+                GlobalLoot.absoluteOperation = false;
             }
 
             return lootWrapper[0];
@@ -319,8 +321,8 @@ public class DreamCatcherHook extends FishingHook implements IEntityAdditionalSp
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static class Render extends EntityRenderer<DreamCatcherHook> {
-        public Render(EntityRendererProvider.Context context) {
+    public static class Renderer extends EntityRenderer<DreamCatcherHook> {
+        public Renderer(EntityRendererProvider.Context context) {
             super(context);
         }
 

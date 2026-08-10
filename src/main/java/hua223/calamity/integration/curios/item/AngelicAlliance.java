@@ -91,7 +91,7 @@ public class AngelicAlliance extends BaseCurio implements ICuriosStorage, IKeyDa
             //base amplifier
             count[2] = Mth.clamp(k,  1, 6);
             player.addEffect(new MobEffectInstance(CalamityEffects.DIVINE_BLESS.get(), (int) (count[2] * 200)));
-            player.level().playSound(null, player.blockPosition(), CalamitySounds.AA_ACTIVATION.get(), SoundSource.AMBIENT);
+            CalamitySounds.AA_ACTIVATION.playSound(player);
         }
     }
 

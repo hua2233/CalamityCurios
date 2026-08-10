@@ -5,12 +5,10 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CalamityCurseRecipe implements Recipe<SimpleContainer> {
     private final ItemStack result;
@@ -31,8 +29,8 @@ public class CalamityCurseRecipe implements Recipe<SimpleContainer> {
     }
 
     @Override
-    public @NotNull ItemStack assemble(@NotNull SimpleContainer container, @NotNull RegistryAccess registryAccess) {
-        return result;
+    public @NotNull ItemStack assemble(@Nullable SimpleContainer container, @Nullable RegistryAccess registryAccess) {
+        return result.copy();
     }
 
     @Override
@@ -41,11 +39,7 @@ public class CalamityCurseRecipe implements Recipe<SimpleContainer> {
     }
 
     @Override
-    public @NotNull ItemStack getResultItem(@NotNull RegistryAccess registryAccess) {
-        return result.copy();
-    }
-
-    ItemStack getResult() {
+    public @NotNull ItemStack getResultItem(@Nullable RegistryAccess registryAccess) {
         return result;
     }
 
@@ -79,7 +73,6 @@ public class CalamityCurseRecipe implements Recipe<SimpleContainer> {
 
     public static class CurseRecipeType implements RecipeType<CalamityCurseRecipe> {
         public static final CurseRecipeType INSTANCE = new CurseRecipeType();
-
         public static final String TYPE = "calamity_curse";
 
         private CurseRecipeType() {

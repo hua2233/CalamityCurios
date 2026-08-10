@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A" : {
+      "item": "calamity_curios:lumenyl"
+    },
+    "N": {
+      "item": "minecraft:tnt"
+    },
+    "C": {
+      "item": "irons_spellbooks:frozen_bone"
+    }
+  },
+  "pattern": [
+    "AAA",
+    "NCN",
+    "AAA"
+  ],
+  "result": {
+    "item": "calamity_curios:seafoam_bomb"
+  }
+}

@@ -122,7 +122,7 @@ public class AngelTreads extends Wings {
     @OnlyIn(Dist.CLIENT)
     public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
         Style style = Style.EMPTY.withColor(ChatFormatting.YELLOW);
-        tooltips.add(CMLangUtil.getDynamic("angel_treads", getMaxAcceleration()).withStyle(style));
+        tooltips.add(CMLangUtil.getDynamic("angel_treads",  (int) (getMaxAcceleration() * 100)).withStyle(style));
         tooltips.add(CMLangUtil.getTranslatable("angel_treads", 2).withStyle(style));
         tooltips.add(CMLangUtil.getTranslatable("angel_treads", 3).withStyle(style));
         super.getSlotsTooltip(tooltips, stack);

@@ -2,7 +2,7 @@ package hua223.calamity.mixins.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexBuffer;
-import hua223.calamity.events.ClientRushEvent;
+import hua223.calamity.events.levelevent.client.ClientLevelEvent;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
@@ -33,15 +33,14 @@ public class LevelRenderMixin {
         "Lnet/minecraft/client/multiplayer/ClientLevel;getSkyColor(Lnet/minecraft/world/phys/Vec3;F)Lnet/minecraft/world/phys/Vec3;"))
     private void bossRushSky(PoseStack poseStack, Matrix4f projectionMatrix, float
         partialTick, Camera camera, boolean isFoggy, Runnable skyFogSetup, CallbackInfo ci) {
-        if (ClientRushEvent.isBossRushEventActivating()) {
-            ClientRushEvent.BossRushSky.renderSky(poseStack, minecraft, projectionMatrix,
-                partialTick, skyBuffer, darkBuffer, level);
+        if (ClientLevelEvent.getRender() != null) {
             ci.cancel();
+            ClientLevelEvent.getRender().renderSky(poseStack, minecraft, projectionMatrix, partialTick, skyBuffer, darkBuffer, level);
         }
     }
 
     @Redirect(method = "renderWorldBorder", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Options;getEffectiveRenderDistance()I"))
     private int setDistance(Options instance) {
-        return ClientRushEvent.isBossRushEventActivating() ? 1 : instance.getEffectiveRenderDistance();
+        return ClientLevelEvent.borderRenderDistance > 0 ? ClientLevelEvent.borderRenderDistance : instance.getEffectiveRenderDistance();
     }
 }
