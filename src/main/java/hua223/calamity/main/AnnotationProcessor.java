@@ -8,12 +8,11 @@ import hua223.calamity.util.delaytask.DelayRunnable;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.javafmlmod.FMLModContainer;
 import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.fml.loading.moddiscovery.ModAnnotation;
 import net.minecraftforge.forgespi.language.ModFileScanData;
-import org.apache.logging.log4j.core.util.ReflectionUtil;
 import org.objectweb.asm.Type;
 
 import java.lang.annotation.Annotation;
@@ -22,32 +21,37 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
 
+//hua223
 public class AnnotationProcessor {
-    private final Map<Type, ResolveExceptionConsumer<AnnotationProcessor>>
-        bootStartFunctions = new Object2ObjectOpenHashMap<>();
-    private final List<Runnable> postProcessor = new ArrayList<>();
-    private final List<Runnable> fmlSetup;
-    private final EnumSet<ElementType> checkType;
-
-    public final FMLJavaModLoadingContext context;
-    public final boolean runData = FMLLoader.getLaunchHandler().isData();
-    private final ModFileScanData scanData;
-    public final MethodHandles.Lookup lookup = MethodHandles.lookup();
-    private Map<String, Object> defaultAnnotationParser;
-    public final TransformingClassLoader modLoader;
     public final IEventBus modBus;
     public final IEventBus forgeBus;
+    private final List<Runnable> fmlSetup;
+    private final EnumSet<ElementType> checkType;
+    public final FMLJavaModLoadingContext context;
+    public final TransformingClassLoader modLoader;
+    private final List<Runnable> postProcessor = new ArrayList<>();
+    public final MethodHandles.Lookup lookup = MethodHandles.lookup();
+    public final boolean runData = FMLLoader.getLaunchHandler().isData();
+    private final ModFileScanData scanData = ModList.get().getModFileById(CalamityCurios.MODID).getFile().getScanResult();
+    private final Map<Type, ResolveExceptionConsumer<AnnotationProcessor>> bootStartFunctions = new Object2ObjectOpenHashMap<>();
+
+    private Map<String, Object> defaultAnnotationParser;
     private ModFileScanData.AnnotationData annotationData;
 
     public AnnotationProcessor(final FMLJavaModLoadingContext context) {
-        try {
-            scanData = (ModFileScanData) ReflectionUtil.getFieldValue(
-                FMLModContainer.class.getDeclaredField("scanResults"), context.getContainer());
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            scanData = (ModFileScanData) ReflectionUtil.getFieldValue(
+//                FMLModContainer.class.getDeclaredField("scanResults"), context.getContainer());
+//
+//        } catch (NoSuchFieldException e) {
+//            throw new RuntimeException(e);
+//        }
+
         this.context = context;
         modBus = context.getModEventBus();
         forgeBus = MinecraftForge.EVENT_BUS;
@@ -84,7 +88,7 @@ public class AnnotationProcessor {
                 if (checkType.contains(annotation.targetType())) {
                     ResolveExceptionConsumer<AnnotationProcessor> functions = bootStartFunctions.get(annotation.annotationType());
                     if (functions != null) {
-                        this.annotationData = annotation;
+                        annotationData = annotation;
                         functions.resolveApply(this);
                     }
                 }
@@ -112,7 +116,7 @@ public class AnnotationProcessor {
         return getItemEnum(data, getDataClass().getSimpleName());
     }
 
-    public CalamityItems getItemEnum(Map<String, Object> data, String  simpleName) {
+    public CalamityItems getItemEnum(Map<String, Object> data, String simpleName) {
         String enumName = data.containsKey("item") ? ((ModAnnotation.EnumHolder) data.get("item")).getValue()
             : CaseFormat.UPPER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, simpleName);
         return CalamityItems.valueOf(enumName);
@@ -148,13 +152,13 @@ public class AnnotationProcessor {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T parser(String name) {
+    public <T> T parse(String name) {
         return (T) defaultAnnotationParser.get(name);
     }
 
     @SuppressWarnings({"unchecked", "ConstantConditions"})
-    public <T> T[] parserArr(String name, Class<T> type) {
-        Object o = parser(name);
+    public <T> T[] parseArr(String name, Class<T> type) {
+        Object o = parse(name);
         return o instanceof ArrayList<?> list ? list.toArray((T[]) Array.newInstance(type, list.size())) : (T[]) o;
     }
 

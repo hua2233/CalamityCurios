@@ -1,9 +1,10 @@
 package hua223.calamity.register.entity;
 
-import com.mojang.blaze3d.vertex.*;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import hua223.calamity.main.CalamityCurios;
-import hua223.calamity.render.CalamityCelestialBodyShader;
+import hua223.calamity.render.shaders.CalamityShaders;
 import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.RenderUtil;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -34,7 +35,7 @@ import java.util.UUID;
 @AutoEntityRegister(sized = {1f, 1f}, trackingRange = 16, velocityUpdates = false, name = "black_hole")
 public class BlackHolePet extends Entity implements OwnableEntity {
     @OnlyIn(Dist.CLIENT)
-    private final RenderType type = RenderUtil.Shaders.getBlackHole();
+    private RenderType type;
     @OnlyIn(Dist.CLIENT)
     private float rotation;
     @OnlyIn(Dist.CLIENT)
@@ -52,6 +53,7 @@ public class BlackHolePet extends Entity implements OwnableEntity {
 
     public BlackHolePet(EntityType<?> entityType, Level level) {
         super(entityType, level);
+        if (level.isClientSide) type = CalamityShaders.getBlackHole();
     }
 
     @Override
@@ -133,46 +135,28 @@ public class BlackHolePet extends Entity implements OwnableEntity {
 
     @OnlyIn(Dist.CLIENT)
     public static class Renderer extends EntityRenderer<BlackHolePet> {
-
         public Renderer(EntityRendererProvider.Context context) {
             super(context);
         }
 
         @Override
         public void render(BlackHolePet entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
-            VertexConsumer consumer = buffer.getBuffer(entity.type);
-
-            CalamityCelestialBodyShader.setHoleUniform(0.3f, new Vector3f(), 1f,
-                new Vector3f(245, 105, 61), 0.32f, new Vector3f(entity.zRotation, 0f, entity.rotation)
-                , new Vector3f(1f, 0.33f, 1f), 0.7f, 0.7f, 0.45f);
+            CalamityShaders.getBlackHoleInstance().safeGetUniform(
+                "CameraRotationAxis").set(new Vector3f(entity.zRotation, 0f, entity.rotation));
             poseStack.mulPose(entityRenderDispatcher.cameraOrientation());
             poseStack.mulPose(Axis.ZP.rotation(entity.rotation));
 
+            VertexConsumer consumer = buffer.getBuffer(entity.type);
             Matrix4f matrix4f = poseStack.last().pose();
-            consumer.vertex(matrix4f, -0.75f, -0.75f, 0)
-                .color(255, 255, 255, 255)
-                .uv(1, 1)
-                .endVertex();
-
-            consumer.vertex(matrix4f, -0.75f, 0.75f, 0)
-                .color(255, 255, 255, 255)
-                .uv(1, 0)
-                .endVertex();
-
-            consumer.vertex(matrix4f, 0.75f, 0.75f, 0)
-                .color(255, 255, 255, 255)
-                .uv(0, 0)
-                .endVertex();
-
-            consumer.vertex(matrix4f, 0.75f, -0.75f, 0)
-                .color(255, 255, 255, 255)
-                .uv(0, 1)
-                .endVertex();
+            consumer.vertex(matrix4f, -0.75f, -0.75f, 0).uv(1, 1).endVertex();
+            consumer.vertex(matrix4f, -0.75f, 0.75f, 0).uv(1, 0).endVertex();
+            consumer.vertex(matrix4f, 0.75f, 0.75f, 0).uv(0, 0).endVertex();
+            consumer.vertex(matrix4f, 0.75f, -0.75f, 0).uv(0, 1).endVertex();
         }
 
         @Override
         public @NotNull ResourceLocation getTextureLocation(@NotNull BlackHolePet blackHolePet) {
-            return CalamityCelestialBodyShader.BASE_TEXTURE;
+            return CalamityShaders.BASE_TEXTURE;
         }
     }
 }

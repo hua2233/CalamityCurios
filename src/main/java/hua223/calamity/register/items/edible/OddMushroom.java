@@ -41,7 +41,7 @@ public class OddMushroom extends Item {
     public void onGlobalEntityLoot(EntitiesLootContext context) {
         MushroomCow cow = context.verification(EntityType.MOOSHROOM);
         if (cow != null && cow.getVariant() == MushroomCow.MushroomType.BROWN && context.chance(0.35f))
-            context.addLoot(this, 1);
+            context.addLoot(this);
     }
 
     @Override

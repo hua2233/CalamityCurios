@@ -5,6 +5,7 @@ import hua223.calamity.util.CMLangUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
@@ -15,39 +16,41 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+//Do not track synchronization
 public class GodSlayerInferno extends CalamityEffect implements IEffectsCallBack, IEffectDataResponse {
     public GodSlayerInferno(MobEffectCategory category, int color) {
         super(category, color);
     }
 
     @Override
-    public boolean isDurationEffectTick(int pDuration, int pAmplifier) {
-        return pDuration % 20 == 0;
+    public boolean isDurationEffectTick(int duration, int amplifier) {
+        return duration % 20 == 0;
     }
 
     @Override
-    public void applyEffectTick(@NotNull LivingEntity entity, int amplifier) {
+    public void applyServerTick(@NotNull LivingEntity entity, int amplifier) {
         entity.hurt(entity.damageSources().magic(), 4 * ++amplifier);
     }
 
     @Override
     public void onAdd(MobEffectInstance effect, LivingEntity entity, Entity source) {
-        CompoundTag tag = getPack();
-        tag.putInt("id", entity.getId());
-        tag.putBoolean("flag", true);
-        sendToAllClient();
-        inactivationEffect(entity, true);
+        onChange(entity, true);
     }
 
     @Override
     public void onEffectRemoved(LivingEntity entity, int amplifier) {
-        if (entity.isAlive()) {
-            CompoundTag tag = getPack();
-            tag.putInt("id", entity.getId());
-            tag.putBoolean("flag", false);
-            sendToAllClient();
-            inactivationEffect(entity, false);
-        }
+        if (entity.isAlive()) onChange(entity, false);
+    }
+
+    private void onChange(LivingEntity entity, boolean isApply) {
+        CompoundTag tag = getPack();
+        tag.putInt("id", entity.getId());
+        tag.putBoolean("flag", isApply);
+
+        if (entity.calamity$IsPlayer) sendToTrackingAndSelf((ServerPlayer) entity);
+        else sendToTracking(entity);
+
+        inactivationEffect(entity, isApply);
     }
 
     @Override

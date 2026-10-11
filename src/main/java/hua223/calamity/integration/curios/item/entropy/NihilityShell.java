@@ -3,21 +3,18 @@ package hua223.calamity.integration.curios.item.entropy;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.events.LogoutRelease;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.CriticalHitTriggerListener;
 import hua223.calamity.events.listeners.HurtListener;
-import hua223.calamity.register.items.CalamityItems;
-import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.CalamityPlayer;
-import hua223.calamity.util.ICuriosStorage;
+import hua223.calamity.events.listeners.TrackedListener;
+import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.net.IDataPackResponse;
+import hua223.calamity.util.CMLangUtil;
+import hua223.calamity.util.ICuriosStorage;
 import hua223.calamity.util.RenderUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
@@ -52,8 +49,7 @@ public class NihilityShell extends BaseCurio implements ICuriosStorage, IDataPac
             cooldowns.addCooldown(this, 120);
             listener.amplifier -= count[0] * 0.25f;
             count[0] = 0;
-            getPack().putByte("c", (byte) 0);
-            sendToClient(listener.player);
+            syncCount((byte) 0, listener.player);
         }
     }
 
@@ -61,20 +57,26 @@ public class NihilityShell extends BaseCurio implements ICuriosStorage, IDataPac
     public final void onCriticalHit(CriticalHitTriggerListener listener) {
         listener.applyAmplifier(0.12f);
         float[] count = getCount(listener.player);
-        if (count[0] < 3) {
-            CompoundTag tag = getPack();
-            tag.putInt("id", listener.player.getId());
-            tag.putByte("c", (byte) ++count[0]);
-            sendToAllClient();
-        }
+        if (count[0] < 3) syncCount((byte) ++count[0], listener.player);
+    }
+
+    @ApplyEvent
+    public final void onTracked(TrackedListener listener) {
+        CompoundTag pack = getPack();
+        pack.putByte("c", (byte) getCount(listener.trackedPlayer)[0]);
+        listener.sendTrackedToTheSelf(pack, this);
+    }
+
+    private void syncCount(byte count, ServerPlayer player) {
+        CompoundTag pack = getPack();
+        pack.putByte("c", count);
+        TrackedListener.writeTracker(pack, player);
+        sendToTrackingAndSelf(player);
     }
 
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
-        CompoundTag tag = getPack();
-        tag.putInt("id", player.getId());
-        tag.putByte("c", (byte) 0);
-        sendToAllClient();
+        syncCount((byte) 0, player);
     }
 
     @Override
@@ -84,10 +86,9 @@ public class NihilityShell extends BaseCurio implements ICuriosStorage, IDataPac
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    @SuppressWarnings("ConstantConditions")
     public void onClientResponse(CompoundTag tag) {
-        ((AbstractClientPlayer) Minecraft.getInstance().level.getEntity(tag.getInt("id")))
-            .Calamity$Player.nihilityShell = tag.getByte("c");
+       AbstractClientPlayer player = TrackedListener.getInitiator(tag);
+       if (player != null) player.Calamity$Player.nihilityShell = tag.getByte("c");
     }
 
     @Override
@@ -103,10 +104,9 @@ public class NihilityShell extends BaseCurio implements ICuriosStorage, IDataPac
     public static class Render implements ICurioRenderer {
         @Override
         public <T extends LivingEntity, M extends EntityModel<T>> void render(
-            ItemStack item, SlotContext slotContext, PoseStack stack,
-            RenderLayerParent<T, M> renderLayerParent, MultiBufferSource buffer,
-            int light, float limbSwing, float limbSwingAmount, float partialTicks,
-            float ageInTicks, float netHeadYaw, float headPitch) {
+            ItemStack item, SlotContext slotContext, PoseStack stack, RenderLayerParent<T, M> renderLayerParent, MultiBufferSource buffer,
+            int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
+
             byte count = slotContext.entity().calamity$Player.Calamity$Player.nihilityShell;
             if (count > 0) {
                 float age = slotContext.entity().tickCount + partialTicks;

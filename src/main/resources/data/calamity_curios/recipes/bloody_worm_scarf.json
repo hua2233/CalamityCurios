@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A" : {
+      "item": "irons_spellbooks:magic_cloth"
+    },
+    "B": {
+      "item": "calamity_curios:bloodstone_core"
+    },
+    "C": {
+      "item": "irons_spellbooks:mithril_scrap"
+    },
+    "D": {
+      "item": "calamity_curios:bloody_worm_tooth"
+    }
+  },
+  "pattern": [
+    "   ",
+    "BCB",
+    "ADA"
+  ],
+  "result": {
+    "item": "calamity_curios:bloody_worm_scarf"
+  }
+}

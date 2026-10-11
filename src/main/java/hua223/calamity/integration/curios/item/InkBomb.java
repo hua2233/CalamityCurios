@@ -1,11 +1,14 @@
 package hua223.calamity.integration.curios.item;
 
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.HurtListener;
+import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.register.entity.projectiles.ItemPro;
-import hua223.calamity.util.*;
+import hua223.calamity.util.CMLangUtil;
+import hua223.calamity.util.CurioRepel;
+import hua223.calamity.util.FriendlyEffectCloudBuilder;
+import hua223.calamity.util.IThrowableItem;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.effect.MobEffectInstance;

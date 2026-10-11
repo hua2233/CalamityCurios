@@ -10,9 +10,8 @@ import hua223.calamity.register.entity.projectiles.ItemPro;
 import hua223.calamity.register.particle.ParticleRegister;
 import hua223.calamity.register.sounds.CalamitySounds;
 import hua223.calamity.render.CalamityOutlineRenderer;
-import hua223.calamity.render.IllusionBufferSource;
-import hua223.calamity.render.Item.StormMaidensModel;
-import hua223.calamity.render.Item.StormMaidensRenderer;
+import hua223.calamity.render.item.StormMaidensModel;
+import hua223.calamity.render.item.StormMaidensRenderer;
 import hua223.calamity.util.*;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import net.minecraft.ChatFormatting;
@@ -34,7 +33,6 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
@@ -54,7 +52,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.function.Consumer;
 
-//Developer's Prayer
+//Developer's Gift
 public class StormMaidensRetribution extends TridentItem implements IThrowableItem, IDataPackResponse {
     public StormMaidensRetribution(Properties properties) {
         super(properties);
@@ -69,14 +67,13 @@ public class StormMaidensRetribution extends TridentItem implements IThrowableIt
         ItemStack stack = player.getItemInHand(hand);
         if (hand == InteractionHand.MAIN_HAND) {
             if (level.isClientSide) {
-                IllusionBufferSource.create();
                 CalamityOutlineRenderer.start(() -> {
                     ItemStack main = player.getMainHandItem();
                     if (!player.isUsingItem() || !main.is(this)) return true;
                     CompoundTag tag = main.getOrCreateTag();
                     Entity entity = player.level().getEntity(tag.getInt("target"));
                     if (entity != null) CalamityOutlineRenderer.addRenderTarget(entity,
-                        FastColor.ARGB32.lerp(tag.getFloat("RawAlpha"), 0xFFFF0000, 0xFFCE042C));
+                        FastColor.ARGB32.lerp((1 - tag.getFloat("alpha")) / .3f, 0xFFFF0000, 0xFFCE042C));
 
                     return false;
                 });
@@ -101,14 +98,14 @@ public class StormMaidensRetribution extends TridentItem implements IThrowableIt
             if (level.isClientSide) {
                 float value;
                 if (complete) {
-                    value = 0f;
+                    value = 1f;
                     CalamitySounds.MAGIC.playLocalSound();
                 } else {
-                    value = (1f - (useTime % 10) / 10f) * 0.6f;
-                    if (value == 0.6f) CalamitySounds.LIGHTNING.playLocalSound();
+                    value = .7f + useTime % 10 / 10f * .3f;
+                    if (value == .7f) CalamitySounds.LIGHTNING.playLocalSound();
                 }
 
-                tag.putFloat("RawAlpha", value);
+                tag.putFloat("alpha", value);
             } else {
                 //It must be synchronized from the server, otherwise there may be strange enemy search problems
                 LivingEntity entity = CalamityHelp.getLookedEntity(livingEntity, level, 25);
@@ -139,8 +136,7 @@ public class StormMaidensRetribution extends TridentItem implements IThrowableIt
     @Override
     public void releaseUsing(@NotNull ItemStack stack, @NotNull Level level, @NotNull LivingEntity player, int timeLeft) {
         CompoundTag tag = stack.getOrCreateTag();
-        if (level.isClientSide) IllusionBufferSource.destroy();
-        else if (timeLeft <= getUseDuration(stack) - 30) {
+        if (!level.isClientSide && timeLeft <= getUseDuration(stack) - 30) {
             Entity entity = level.getEntity(tag.getInt("target"));
             ItemPro pro = of(stack, level);
             pro.setOwner(player);
@@ -155,7 +151,7 @@ public class StormMaidensRetribution extends TridentItem implements IThrowableIt
             CalamitySounds.THROW.playSound(entity == null ? player : entity);
         }
 
-        tag.remove("RawAlpha");
+        tag.remove("alpha");
         tag.remove("target");
     }
 
@@ -174,58 +170,48 @@ public class StormMaidensRetribution extends TridentItem implements IThrowableIt
 
             CompoundTag tag = pro.getPersistentData();
             double speed = tag.getFloat("speed");
-            if (pro.tickCount % 20 == 0) speed *= 1.1F;
+            if (pro.tickCount % 20 == 0) speed *= 1.3F;
             Entity target = pro.level().getEntity(tag.getInt("target"));
 
             if (target != null) {
                 Vec3 position = target.position().add(0.0F, target.getBbHeight() / (double)2.0F, 0.0F);
-                Vec3 direction = position.subtract(pro.position());
-                if (direction.length() < 2f) {
-                    target.kill();
-                    writeVec3("pos", position, true);
-                    sendToAllClient();
-                    pro.discard();
-                    return false;
-                } else pro.setDeltaMovement(direction);
+                pro.setDeltaMovement(position.subtract(pro.position()));
             }
 
             Vec3 vec3 = pro.getDeltaMovement().normalize().scale(speed);
             pro.setDeltaMovement(vec3);
-            pro.move(MoverType.SELF, pro.getDeltaMovement());
         }
 
         return false;
     }
 
     @Override
+    public void onHitEntity(ItemPro itemPro, EntityHitResult result) {
+        if (!itemPro.level().isClientSide) {
+            result.getEntity().kill();
+            writeVec3("pos", itemPro.position(), true);
+            sendToTracking(itemPro);
+        }
+    }
+
+    @Override
     @SuppressWarnings("ConstantConditions")
     public void onHitBlock(ItemPro itemPro, BlockHitResult result) {
-        int[] palette = new int[] {0x4BFF0000, 0x4BFFC800, 0x4BFFAEAE, 0x4BCD5C5C};
-        BlockPos pos = result.getBlockPos();
         Level level = itemPro.level();
-        EntityType<ColorfulLightningBolt> type = CalamityCurios.getEntityType(ColorfulLightningBolt.class);
-        for (int i = 0; i < 3; i++) {
-            ColorfulLightningBolt bolt = type.create(level);
-            bolt.setDamage(300);
-            bolt.setPos(pos.getX(), pos.getY(), pos.getZ());
-            bolt.setColor(CalamityHelp.multicolorLerp(level.random.nextFloat(), palette));
-            level.addFreshEntity(bolt);
-        }
-    }
 
-    @Override
-    public void onHitEntity(ItemPro itemPro, EntityHitResult result) {
-        Entity entity = result.getEntity();
-        if (!entity.level().isClientSide) {
-            entity.kill();
-            writeVec3("pos", entity.position().add(0.0F, entity.getBbHeight() / (double)2.0F, 0.0F), true);
-            sendToAllClient();
-        }
-    }
+        if (!level.isClientSide) {
+            int[] palette = new int[] {0x4BFF0000, 0x4BFFC800, 0x4BFFAEAE, 0x4BCD5C5C};
+            BlockPos pos = result.getBlockPos();
 
-    @Override
-    public boolean destroyAfterHitting(ItemPro itemPro) {
-        return !itemPro.level().isClientSide;
+            EntityType<ColorfulLightningBolt> type = CalamityCurios.getEntityType(ColorfulLightningBolt.class);
+            for (int i = 0; i < 3; i++) {
+                ColorfulLightningBolt bolt = type.create(level);
+                bolt.setDamage(300);
+                bolt.setPos(pos.getX(), pos.getY(), pos.getZ());
+                bolt.setColor(CalamityHelp.multicolorLerp(level.random.nextFloat(), palette));
+                level.addFreshEntity(bolt);
+            }
+        }
     }
 
     @Override
@@ -248,12 +234,13 @@ public class StormMaidensRetribution extends TridentItem implements IThrowableIt
     @SuppressWarnings("ConstantConditions")
     public void onClientResponse(CompoundTag tag) {
         LocalPlayer player = Minecraft.getInstance().player;
-        ClientLevel level = player.clientLevel;
         if (tag.contains("target", 3)) {
             ItemStack stack = player.getMainHandItem();
             if (stack.is(this)) stack.getOrCreateTag().putInt("target", tag.getInt("target"));
-        } else {
+        } else if (tag.contains("pos")) {
+            ClientLevel level = player.clientLevel;
             Vec3 position = readVec3("pos", tag);
+
             for (int i = 0; i < 6; i++) {
                 Vector2f vector2f = Vector2f.nextVector2Circular(.06f, .06f, level.random);
                 level.addParticle(ParticleRegister.ELECTRIC_EXPLOSION_RING.get(),

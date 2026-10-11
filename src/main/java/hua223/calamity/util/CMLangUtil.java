@@ -18,7 +18,7 @@ public class CMLangUtil {
     private static final String EFFECT_TOOLTIP_PREFIX = "effect.tooltip.";
     //private static final String DESC = ".desc";
     private static final String DEATH = "death.attack.";
-    private static final String DEATH_PLAYER = ".player";
+    private static final String DEATH_PLAYER = ".tracker";
 
     public static String getCommonText(String name, int line) {
         return TOOLTIP_PREFIX + name + LINE_PREFIX + line;
@@ -71,6 +71,10 @@ public class CMLangUtil {
 
     public static MutableComponent getEffectTranslatable(String name) {
         return Component.translatable(EFFECT_TOOLTIP_PREFIX + name);
+    }
+
+    public static MutableComponent getEffectTranslatable(String name, int line) {
+        return Component.translatable(EFFECT_TOOLTIP_PREFIX + name + LINE_PREFIX + line);
     }
 
     public static MutableComponent getDynamic(String name, int line, Object... args) {

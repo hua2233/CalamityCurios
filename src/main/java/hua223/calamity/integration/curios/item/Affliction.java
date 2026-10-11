@@ -1,26 +1,25 @@
 package hua223.calamity.integration.curios.item;
 
-import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableMultimap;
 import hua223.calamity.events.LogoutRelease;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.register.attribute.CalamityAttributes;
-import hua223.calamity.register.items.CalamityItems;
+import hua223.calamity.register.effects.CalamityEffects;
+import hua223.calamity.register.effects.SurvivableEffectInstance;
 import hua223.calamity.util.CMLangUtil;
+import hua223.calamity.util.ICuriosStorage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import java.util.*;
+import java.util.List;
 
-public class Affliction extends BaseCurio {
-    private static short counter;
+//Refactoring
+public class Affliction extends BaseCurio implements ICuriosStorage {
+    private static ServerPlayer blessingGiver;
 
     public Affliction(Properties properties) {
         super(properties);
@@ -29,52 +28,55 @@ public class Affliction extends BaseCurio {
     @Override
     @SuppressWarnings("ConstantConditions")
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
-        if (counter == 0) equipHandler(player.getServer().getPlayerList().getPlayers());
-        counter++;
+        player.Calamity$Player.blessingGiver = true;
+        if (blessingGiver == null || blessingGiver.isRemoved()) {
+            blessingGiver = player;
+            getCount(player)[0] = 29;
+            onPlayerTick(player);
+        }
     }
 
     @Override
-
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
-        remove(player);
+        shouldItContinueToExist(player);
     }
 
     @SuppressWarnings("ConstantConditions")
-    private static void remove(ServerPlayer player) {
-        if (--counter == 0) unEquipHandler(player.getServer().getPlayerList().getPlayers());
+    private static void shouldItContinueToExist(ServerPlayer player) {
+        player.Calamity$Player.blessingGiver = false;
+        if (player == blessingGiver) {
+            blessingGiver = null;
+            List<ServerPlayer> players = player.getServer().getPlayerList().getPlayers();
+            if (players.size() > 1) for (ServerPlayer serverPlayer : players)
+                if (serverPlayer.Calamity$Player.blessingGiver) {
+                    blessingGiver = serverPlayer;
+                    return;
+                }
+        }
     }
 
     @LogoutRelease
     public static void onLogOut(ServerPlayer player) {
-        //If the player exits, it should be considered as unEquip
-        if (CalamityItems.AFFLICTION.isEquip(player)) remove(player);
+        if (blessingGiver != null) player.removeEffect(CalamityEffects.AFFLICTED.get());
+        shouldItContinueToExist(player);
     }
 
+    @Override
     @SuppressWarnings("ConstantConditions")
-    private void equipHandler(List<ServerPlayer> players) {
-        UUID id = UUID.nameUUIDFromBytes("affliction".getBytes());
-        ImmutableCollection<Map.Entry<Attribute, AttributeModifier>> entries = ImmutableMultimap.of(
-            Attributes.MAX_HEALTH, new AttributeModifier(id, "affliction", 0.1, AttributeModifier.Operation.MULTIPLY_BASE),
-            CalamityAttributes.INJURY_OFFSET.get(), new AttributeModifier(id, "affliction", 0.07, AttributeModifier.Operation.ADDITION),
-            CalamityAttributes.DAMAGE_UP.get(), new AttributeModifier(id, "affliction", 0.1, AttributeModifier.Operation.ADDITION),
-            Attributes.ARMOR, new AttributeModifier(id, "affliction", 13, AttributeModifier.Operation.ADDITION),
-            Attributes.ARMOR_TOUGHNESS, new AttributeModifier(id, "affliction", 6, AttributeModifier.Operation.ADDITION)).entries();
-
-        for (ServerPlayer player : players)
-            for (Map.Entry<Attribute, AttributeModifier> entry : entries)
-                player.getAttribute(entry.getKey()).addTransientModifier(entry.getValue());
+    protected void onPlayerTick(Player player) {
+        if (blessingGiver != player) return;
+        if (resetOrUpdate(player, 0, 30)) {
+            MobEffect effect = CalamityEffects.AFFLICTED.get();
+            for (ServerPlayer serverPlayer : player.getServer().getPlayerList().getPlayers()) {
+                if (!serverPlayer.hasEffect(effect))
+                    serverPlayer.addEffect(new SurvivableEffectInstance(effect, -1, 255, () -> blessingGiver != null));
+            }
+        }
     }
 
-    @SuppressWarnings("ConstantConditions")
-    private static void unEquipHandler(List<ServerPlayer> players) {
-        UUID id = UUID.nameUUIDFromBytes("affliction".getBytes());
-
-        Attribute[] attributes = {Attributes.MAX_HEALTH, CalamityAttributes.INJURY_OFFSET.get(),
-            CalamityAttributes.DAMAGE_UP.get(), Attributes.ARMOR, Attributes.ARMOR_TOUGHNESS};
-
-        for (ServerPlayer player : players)
-            for (Attribute attribute : attributes)
-                player.getAttribute(attribute).removeModifier(id);
+    @Override
+    public int getCountSize() {
+        return 1;
     }
 
     @Override

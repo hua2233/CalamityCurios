@@ -2,10 +2,9 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.HurtListener;
-import hua223.calamity.events.listeners.PlayerAttackListener;
-import hua223.calamity.events.listeners.PlayerHealListener;
+import hua223.calamity.events.listeners.PostAttackListener;
+import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.GlobalCuriosStorage;
 import hua223.calamity.util.ICuriosStorage;
@@ -33,48 +32,21 @@ public class FrostFlare extends BaseCurio implements ICuriosStorage {
         super(properties);
     }
 
-    @SuppressWarnings("ConstantConditions")
-    private static void onHealthChange(ServerPlayer player, GlobalCuriosStorage.CuriosMemory memory) {
-        float heal = player.getHealth();
-        float half = player.getMaxHealth() / 2;
-
-        double[] amount;
-        if (heal > half) {
-            if (memory.count[2] == 0) return;
-            memory.count[2] = 0;
-            amount = new double[] {0.1, 0, 0};
-        } else {
-            if (memory.count[2] == 1) return;
-            memory.count[2] = 1;
-            amount = new double[] {0, 0.15, 10};
-        }
-
-        UUID uuid = memory.uuids[0];
-        VariableAttributeModifier.updateModifierInInstance(player.getAttribute(Attributes.ATTACK_DAMAGE), uuid, amount[0]);
-        VariableAttributeModifier.updateModifierInInstance(player.getAttribute(Attributes.MOVEMENT_SPEED), uuid, amount[1]);
-        VariableAttributeModifier.updateModifierInInstance(player.getAttribute(Attributes.ARMOR), uuid, amount[2]);
-    }
-
     @Override
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
-        onHealthChange(player, getMemory(player));
+        getCount(player)[0] = 19;
     }
 
     @ApplyEvent
-    public final void onAttack(PlayerAttackListener listener) {
+    public final void onAttack(PostAttackListener listener) {
         if (!listener.entity.hasEffect(MobEffects.MOVEMENT_SLOWDOWN))
             listener.entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 100, 1));
     }
 
-    @ApplyEvent
+    @ApplyEvent(120)
     public final void onHurt(HurtListener listener) {
-        onHealthChange(listener.player, getMemory(listener.player));
-        if (listener.source.is(DamageTypeTags.IS_FREEZING)) listener.amplifier -= 0.4f;
-    }
 
-    @ApplyEvent
-    public final void onHeal(PlayerHealListener listener) {
-        onHealthChange(listener.player, getMemory(listener.player));
+        if (listener.source.is(DamageTypeTags.IS_FREEZING)) listener.amplifier -= 0.4f;
     }
 
     @Override
@@ -95,9 +67,10 @@ public class FrostFlare extends BaseCurio implements ICuriosStorage {
     @Override
     @SuppressWarnings("ConstantConditions")
     protected void onPlayerTick(Player player) {
-        float[] count = getCount(player);
-        if (count[2] == 1 && count[0]++ == 10) {
-            count[0] = 0;
+        GlobalCuriosStorage.CuriosMemory memory = getMemory(player);
+        float[] count = memory.count;
+
+        if (++count[0] % 10 == 0 && count[2] == 1) {
             if (player.isSprinting()) {
                 if ( count[1] < 0.3f) VariableAttributeModifier.updateModifierInInstance(
                     player.getAttribute(Attributes.MOVEMENT_SPEED), getFirstUUID(player), count[1] += 0.03f);
@@ -107,6 +80,28 @@ public class FrostFlare extends BaseCurio implements ICuriosStorage {
                 VariableAttributeModifier.updateModifierInInstance(
                     player.getAttribute(Attributes.MOVEMENT_SPEED), getFirstUUID(player), 0.15);
             }
+        }
+
+        if (count[0] == 20) {
+            count[0] = 0;
+            float heal = player.getHealth();
+            float half = player.getMaxHealth() / 2;
+
+            double[] amount;
+            if (heal > half) {
+                if (memory.count[2] == 0) return;
+                memory.count[2] = 0;
+                amount = new double[] {0.1, 0, 0};
+            } else {
+                if (memory.count[2] == 1) return;
+                memory.count[2] = 1;
+                amount = new double[] {0, 0.15, 10};
+            }
+
+            UUID uuid = memory.uuids[0];
+            VariableAttributeModifier.updateModifierInInstance(player.getAttribute(Attributes.ATTACK_DAMAGE), uuid, amount[0]);
+            VariableAttributeModifier.updateModifierInInstance(player.getAttribute(Attributes.MOVEMENT_SPEED), uuid, amount[1]);
+            VariableAttributeModifier.updateModifierInInstance(player.getAttribute(Attributes.ARMOR), uuid, amount[2]);
         }
     }
 

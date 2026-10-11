@@ -13,6 +13,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -41,7 +42,7 @@ public class RedWine extends Beer {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltips, TooltipFlag isAdvanced) {
+    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, List<Component> tooltips, @NotNull TooltipFlag isAdvanced) {
         tooltips.add(CMLangUtil.getTranslatable("red_wine").withStyle(ChatFormatting.LIGHT_PURPLE));
         super.appendHoverText(stack, level, tooltips, isAdvanced);
     }

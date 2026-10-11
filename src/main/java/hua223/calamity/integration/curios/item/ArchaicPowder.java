@@ -2,8 +2,11 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.ChangedDimensionListener;
+import hua223.calamity.integration.curios.BaseCurio;
+import hua223.calamity.integration.jei.JeiInfo;
+import hua223.calamity.loots.ApplyGlobalLoot;
+import hua223.calamity.loots.ChestLootContext;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.GlobalCuriosStorage;
@@ -26,33 +29,10 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 import java.util.UUID;
 
+@JeiInfo(zh_cn = "在地牢战利品箱可能找到")
 public class ArchaicPowder extends BaseCurio implements ICuriosStorage {
     public ArchaicPowder(Properties properties) {
         super(properties);
-    }
-
-    @ApplyEvent
-    public final void onDimensionChange(ChangedDimensionListener listener) {
-        ServerPlayer player = listener.player;
-        AttributeInstance instance = player.getAttribute(Attributes.ARMOR);
-        var memory = getMemory(player);
-        UUID uuid = memory.uuids[0];
-        float[] count = memory.count;
-        if (listener.to == Level.NETHER) {
-            VariableAttributeModifier.updateModifierInInstance(instance, uuid, 6);
-            VariableAttributeModifier.updateModifierInInstance(player.getAttribute(CalamityAttributes.INJURY_OFFSET.get()), uuid, 0.05);
-            count[0] = 0;
-            count[1] = 1;
-        } else if (listener.from == Level.NETHER) {
-            if (player.getY() >= 10) {
-                VariableAttributeModifier.updateModifierInInstance(instance, uuid, 0);
-                VariableAttributeModifier.updateModifierInInstance(player.getAttribute(CalamityAttributes.INJURY_OFFSET.get()), uuid, 0);
-                count[2] = 0;
-            } else count[2] = 1;
-
-            count[1] = 0;
-            count[0] = 0;
-        }
     }
 
     @Override
@@ -72,6 +52,29 @@ public class ArchaicPowder extends BaseCurio implements ICuriosStorage {
             new VariableAttributeModifier(uuid, "archaic_powder", is ? 0.05 : 0, AttributeModifier.Operation.ADDITION));
         modifier.put(Attributes.ATTACK_SPEED,
             new AttributeModifier(uuid, "archaic_powder", 0.15, AttributeModifier.Operation.MULTIPLY_BASE));
+    }
+
+    @ApplyEvent
+    public final void onDimensionChange(ChangedDimensionListener listener) {
+        ServerPlayer player = listener.player;
+        AttributeInstance instance = player.getAttribute(Attributes.ARMOR);
+        var memory = getMemory(player);
+        float[] count = memory.count;
+        if (listener.to == Level.NETHER) {
+            setAttribute(listener.player, instance, memory, 6, .05, count[2]);
+            count[0] = 0;
+            count[1] = 1;
+        } else if (listener.from == Level.NETHER) {
+            setAttribute(listener.player, instance, memory, 0, 0, player.getY() >= -10 ? 0 : 1);
+            count[0] = 0;
+            count[1] = 0;
+        }
+    }
+
+    @ApplyGlobalLoot
+    public void onChestLoot(ChestLootContext context) {
+        if (context.fromSpecificName("simple_dungeon") && context.chance(0.12f))
+            context.addLoot(this);
     }
 
     @Override
@@ -98,6 +101,7 @@ public class ArchaicPowder extends BaseCurio implements ICuriosStorage {
         }
     }
 
+    @SuppressWarnings("ConstantConditions")
     private static void setAttribute(Player player, AttributeInstance instance, GlobalCuriosStorage.CuriosMemory memory, double armor, double offset, float flag) {
         UUID uuid = memory.uuids[0];
         VariableAttributeModifier.updateModifierInInstance(instance, uuid, armor);

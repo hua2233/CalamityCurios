@@ -14,10 +14,9 @@ import java.util.List;
 public class MoonlightShield extends CalamityEffect {
     public MoonlightShield(MobEffectCategory category, int color) {
         super(category, color);
-        addAttributeModifier(Attributes.MOVEMENT_SPEED,
-            "50cd184c-6dc0-486d-b52b-bb73cb5cc417", 0.1, AttributeModifier.Operation.MULTIPLY_BASE);
-        addAttributeModifier(CalamityAttributes.MAGIC_REDUCTION.get(),
-            "50cd184c-6dc0-486d-b52b-bb73cb5cc417", 0.1, AttributeModifier.Operation.MULTIPLY_BASE);
+        String id = getSelfUUID();
+        addAttributeModifier(Attributes.MOVEMENT_SPEED, id, 0.1, AttributeModifier.Operation.MULTIPLY_BASE);
+        addAttributeModifier(CalamityAttributes.MAGIC_REDUCTION.get(), id, 0.1, AttributeModifier.Operation.MULTIPLY_BASE);
     }
 
     @Override

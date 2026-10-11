@@ -9,7 +9,6 @@
   "attributes": [
     "Position",
     "Color",
-    "UV0",
     "UV2"
   ],
   "samplers": [

@@ -23,9 +23,8 @@ public class Riptide extends CalamityEffect implements IEffectsCallBack {
     }
 
     @Override
-    public void applyEffectTick(@NotNull LivingEntity pLivingEntity, int pAmplifier) {
-        if (!pLivingEntity.level().isClientSide)
-            pLivingEntity.hurt(pLivingEntity.damageSources().drown(), 2f);
+    public void applyServerTick(@NotNull LivingEntity pLivingEntity, int pAmplifier) {
+        pLivingEntity.hurt(pLivingEntity.damageSources().drown(), 2f);
     }
 
     @Override

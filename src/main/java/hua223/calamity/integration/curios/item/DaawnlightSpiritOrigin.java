@@ -1,9 +1,10 @@
 package hua223.calamity.integration.curios.item;
 
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.ProjectileHitListener;
+import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.util.CMLangUtil;
+import hua223.calamity.util.CurioRepel;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
@@ -12,6 +13,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.List;
 
+@CurioRepel(DeadshotBrooch.class)
 public class DaawnlightSpiritOrigin extends BaseCurio {
     public DaawnlightSpiritOrigin(Properties pProperties) {
         super(pProperties);
@@ -23,7 +25,6 @@ public class DaawnlightSpiritOrigin extends BaseCurio {
         double eye = listener.target.getEyeY();
         if (Math.abs(Math.abs(hit) - Math.abs(eye)) < 0.2)
             listener.setDaawnlight();
-            //listener.projectile.getTags().add("daawnlight");
     }
 
     @Override

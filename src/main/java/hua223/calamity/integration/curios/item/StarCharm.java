@@ -4,6 +4,7 @@ import com.google.common.collect.Multimap;
 import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.register.entity.BlackHolePet;
 import hua223.calamity.register.entity.StarPet;
+import hua223.calamity.render.item.IHeavenlyRealmBG;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.ICuriosStorage;
 import net.minecraft.ChatFormatting;
@@ -24,8 +25,8 @@ import top.theillusivec4.curios.api.CuriosApi;
 import java.util.List;
 import java.util.UUID;
 
-//Easter egg item，I really like Solyn
-public class StarCharm extends BaseCurio implements ICuriosStorage {
+//Developer Gift
+public class StarCharm extends BaseCurio implements ICuriosStorage, IHeavenlyRealmBG {
     public StarCharm(Properties properties) {
         super(properties);
     }

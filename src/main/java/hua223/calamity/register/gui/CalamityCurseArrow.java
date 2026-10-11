@@ -2,8 +2,9 @@ package hua223.calamity.register.gui;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import hua223.calamity.main.CalamityCurios;
-import hua223.calamity.net.packets.SpellTypeSync;
 import hua223.calamity.net.NetMessages;
+import hua223.calamity.net.packets.SpellTypeSync;
+import hua223.calamity.register.rune.SpellType;
 import hua223.calamity.util.delaytask.DelayRunnable;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -17,17 +18,19 @@ import org.jetbrains.annotations.NotNull;
 
 @OnlyIn(Dist.CLIENT)
 public class CalamityCurseArrow extends AbstractWidget {
-    private static TextureAtlasSprite down;
     private static TextureAtlasSprite up;
+    private static TextureAtlasSprite down;
     private static float frame;
-    private final TextureAtlasSprite textures;
+
+    public boolean notEnable;
+    private boolean buttonClick;
+    private CalamityCurseArrow key;
+
     private final short minY;
     private final short maxY;
     private final boolean isDown;
     private final CalamityCurseMenu menu;
-    public boolean notEnable;
-    private boolean buttonClick;
-    private CalamityCurseArrow key;
+    private final TextureAtlasSprite textures;
 
     public CalamityCurseArrow(int x, int y, boolean isDown, CalamityCurseMenu menu) {
         super(x, y, 14, 10, Component.empty());

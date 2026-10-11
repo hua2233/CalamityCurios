@@ -31,18 +31,22 @@ public class BloomStone extends BaseCurio implements ICuriosStorage {
             ServerLevel serverLevel = (ServerLevel) player.level();
             BlockPos blockPos = player.getOnPos();
             if (!serverLevel.getBlockState(blockPos).is(Blocks.GRASS_BLOCK)) return;
+
             BlockPos abovePos = blockPos.above();
             RandomSource random = serverLevel.random;
+            List<ConfiguredFeature<?, ?>> pre = null;
+
             for (BlockPos aroundPos : BlockPos.betweenClosed(abovePos.offset(-1, 0, -1), abovePos.offset(1, 0, 1))) {
                 if (!serverLevel.getBlockState(aroundPos.below()).is(Blocks.GRASS_BLOCK)) continue;
+
                 BlockState spawnBlock = serverLevel.getBlockState(aroundPos);
                 if (spawnBlock.isCollisionShapeFullBlock(serverLevel, aroundPos)) continue;
 
                 if (random.nextFloat() < 0.3F && spawnBlock.isAir()) {
-                    List<ConfiguredFeature<?, ?>> list = serverLevel.getBiome(aroundPos).value()
-                        .getGenerationSettings().getFlowerFeatures();
-                    if (list.isEmpty()) continue;
-                    ((RandomPatchConfiguration) list.get(0).config()).feature().value()
+                    List<ConfiguredFeature<?, ?>> list = pre == null ? pre = serverLevel.getBiome(aroundPos).value()
+                        .getGenerationSettings().getFlowerFeatures() : pre;
+
+                    if (!list.isEmpty()) ((RandomPatchConfiguration) list.get(0).config()).feature().value()
                         .place(serverLevel, serverLevel.getChunkSource().getGenerator(), random, aroundPos);
                 }
             }
@@ -62,36 +66,27 @@ public class BloomStone extends BaseCurio implements ICuriosStorage {
     @Override
     protected void onPlayerTick(Player player) {
         float[] count = getCount(player);
+        ++count[0];
 
-        if (++count[0] > 1200) {
-            count[0] = 0;
+        if (count[0] % 20 == 0) {
             Level level = player.level();
             setTheValueInTime(level, count);
         }
 
-        if (++count[1] > 100) {
-            count[1] = 0;
-            if (player.getHealth() < player.getMaxHealth()) {
-                player.heal(count[3]);
-            }
-        }
-
-        if (++count[2] > 60) {
-            count[2] = 0;
-            spawn(player);
-        }
+        if (count[0] % 40 == 0) spawn(player);
+        if (count[0] == 100) player.heal(count[1]);
     }
 
     private void setTheValueInTime(Level level, float[] count) {
         long tick = level.getDayTime();
 
         if (tick > 18000) {
-            count[3] = 1;
+            count[1] = 1;
         } else if (tick > 12000) {
-            count[3] = 3;
+            count[1] = 3;
         } else if (tick > 6000) {
-            count[3] = 4;
-        } else count[3] = 2;
+            count[1] = 4;
+        } else count[1] = 2;
     }
 
     @Override

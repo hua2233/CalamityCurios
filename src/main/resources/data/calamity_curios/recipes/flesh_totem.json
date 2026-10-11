@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "A": {
+      "item": "calamity_curios:stardust_fragment"
+    },
+    "B": {
+      "item": "minecraft:totem_of_undying"
+    },
+    "C": {
+      "item": "calamity_curios:bloodstone_core"
+    },
+    "D": {
+      "item": "irons_spellbooks:blood_vial"
+    }
+  },
+  "pattern": [
+    " A ",
+    "DBD",
+    " C "
+  ],
+  "result": {
+    "item": "calamity_curios:flesh_totem"
+  }
+}

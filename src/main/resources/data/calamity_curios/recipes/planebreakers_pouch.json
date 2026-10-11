@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:dragonskin"
+    },
+    "C": {
+      "item": "calamity_curios:galactica_singularity"
+    },
+    "B": {
+      "item": "calamity_curios:ascendant_spirit_essence"
+    },
+    "D": {
+      "item": "calamity_curios:deadshot_brooch"
+    }
+  },
+  "pattern": [
+    "BAB",
+    "CDC",
+    "BAB"
+  ],
+  "result": {
+    "item": "calamity_curios:planebreakers_pouch"
+  }
+}

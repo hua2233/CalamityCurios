@@ -42,12 +42,11 @@ public class CalamityHelp {
     public static final Vec3 UNIT_Y = new Vec3(0, 1, 0);
     public static final Vec3 UNIT_Z = new Vec3(0, 0, 1);
 
-
     private CalamityHelp() {
     }
 
     public static boolean hasCurio(LivingEntity entity, Item item) {
-            Optional<ICuriosItemHandler> optional = CuriosApi.getCuriosInventory(entity).resolve();
+        Optional<ICuriosItemHandler> optional = CuriosApi.getCuriosInventory(entity).resolve();
         if (optional.isPresent()) {
             ICuriosItemHandler handler = optional.get();
             return handler.findFirstCurio(item).isPresent();
@@ -82,15 +81,17 @@ public class CalamityHelp {
         }
     }
 
-    public static int getDebuffCount(Player player) {
-        return (int) player.getActiveEffectsMap().keySet()
+    public static int getDebuffCount(LivingEntity entity) {
+        return (int) entity.getActiveEffectsMap().keySet()
             .stream().filter(effect -> !effect.isBeneficial()).count();
     }
 
-    public static void addIfDoesNotExist(LivingEntity target, int duration, int amplifier, MobEffect... effects) {
-        for (MobEffect effect : effects)
-            if (!target.hasEffect(effect))
-                target.addEffect(new MobEffectInstance(effect, duration, amplifier));
+    public static void addAllIfDoesNotExist(LivingEntity target, int duration, int amplifier, MobEffect... effects) {
+        for (MobEffect effect : effects) addIfDoesNotExist(target, duration, amplifier, effect);
+    }
+
+    public static void addIfDoesNotExist(LivingEntity target, int duration, int amplifier, MobEffect effect) {
+        if (!target.hasEffect(effect)) target.addEffect(new MobEffectInstance(effect, duration, amplifier));
     }
 
     public static boolean isCanDodge(ServerPlayer player, float damage, float threshold, int cd) {
@@ -272,11 +273,11 @@ public class CalamityHelp {
         return result == null ? null : (LivingEntity) result.getEntity();
     }
 
-    public static <T extends LivingEntity> List<T> getAttackableEntity(Class<T> target, Entity player, int scope) {
+    public static <T extends Entity> List<T> getAttackableEntity(Class<T> target, Entity player, int scope) {
         return getAttackableEntity(target, player, player.getBoundingBox().inflate(scope));
     }
 
-    public static <T extends LivingEntity> List<T> getAttackableEntity(Class<T> target, Entity player, AABB box) {
+    public static <T extends Entity> List<T> getAttackableEntity(Class<T> target, Entity player, AABB box) {
         return player.level().getEntitiesOfClass(target, box, entity -> attackableEntity(player, entity));
     }
 
@@ -301,8 +302,12 @@ public class CalamityHelp {
         return entities.isEmpty() ? null : entities.stream().min(Comparator.comparingDouble(target -> target.distanceToSqr(cutterPos))).get();
     }
 
-    public static List<LivingEntity> blastingTheEnemy(Entity initiator, Vec3 position, float radius) {
+    public static void blasting(Entity initiator, Vec3 position, float radius) {
         initiator.level().explode(initiator, position.x, position.y, position.z, radius, Level.ExplosionInteraction.NONE);
+    }
+
+    public static List<LivingEntity> blastingTheEnemy(Entity initiator, Vec3 position, float radius) {
+        blasting(initiator, position, radius);
         radius *= 2;
         int k1 = Mth.floor(position.x - radius - 1);
         int l1 = Mth.floor(position.x + radius + 1);

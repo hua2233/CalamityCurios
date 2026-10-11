@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A" : {
+      "item": "calamity_curios:ruinous_soul"
+    },
+    "B": {
+      "item": "irons_spellbooks:ender_upgrade_orb"
+    },
+    "C": {
+      "item": "calamity_curios:necroplasm"
+    }
+  },
+  "pattern": [
+    "AAA",
+    "CBC",
+    " A "
+  ],
+  "result": {
+    "item": "calamity_curios:phantom_heart"
+  }
+}

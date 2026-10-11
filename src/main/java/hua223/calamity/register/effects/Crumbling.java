@@ -13,7 +13,7 @@ import java.util.List;
 public class Crumbling extends CalamityEffect {
     protected Crumbling(MobEffectCategory category, int color) {
         super(category, color);
-        addAttributeModifier(Attributes.ARMOR, "123e4567-e89b-12d3-a456-426614174006", -5, AttributeModifier.Operation.ADDITION);
+        addAttributeModifier(Attributes.ARMOR, getSelfUUID(), -5, AttributeModifier.Operation.ADDITION);
     }
 
     @Override

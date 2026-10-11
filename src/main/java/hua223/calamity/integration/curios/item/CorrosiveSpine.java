@@ -2,11 +2,12 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.HurtListener;
-import hua223.calamity.events.listeners.PlayerAttackListener;
+import hua223.calamity.events.listeners.PreAttackListener;
+import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.FriendlyEffectCloudBuilder;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -30,14 +31,18 @@ public class CorrosiveSpine extends BaseCurio {
 
     @Override
     protected void setAttributeModifiers(UUID uuid, ItemStack stack, Multimap<Attribute, AttributeModifier> modifier, LivingEntity equipped) {
-        modifier.put(Attributes.MOVEMENT_SPEED,
-            new AttributeModifier(uuid, "corrosive_spine", 0.05, AttributeModifier.Operation.MULTIPLY_BASE));
         modifier.put(Attributes.ARMOR,
             new AttributeModifier(uuid, "corrosive_spine", 4, AttributeModifier.Operation.ADDITION));
+
+        modifier.put(Attributes.MOVEMENT_SPEED,
+            new AttributeModifier(uuid, "corrosive_spine", 0.05, AttributeModifier.Operation.MULTIPLY_BASE));
+
+        modifier.put(AttributeRegistry.NATURE_SPELL_POWER.get(),
+            new AttributeModifier(uuid, "raiders_talisman", .08, AttributeModifier.Operation.MULTIPLY_BASE));
     }
 
     @ApplyEvent
-    public final void onAttack(PlayerAttackListener listener) {
+    public final void onAttack(PreAttackListener listener) {
         if (!listener.entity.hasEffect(MobEffects.POISON) && listener.player.getRandom().nextBoolean())
             listener.entity.addEffect(new MobEffectInstance(MobEffects.POISON, 60, 1));
     }

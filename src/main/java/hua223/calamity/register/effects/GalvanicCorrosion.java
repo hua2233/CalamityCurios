@@ -19,10 +19,9 @@ import java.util.List;
 public class GalvanicCorrosion extends CalamityEffect {
     public GalvanicCorrosion(MobEffectCategory category, int color) {
         super(category, color);
-        addAttributeModifier(Attributes.MOVEMENT_SPEED, "50cd184c-6dc0-486d-b52b-bb73cb5cc414",
-            -0.3f, AttributeModifier.Operation.MULTIPLY_BASE);
-        addAttributeModifier(AttributeRegistry.LIGHTNING_MAGIC_RESIST.get(), "50cd184c-6dc0-486d-b52b-bb73cb5cc414",
-            -0.3f, AttributeModifier.Operation.MULTIPLY_BASE);
+        String id = getSelfUUID();
+        addAttributeModifier(Attributes.MOVEMENT_SPEED, id, -0.3f, AttributeModifier.Operation.MULTIPLY_BASE);
+        addAttributeModifier(AttributeRegistry.LIGHTNING_MAGIC_RESIST.get(), id, -0.3f, AttributeModifier.Operation.MULTIPLY_BASE);
     }
 
     @Override
@@ -31,15 +30,13 @@ public class GalvanicCorrosion extends CalamityEffect {
     }
 
     @Override
-    public void applyEffectTick(@NotNull LivingEntity entity, int amplifier) {
-        if (!entity.level().isClientSide) {
-            LightningBolt bolt = new LightningBolt(EntityType.LIGHTNING_BOLT, entity.level());
-            bolt.setVisualOnly(true);
-            bolt.setDamage(7f);
-            bolt.setPos(entity.position());
-            entity.level().addFreshEntity(bolt);
-            entity.thunderHit((ServerLevel) entity.level(), bolt);
-        }
+    public void applyServerTick(@NotNull LivingEntity entity, int amplifier) {
+        LightningBolt bolt = new LightningBolt(EntityType.LIGHTNING_BOLT, entity.level());
+        bolt.setVisualOnly(true);
+        bolt.setDamage(7f);
+        bolt.setPos(entity.position());
+        entity.level().addFreshEntity(bolt);
+        entity.thunderHit((ServerLevel) entity.level(), bolt);
     }
 
     @Override

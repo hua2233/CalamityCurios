@@ -2,7 +2,6 @@ package hua223.calamity.render.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import hua223.calamity.util.RenderUtil;
 import hua223.calamity.util.delaytask.DelayRunnable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
@@ -68,7 +67,6 @@ public abstract class ScreenEffectRenderer implements Comparable<ScreenEffectRen
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);
         RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         renderOnlyTexture(minecraft.getWindow().getGuiScaledWidth(), minecraft.getWindow().getGuiScaledHeight());
         RenderSystem.depthMask(true);

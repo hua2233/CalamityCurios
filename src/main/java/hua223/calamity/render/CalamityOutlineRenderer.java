@@ -25,18 +25,21 @@ import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.client.model.data.ModelData;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
 import java.util.function.BooleanSupplier;
 
 @OnlyIn(Dist.CLIENT)
 public class CalamityOutlineRenderer {
-    private static Minecraft minecraft;
+    private static PoseStack pose;
     private static PostChain effect;
+    private static Minecraft minecraft;
     private static RenderTarget renderTarget;
+    private static Queue<OutlineInfo> poolQueue;
     private static List<BooleanSupplier> runState;
     private static Queue<OutlineInfo> renderQueue;
-    private static Queue<OutlineInfo> poolQueue;
-    private static PoseStack pose;
 
     public static void start(BooleanSupplier runFunction) {
         if (minecraft == null) {
@@ -46,10 +49,10 @@ public class CalamityOutlineRenderer {
                     minecraft.getMainRenderTarget(), CalamityCurios.ModResource("shaders/post/outline.json"));
                 effect.resize(minecraft.getWindow().getScreenWidth(), minecraft.getWindow().getScreenHeight());
                 renderTarget = effect.getTempTarget("final");
-                runState = new ArrayList<>();
-                IllusionBufferSource.create();
-                poolQueue = new ArrayDeque<>(30);
+
                 pose = new PoseStack();
+                runState = new ArrayList<>();
+                poolQueue = new ArrayDeque<>(30);
                 renderQueue = Queues.newConcurrentLinkedQueue();
                 runTick();
                 runState.add(runFunction);
@@ -70,7 +73,6 @@ public class CalamityOutlineRenderer {
             renderQueue = null;
             poolQueue = null;
             pose = null;
-            IllusionBufferSource.destroy();
         });
     }
 
@@ -84,13 +86,13 @@ public class CalamityOutlineRenderer {
                 return true;
             }
 
-            return minecraft.player == null;
+            return false;
         }, 1);
     }
 
     private static boolean checkRunState() {
         runState.removeIf(BooleanSupplier::getAsBoolean);
-        return runState.isEmpty();
+        return minecraft.player == null ||  runState.isEmpty();
     }
 
     public static void renderPerspective(RenderLevelStageEvent event) {
@@ -108,7 +110,7 @@ public class CalamityOutlineRenderer {
                 fboSetUp();
                 Vec3 view = event.getCamera().getPosition();
                 pose.translate(-view.x, -view.y, -view.z);
-                MultiBufferSource buffer = IllusionBufferSource.getSource(minecraft.renderBuffers().bufferSource());
+                MultiBufferSource buffer = IllusionBufferSource.getSource();
 
                 for (OutlineInfo outline : renderQueue) {
                     IllusionBufferSource.setColor(outline.r,  outline.g, outline.b, outline.a);
@@ -137,14 +139,11 @@ public class CalamityOutlineRenderer {
 
                 minecraft.getMainRenderTarget().bindWrite(false);
                 RenderSystem.enableBlend();
-                RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA,
-                    GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA,
+                RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA,
                     GlStateManager.SourceFactor.ZERO, GlStateManager.DestFactor.ONE);
                 renderTarget.blitToScreen(renderTarget.width, renderTarget.height, false);
                 RenderSystem.disableBlend();
                 RenderSystem.defaultBlendFunc();
-                //Restore the original projection matrix
-//                RenderSystem.setProjectionMatrix(event.getProjectionMatrix(), VertexSorting.DISTANCE_TO_ORIGIN);
             }
         } else if(stage == RenderLevelStageEvent.Stage.AFTER_BLOCK_ENTITIES) {
             PoseStack stack = event.getPoseStack();
@@ -153,7 +152,7 @@ public class CalamityOutlineRenderer {
         }
     }
 
-    private static void fboSetUp() {
+    public static void fboSetUp() {
         Window window = minecraft.getWindow();
         int width = window.getScreenWidth();
         int height = window.getScreenHeight();

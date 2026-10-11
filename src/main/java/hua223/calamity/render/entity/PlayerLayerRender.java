@@ -3,6 +3,7 @@ package hua223.calamity.render.entity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import hua223.calamity.main.CalamityCurios;
+import hua223.calamity.util.CalamityPlayer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.EntityModelSet;
@@ -37,13 +38,15 @@ public class PlayerLayerRender extends RenderLayer<Player, HumanoidModel<Player>
     @Override
     public void render(@NotNull PoseStack poseStack, @NotNull MultiBufferSource buffer, int i, Player player,
                        float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float headYaw, float headPitch) {
-        if (player.Calamity$Player.freeze) {
+        CalamityPlayer modPlayer = player.Calamity$Player;
+
+        if (modPlayer.freeze) {
             getParentModel().copyPropertiesTo(freeze);
             VertexConsumer consumer = buffer.getBuffer(
                 RenderType.entityCutoutNoCull(CalamityCurios.ResourceOf("minecraft", "textures/block/ice.png")));
             freeze.setupAnim(player, limbSwing, limbSwingAmount, ageInTicks, headYaw, headPitch);
             freeze.renderToBuffer(poseStack, consumer, i, OverlayTexture.NO_OVERLAY, 1f, 1f, 1f, 1f);
-        } else if (player.Calamity$Player.crescent) {
+        } else if (modPlayer.crescent) {
             float offset = (player.tickCount + partialTicks) * .01f;
             crescent.prepareMobModel(player, limbSwing, limbSwingAmount, partialTicks);
             getParentModel().copyPropertiesTo(crescent);

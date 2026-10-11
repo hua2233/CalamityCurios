@@ -14,17 +14,18 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.Mth;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraftforge.event.entity.EntityTravelToDimensionEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.living.LivingDropsEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -50,9 +51,9 @@ public class BossRushEvent extends LevelEvent<BossRushBossWave> {
     protected void pre() {
         setTerminusBoundingBox(level, original.x, original.z, 80);
         players = new ObjectOpenHashSet<>();
-        for (ServerPlayer player : level.getServer().getPlayerList().getPlayers())
-            if (player.level() == level && level.getWorldBorder().isWithinBounds(player.getBoundingBox()))
-                players.add(player.getUUID());
+        for (ServerPlayer player : super.getAllPlayer())
+            if (player.level() == level && player.isAlive() && player.gameMode.getGameModeForPlayer() == GameType.SURVIVAL
+                && level.getWorldBorder().isWithinBounds(player.getBoundingBox())) players.add(player.getUUID());
         super.pre();
         maxTierWave = challengeWave.size();
     }
@@ -65,20 +66,20 @@ public class BossRushEvent extends LevelEvent<BossRushBossWave> {
 
         if (tickCount % 20 == 0) {
             List<ServerPlayer> players;
-            if ((level.getDifficulty() == Difficulty.PEACEFUL || (players = getAllPlayer()).removeIf(ServerPlayer::isCreative)))
-                failureEvent();
+            if ((level.getDifficulty() == Difficulty.PEACEFUL || (players = getAllPlayer())
+                .removeIf(player -> player.gameMode.getGameModeForPlayer() != GameType.SURVIVAL))) failureEvent();
             else {
                 WorldBorder worldBorder = level.getWorldBorder();
                 Vec3 position = null;
                 for (ServerPlayer player : players) {
                     if (!worldBorder.isWithinBounds(player.getBoundingBox())) {
-                        if (position == null) position = getCurrentWave().getCenterSpawn(0);
+                        if (position == null) position = wave == null ? original : wave.getCenterSpawn(0);
                         player.teleportTo(position.x, position.y, position.z);
                     }
                 }
 
                 if (boss != null && !worldBorder.isWithinBounds(boss.getBoundingBox())) {
-                    if (position == null) position = getCurrentWave().getCenterSpawn(0);
+                    if (position == null) position = wave.getCenterSpawn(0);
                     boss.teleportTo(position.x, position.y, position.z);
                 }
             }
@@ -106,14 +107,25 @@ public class BossRushEvent extends LevelEvent<BossRushBossWave> {
     }
 
     public void setTerminusBoundingBox(ServerLevel level, double x, double z, double size) {
-        this.level = level;
         WorldBorder border = level.getWorldBorder();
-        border.calamity$BossRushBox(x, z, size);
-        border.setDamageSafeZone(WorldBorder.DEFAULT_SETTINGS.getSafeZone());
-        border.calamity$Shape = Shapes.box(Math.floor(border.getMinX()), Double.NEGATIVE_INFINITY, Math.floor(border.getMinZ()),
-            Math.ceil(border.getMaxX()), Double.POSITIVE_INFINITY, Math.ceil(border.getMaxZ()));
-        response.writeVec3("border", new Vec3(x, z, size), true);
-        response.sendToAllClient();
+        double oldSize = border.getSize();
+        boolean changeVenue = level != this.level || border.getCenterX() != x || border.getCenterZ() != z;
+
+        if (changeVenue || oldSize != size) {
+            this.level = level;
+            border.calamity$BossRushBox(x, z, size);
+            border.setDamageSafeZone(WorldBorder.DEFAULT_SETTINGS.getSafeZone());
+            border.calamity$Shape = Shapes.box(Math.floor(border.getMinX()), Double.NEGATIVE_INFINITY, Math.floor(border.getMinZ()),
+                Math.ceil(border.getMaxX()), Double.POSITIVE_INFINITY, Math.ceil(border.getMaxZ()));
+            response.writeVec3("border", new Vec3(x, z, size), true);
+            response.sendToAllClient();
+        }
+
+        if (players != null && (changeVenue || oldSize < size)) {
+            for (ServerPlayer player : level.getServer().getPlayerList().getPlayers())
+                if (player.level() == level && !players.contains(player.getUUID()) && border.isWithinBounds(player.getBoundingBox()))
+                    player.teleportTo(border.getMinX() - 5, player.getY(), border.getMinZ() - 5);
+        }
     }
 
     @Override
@@ -121,18 +133,34 @@ public class BossRushEvent extends LevelEvent<BossRushBossWave> {
         return level.getPlayers(p -> players.contains(p.getUUID()));
     }
 
+    @Override
+    @SubscribeEvent
+    //子类应该手动监听该事件因为forge并不会向上溯源
+    public final void onDrop(LivingDropsEvent event) {
+        super.onDrop(event);
+    }
+
     @SubscribeEvent
     public final void onPlayerClone(PlayerEvent.Clone event) {
         Player player = event.getEntity();
         Level level = player.level();
-        if (player.level() == level && !players.contains(player.getUUID()) && level.getWorldBorder().isWithinBounds(player.getBoundingBox()))
-            player.setPos(level.getWorldBorder().getMinX() - 5, player.getY(), level.getWorldBorder().getMinZ() - 5);
+        if (level == this.level && level.getWorldBorder().isWithinBounds(player.getBoundingBox()))
+            DelayRunnable.nextTickRun(() -> {
+                if (!player.isRemoved() && inProgress())
+                    player.setPos(level.getWorldBorder().getMinX() - 5, player.getY(), level.getWorldBorder().getMinZ() - 5);
+            });
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public final void onDimension(EntityTravelToDimensionEvent event) {
         if (!allowChangedDimension && (players != null && players.contains(event.getEntity().getUUID())))
             event.cancel();
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public final void onPlayerLogIn(PlayerEvent.PlayerLoggedInEvent event) {
+       response.getPack().putBoolean("login", inProgress());
+       response.sendToClient((ServerPlayer) event.getEntity());
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -151,49 +179,53 @@ public class BossRushEvent extends LevelEvent<BossRushBossWave> {
 
     @SubscribeEvent
     public final void onLogOut(PlayerEvent.PlayerLoggedOutEvent event) {
-        if (players.remove(event.getEntity().getUUID()) && players.isEmpty()) endEvent();
-    }
-
-    public void restoreDefaultVenue() {
-        WorldBorder border = level.getWorldBorder();
-        border.calamity$Shape = null;
-        WorldBorder.Settings settings = WorldBorder.DEFAULT_SETTINGS;
-        border.calamity$BossRushBox(settings.getCenterX(), settings.getCenterZ(), settings.getSize());
-        response.getPack().putString("border", "default");
-        response.sendToAllClient();
+        if (players.remove(event.getEntity().getUUID()) && players.isEmpty()) interruptEvent();
     }
 
     @SuppressWarnings("all")
-    public final Player findTheNearestPlayer(Entity entity) {
-        return (Player) players.stream().map(level::getEntity).min(Comparator.comparingDouble(entity::distanceToSqr)).get();
+    public void restoreDefaultVenue() {
+        WorldBorder border = level.getWorldBorder();
+        if (border.calamity$Shape != null) {
+            border.calamity$Shape = null;
+            WorldBorder.Settings settings = WorldBorder.DEFAULT_SETTINGS;
+            border.calamity$BossRushBox(settings.getCenterX(), settings.getCenterZ(), settings.getSize());
+            response.getPack().putString("border", "default");
+            response.sendToAllClient();
+        }
     }
 
-    public void rePlayBGMusik() {
+    @SuppressWarnings("all")
+    protected final Player findTheNearestPlayer(Entity entity) {
+        return players.stream().map(level::getPlayerByUUID).min(Comparator.comparingDouble(entity::distanceToSqr)).get();
+    }
+
+    public void rePlayBGMusik(ServerPlayer player) {
         response.getPack().putString("sound", "replay");
-        response.sendToAllClient();
+        response.sendToClient(player);
     }
 
     @Override
-    protected void attemptToGenerateTheNextWave() {
+    public void attemptToGenerateTheNextWave() {
         BossRushBossWave previous = getCurrentWave();
         if (challengeWave.isEmpty()) {
             if (previous == null) failureEvent();
             else if (previous.mustWait())
-                DelayRunnable.addRunTask(previous.getRestTime(), this::victoryEvent);
+                DelayRunnable.addRunTask(previous.getRestTime(), () -> {
+                    if (inProgress()) victoryEvent();
+                });
             else victoryEvent();
         } else {
             if (previous != null) {
                 CompoundTag pack = response.getPack();
                 pack.putFloat("interest", previous.getInterestValue());
-                pack.putFloat("progress", Mth.clamp( 1 - (challengeWave.size() - 1) / maxTierWave, 0f, .75f));
+                pack.putFloat("progress", 1f - (challengeWave.size() / maxTierWave));
                 response.sendToAllClient();
             }
 
-            BossRushBossWave bossEntry = getNetWave();
+            BossRushBossWave bossEntry = getNextWave();
             Runnable runnable = () -> {
                 if (inProgress()) {
-                    if (previous != null) bossEntry.bossChange(previous);
-                    else bossEntry.setFirstVenue();
+                    bossEntry.bossChange(previous);
                     bossEntry.spawnWave();
                 }
             };
@@ -220,13 +252,9 @@ public class BossRushEvent extends LevelEvent<BossRushBossWave> {
     @SuppressWarnings("ConstantConditions")
     protected void victoryEvent() {
         super.victoryEvent();
-        ServerLevel overWorld = null;
-        for (ServerPlayer player : super.getAllPlayer()) {
-            if (player.serverLevel().dimension() != Level.OVERWORLD) {
-                player.changeDimension(overWorld == null ? (overWorld = player.getServer().getLevel(Level.OVERWORLD)) : overWorld);
-                player.connection.teleport(original.x, original.y, original.z, player.getYRot(), player.getXRot());
-            }
-        }
+        ServerLevel overWorld = level.getServer().getLevel(Level.OVERWORLD);
+        if (overWorld != level)
+            for (ServerPlayer player : getAllPlayer()) player.teleportTo(overWorld, original.x, original.y, original.z, player.getYRot(), player.getXRot());
     }
 
     @Override

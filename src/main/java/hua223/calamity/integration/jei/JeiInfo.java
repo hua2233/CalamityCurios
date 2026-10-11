@@ -11,7 +11,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.CLASS)
 public @interface JeiInfo {
     String text() default "";
+
     int line() default 1;
+
     CalamityItems item() default CalamityItems.CALAMITY;
+
     String[] zh_cn() default {};
 }

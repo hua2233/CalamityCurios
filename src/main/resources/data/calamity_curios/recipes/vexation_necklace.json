@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "tag": "forge:ingots/copper"
+    },
+    "C": {
+      "item": "minecraft:emerald"
+    },
+    "B": {
+      "item": "calamity_curios:calamity_core"
+    }
+  },
+  "pattern": [
+    "CCC",
+    "CBC",
+    "AAA"
+  ],
+  "result": {
+    "item": "calamity_curios:vexation_necklace"
+  }
+}

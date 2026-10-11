@@ -21,7 +21,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 import java.util.UUID;
 
-@ConflictChain(value = Wings.class, isRoot = true)
+@CurioRepel(Wings.class)
 public class AngelTreads extends Wings {
     public AngelTreads(Properties properties) {
         super(properties);

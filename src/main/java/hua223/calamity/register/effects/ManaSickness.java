@@ -13,8 +13,7 @@ import java.util.List;
 public class ManaSickness extends CalamityEffect {
     protected ManaSickness(MobEffectCategory pCategory, int pColor) {
         super(pCategory, pColor);
-        addAttributeModifier(AttributeRegistry.SPELL_POWER.get(), "50cd184c-6dc0-486d-b52b-bb73cb5cc411",
-            0.9f, AttributeModifier.Operation.MULTIPLY_TOTAL);
+        addAttributeModifier(AttributeRegistry.SPELL_POWER.get(), getSelfUUID(), 0.9f, AttributeModifier.Operation.MULTIPLY_TOTAL);
     }
 
     @Override

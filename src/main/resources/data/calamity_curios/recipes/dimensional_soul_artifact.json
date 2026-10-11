@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "X": {
+      "item": "calamity_curios:exodium_cluster"
+    },
+    "N": {
+      "item": "calamity_curios:ruinous_soul"
+    }
+  },
+  "pattern": [
+    "XX ",
+    "XNN",
+    " XX"
+  ],
+  "result": {
+    "item": "calamity_curios:dimensional_soul_artifact"
+  }
+}

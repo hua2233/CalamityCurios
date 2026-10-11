@@ -22,8 +22,7 @@ public class AcidVenom extends CalamityEffect implements IEffectsCallBack {
     }
 
     @Override
-    public void applyEffectTick(@NotNull LivingEntity pLivingEntity, int pAmplifier) {
-        super.applyEffectTick(pLivingEntity, pAmplifier);
+    public void applyServerTick(@NotNull LivingEntity pLivingEntity, int pAmplifier) {
         for (ItemStack armor : pLivingEntity.getArmorSlots()) {
             if (armor.isEmpty()) break;
             armor.hurt(2 * (pAmplifier + 1), pLivingEntity.getRandom(), null);

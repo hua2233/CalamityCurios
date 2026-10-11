@@ -1,6 +1,7 @@
 package hua223.calamity.register.particle;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import hua223.calamity.render.shaders.CalamityShaders;
 import hua223.calamity.util.RenderUtil;
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -66,7 +67,7 @@ public class PointParticle extends SingleTexturedParticle {
 
     @Override
     public ParticleRenderType getRenderType() {
-        return RenderUtil.Shaders.GENERIC_BLOOM;
+        return CalamityShaders.GENERIC_BLOOM;
     }
 
     @Override

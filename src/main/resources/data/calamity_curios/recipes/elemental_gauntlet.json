@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "X": {
+      "item": "irons_spellbooks:dragonskin"
+    },
+    "D": {
+      "item": "calamity_curios:ascendant_spirit_essence"
+    },
+    "C": {
+      "item": "irons_spellbooks:timeless_slurry"
+    },
+    "B": {
+      "item": "irons_spellbooks:mithril_ingot"
+    },
+    "A": {
+      "tag": "forge:ingots/netherite"
+    }
+  },
+  "pattern": [
+    "DXD",
+    "BCB",
+    " A "
+  ],
+  "result": {
+    "item": "calamity_curios:elemental_gauntlet"
+  }
+}

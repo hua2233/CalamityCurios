@@ -3,11 +3,12 @@ package hua223.calamity.register.particle;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import hua223.calamity.register.sounds.CalamitySounds;
-import hua223.calamity.render.CalamityCelestialBodyShader;
 import hua223.calamity.render.CircleBuffer;
 import hua223.calamity.render.primitive.PrimitiveRenderer;
 import hua223.calamity.render.primitive.PrimitiveSettings;
+import hua223.calamity.render.primitive.SamplingPointMode;
 import hua223.calamity.render.primitive.VertexArgumentWrapper;
+import hua223.calamity.render.shaders.CalamityShaders;
 import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.RenderUtil;
 import hua223.calamity.util.Vector2f;
@@ -135,7 +136,7 @@ public class StormLightning extends Particle {
     @OnlyIn(Dist.CLIENT)
     public static class Provider implements ParticleProvider<SimpleParticleType> {
         @Override
-        public @Nullable Particle createParticle(SimpleParticleType simpleParticleType, ClientLevel clientLevel,
+        public @Nullable Particle createParticle(@NotNull SimpleParticleType simpleParticleType, @NotNull ClientLevel clientLevel,
                                                  double v, double v1, double v2, double v3, double v4, double v5) {
             return new StormLightning(clientLevel, v, v1, v2, v3);
         }
@@ -176,11 +177,6 @@ public class StormLightning extends Particle {
         }
 
         @Override
-        public float widthCorrectionRatio() {
-            return 8;
-        }
-
-        @Override
         protected void buildVertex(VertexConsumer consumer, Matrix4f matrix4f, short index) {
             VertexArgumentWrapper vertex = wrappersBuffer[index];
             matrix4f.identity();
@@ -196,20 +192,20 @@ public class StormLightning extends Particle {
 
         @Override
         public BufferBuilder getConsumer() {
-            builder = Tesselator.getInstance().getBuilder();
-            builder.begin(VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP);
             RenderSystem.enableBlend();
-            RenderSystem.defaultBlendFunc();
             RenderSystem.enableCull();
             RenderSystem.depthMask(false);
-            RenderSystem.setShader(RenderUtil.Shaders.getScarletLightningShader());
-            RenderSystem.setShaderTexture(0, CalamityCelestialBodyShader.PERLIN);
+            CalamityShaders.XNA_ALPHA_BLEND.setupRenderState();
+            RenderSystem.setShader(CalamityShaders.getScarletLightningShader());
+            RenderSystem.setShaderTexture(0, CalamityShaders.PERLIN);
+            builder = Tesselator.getInstance().getBuilder();
+            builder.begin(VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP);
             return builder;
         }
 
         @Override
-        public boolean smoothen() {
-            return false;
+        public SamplingPointMode sampling() {
+            return SamplingPointMode.NON_SMOOTHEN;
         }
     }
 }

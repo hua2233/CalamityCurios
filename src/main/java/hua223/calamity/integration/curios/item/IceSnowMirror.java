@@ -42,7 +42,7 @@ import java.util.Optional;
 @JeiInfo(zh_cn = "可以从雪原小屋的地下室宝箱中发现")
 public class IceSnowMirror extends Item {
     public IceSnowMirror() {
-        super(RegisterList.CURIOS_COMMON);
+        super(RegisterList.COMMON_ONE);
     }
 
     @Override
@@ -67,44 +67,37 @@ public class IceSnowMirror extends Item {
     @Override
     public @NotNull ItemStack finishUsingItem(@NotNull ItemStack stack, @NotNull Level level, @NotNull LivingEntity entity) {
         if (!entity.level().isClientSide && entity.calamity$IsPlayer) {
-            ServerPlayer player = toSpawnPoint((ServerPlayer) entity);
-            player.getCooldowns().addCooldown(this, 60);
+            ServerPlayer player = (ServerPlayer) entity;
+            toSpawnPoint(player);
+            player.calamity$Player.getCooldowns().addCooldown(this, 60);
             player.playSound(CalamitySounds.MIRROR_TELEPORT.get());
         }
         return stack;
     }
 
     @SuppressWarnings("ConstantConditions")
-    public static ServerPlayer toSpawnPoint(ServerPlayer player) {
+    public static void toSpawnPoint(ServerPlayer player) {
+        //pre
         ServerLevel level = player.getServer().getLevel(player.getRespawnDimension());
         Tuple<BlockState, Vec3> value = findSpawnPoint(level, player.getRespawnPosition(), player.getRespawnAngle());
         level = value.getB() != null ? level : player.getServer().overworld();
 
-        if (level != player.level()) {
-            ServerPlayer _new = (ServerPlayer) player.changeDimension(level);
-            if (_new == null) {
-                player.displayClientMessage(CMLangUtil.getTranslatable("teleport_fail"), false);
-                return player;
-            }
-
-            player = _new;
-        }
-
+        //setYRot
+        float yRot;
         if (value.getB() != null) {
             Vec3 vec3 = value.getB();
-            float yRot;
             if (value.getA().is(BlockTags.BEDS)) {
                 Vec3 vec = Vec3.atBottomCenterOf(player.getRespawnPosition()).subtract(vec3).normalize();
                 yRot = (float) Mth.wrapDegrees(Mth.atan2(vec.z, vec.x) * (180f / Math.PI) - 90.0f);
             } else yRot = player.getRespawnAngle();
-
-            player.connection.teleport(vec3.x, vec3.y, vec3.z, yRot, 0.0F);
         } else {
-            BlockPos spawnPos = level.getSharedSpawnPos();
-            player.connection.teleport(spawnPos.getX(), spawnPos.getY(), spawnPos.getZ(), level.getSharedSpawnAngle(), 0.0F);
+            yRot = level.getSharedSpawnAngle();
+            value.setB(level.getSharedSpawnPos().getCenter());
         }
 
-        return player;
+        //teleport
+        Vec3 spawnPoint = value.getB();
+        player.teleportTo(level, spawnPoint.x, spawnPoint.y, spawnPoint.z, yRot, 0);
     }
 
     @SuppressWarnings("all")
@@ -131,7 +124,7 @@ public class IceSnowMirror extends Item {
     @ApplyGlobalLoot
     public void onChestLoot(ChestLootContext context) {
         if (context.fromSpecificName("igloo_chest") && context.chance(.3f))
-            context.addLoot(this, 1);
+            context.addLoot(this);
     }
 
     @Override

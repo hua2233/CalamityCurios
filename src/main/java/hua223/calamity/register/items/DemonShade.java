@@ -6,9 +6,8 @@ import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.register.keys.IKeyDataPackResponse;
 import hua223.calamity.register.sounds.CalamitySounds;
-import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.IEquipmentInspection;
-import hua223.calamity.util.PlayerServantsManager;
+import hua223.calamity.util.*;
+import io.redspace.ironsspellbooks.api.backwards_compat.IBackwardsCompatDefaultNbtItem;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -38,25 +37,28 @@ import org.lwjgl.glfw.GLFW;
 import java.util.List;
 import java.util.UUID;
 
-public class DemonShade extends ArmorItem implements IKeyDataPackResponse, IEquipmentInspection {
+public class DemonShade extends ArmorItem implements IKeyDataPackResponse,
+    IEquipmentInspection, IBackwardsCompatDefaultNbtItem, IServantsReinforcement {
     @Override
     public void onInventoryTick(ItemStack stack, Level level, Player player, int slotIndex, int selectedIndex) {
         if (!level.isClientSide && type == Type.LEGGINGS) {
             CompoundTag tag = player.getPersistentData();
-            int stillTime = tag.getInt("Still");
+            if (tag.contains("Still")) {
+                int stillTime = tag.getInt("Still");
 
-            if (player.walkDist == player.walkDistO) {
-                if (stillTime > 100 && stillTime % 20 == 0 && player.getHealth() < player.getMaxHealth())
-                    player.heal(stillTime > 300 ? 34f : (float) (34 * (1 - Math.exp(-0.023 * (stillTime - 100)))));
-                tag.putInt("Still", stillTime + 1);
-            } else if (stillTime != 0) tag.putInt("Still",  0);
+                if (player.walkDist == player.walkDistO) {
+                    if (stillTime > 100 && stillTime % 20 == 0 && player.getHealth() < player.getMaxHealth())
+                        player.heal(stillTime > 300 ? 34f : (float) (34 * (1 - Math.exp(-0.023 * (stillTime - 100)))));
+                    tag.putInt("Still", stillTime + 1);
+                } else if (stillTime != 0) tag.putInt("Still",  0);
+            }
         }
 
-        if (stack.popTime > 0) --stack.popTime;
+        if (stack.getPopTime() > 0) stack.setPopTime(stack.getPopTime() - 1);
     }
 
     public DemonShade(Type type) {
-        super(RegisterList.DEMON_SHADE, type, RegisterList.ITEM_CALAMITY);
+        super(RegisterList.DEMON_SHADE, type, RegisterList.CALAMITY_ONE);
 
         ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
         builder.putAll(defaultModifiers);
@@ -96,9 +98,8 @@ public class DemonShade extends ArmorItem implements IKeyDataPackResponse, IEqui
 
     @Override
     public void onEquip(Player player) {//FEET
-        if (type == Type.HELMET) PlayerServantsManager.
-            loadPlayerServantsEntity((ServerPlayer) player, DemonShade::modifyServantAttribute);
-        else if (type == Type.LEGGINGS) player.getPersistentData().putInt("Still", 0);
+        if (type == Type.LEGGINGS) player.getPersistentData().putInt("Still", 0);
+        else if (type == Type.HELMET) PlayerServantsManager.removeServantsReinforcement((ServerPlayer) player, this);
 
         for (int i = 0; i < 4; i++) {
             Item item = player.getInventory().armor.get(i).getItem();
@@ -110,9 +111,8 @@ public class DemonShade extends ArmorItem implements IKeyDataPackResponse, IEqui
 
     @Override
     public void onUnEquip(Player player) {
-        if (type == Type.HELMET) PlayerServantsManager.
-            removePlayerServantsEntity((ServerPlayer) player, DemonShade::modifyServantAttribute);
-        else if (type == Type.LEGGINGS) player.getPersistentData().remove("Still");
+        if (type == Type.LEGGINGS) player.getPersistentData().remove("Still");
+        else if (type == Type.HELMET) PlayerServantsManager.removeServantsReinforcement((ServerPlayer) player, this);
         setKeyMapping((ServerPlayer) player, false);
     }
 
@@ -121,13 +121,14 @@ public class DemonShade extends ArmorItem implements IKeyDataPackResponse, IEqui
         return slot.isArmor();
     }
 
-    private static void modifyServantAttribute(LivingEntity servant) {
-        PlayerServantsManager.changeAttribute(servant, Attributes.MAX_HEALTH, 2, AttributeModifier.Operation.MULTIPLY_TOTAL);
-        PlayerServantsManager.changeAttribute(servant, Attributes.ATTACK_DAMAGE, 10, AttributeModifier.Operation.ADDITION);
-        PlayerServantsManager.changeAttribute(servant, Attributes.ATTACK_DAMAGE, 0.3, AttributeModifier.Operation.MULTIPLY_BASE);
-        PlayerServantsManager.changeAttribute(servant, Attributes.ARMOR, 20, AttributeModifier.Operation.ADDITION);
-        PlayerServantsManager.changeAttribute(servant, Attributes.ARMOR_TOUGHNESS, 8, AttributeModifier.Operation.ADDITION);
-        PlayerServantsManager.changeAttribute(servant, Attributes.MOVEMENT_SPEED, 0.3, AttributeModifier.Operation.MULTIPLY_BASE);
+    @Override
+    public void modifyServant(boolean apply, ServerPlayer player, LivingEntity servant) {
+        PlayerServantsManager.changeAttribute(apply, servant, Attributes.MAX_HEALTH, 2, AttributeModifier.Operation.MULTIPLY_TOTAL);
+        PlayerServantsManager.changeAttribute(apply, servant, Attributes.ATTACK_DAMAGE, 10, AttributeModifier.Operation.ADDITION);
+        PlayerServantsManager.changeAttribute(apply, servant, Attributes.ATTACK_DAMAGE, 0.3, AttributeModifier.Operation.MULTIPLY_BASE);
+        PlayerServantsManager.changeAttribute(apply, servant, Attributes.ARMOR, 20, AttributeModifier.Operation.ADDITION);
+        PlayerServantsManager.changeAttribute(apply, servant, Attributes.ARMOR_TOUGHNESS, 8, AttributeModifier.Operation.ADDITION);
+        PlayerServantsManager.changeAttribute(apply, servant, Attributes.MOVEMENT_SPEED, 0.3, AttributeModifier.Operation.MULTIPLY_BASE);
     }
 
     @Override
@@ -143,13 +144,17 @@ public class DemonShade extends ArmorItem implements IKeyDataPackResponse, IEqui
     }
 
     @Override
+    public void setupItem(ItemStack itemStack) {
+        itemStack.getOrCreateTag().putInt(CalamityHelp.FONT_FLAG, 4);
+    }
+
+    @Override
     @OnlyIn(Dist.CLIENT)
     public @Nullable String getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, String type) {
         return "calamity_curios:textures/models/armor/demon_shade_layer_" + (slot == EquipmentSlot.LEGS ? "2.png" : "1.png");
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
     public int getKeyCode() {
         return GLFW.GLFW_KEY_B;
     }

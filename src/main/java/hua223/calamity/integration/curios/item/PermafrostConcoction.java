@@ -2,8 +2,8 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.DeathListener;
+import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.util.CMLangUtil;
@@ -31,13 +31,12 @@ public class PermafrostConcoction extends BaseCurio implements ICuriosStorage {
     @Override
     protected void setAttributeModifiers(UUID uuid, ItemStack stack, Multimap<Attribute, AttributeModifier> modifier, LivingEntity equipped) {
         modifier.put(AttributeRegistry.ICE_SPELL_POWER.get(),
-            new AttributeModifier(uuid, "concoction", 0.3f, AttributeModifier.Operation.MULTIPLY_BASE));
+            new AttributeModifier(uuid, "concoction", 0.15f, AttributeModifier.Operation.MULTIPLY_BASE));
         modifier.put(AttributeRegistry.MAX_MANA.get(),
             new AttributeModifier(uuid, "concoction", 50f, AttributeModifier.Operation.ADDITION));
         modifier.put(CalamityAttributes.MAGIC_REDUCTION.get(),
             new AttributeModifier(uuid, "concoction", 0.15f, AttributeModifier.Operation.MULTIPLY_BASE));
     }
-
 
     @Override
     public int getCountSize() {
@@ -70,7 +69,7 @@ public class PermafrostConcoction extends BaseCurio implements ICuriosStorage {
     @ApplyEvent(95)
     public final void onDeath(DeathListener listener) {
         if (listener.canceledPlayerDeathIfNotCooldowns(this, .4f, 2400, 5636095, 5592575, 170, 43690, 0x1111EE))
-            listener.player.addEffect(new MobEffectInstance(CalamityEffects.FREEZE.get(), 140, 0));
+            listener.player.addEffect(new MobEffectInstance(CalamityEffects.FREEZE.get(), 60, 0));
     }
 
     @Override

@@ -34,7 +34,6 @@ public class BallisticPoisonBomb extends SeafoamBomb {
     protected void explodeAndApplyEffect(ItemPro pro) {
         Entity owner = pro.getOwner();
         for (LivingEntity hurt : CalamityHelp.blastingTheEnemy(owner == null ? pro : owner, pro.position(), 5)) {
-            hurt.invulnerableTime = 0;
             hurt.hurt(pro.level().damageSources().wither(), 5);
             CalamityHelp.addIfDoesNotExist(hurt, 140, 0, CalamityEffects.ACID_VENOM.get());
         }

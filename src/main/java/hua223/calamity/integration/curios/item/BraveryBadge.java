@@ -12,8 +12,8 @@ import net.minecraft.world.item.ItemStack;
 import java.util.UUID;
 
 public class BraveryBadge extends BaseCurio {
-    public BraveryBadge(Properties pProperties) {
-        super(pProperties);
+    public BraveryBadge(Properties properties) {
+        super(properties);
     }
 
     @Override

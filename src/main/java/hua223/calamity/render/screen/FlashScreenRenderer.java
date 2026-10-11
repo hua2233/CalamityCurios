@@ -44,6 +44,7 @@ public class FlashScreenRenderer extends ScreenEffectRenderer {
         RenderSystem.setShaderTexture(0, texture);
         RenderSystem.setShaderColor(flashColor[0], flashColor[1],
             flashColor[2], getIntensity(partialTick, tick, minecraft));
+        RenderSystem.defaultBlendFunc();
         renderMask(minecraft);
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
         return false;

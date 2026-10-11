@@ -2,8 +2,10 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
+import hua223.calamity.events.listeners.DamageListener;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.events.listeners.HurtListener;
+import hua223.calamity.integration.jei.JeiInfo;
+import hua223.calamity.loots.EntitiesLootContext;
 import hua223.calamity.register.damage.DamageRequester;
 import hua223.calamity.register.damage.DamageSupplier;
 import hua223.calamity.register.entity.projectiles.FireMeteor;
@@ -13,6 +15,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -24,9 +27,10 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 import java.util.UUID;
 
-import static hua223.calamity.generators.DamageMapping.*;
+import static hua223.calamity.generators.DamageMapping.MAGIC_FIRE;
 import static hua223.calamity.register.effects.CalamityEffects.DRAGON_BURN;
 
+@JeiInfo(zh_cn = "杀死末影龙时将会给予你")
 public class YharimGift extends BaseCurio {
     @DamageRequester(key = MAGIC_FIRE, msg = "dragon_fire",
         style = ChatFormatting.GOLD, zh_cn = "%s被龙焰烤熟了")
@@ -37,7 +41,7 @@ public class YharimGift extends BaseCurio {
     }
 
     @ApplyEvent
-    public final void onHurt(HurtListener listener) {
+    public final void onDamage(DamageListener listener) {
         if (listener.isTriggerByLiving) {
             ServerPlayer player = listener.player;
             player.calamity$SetInvulnerableTime(player.invulnerableTime * 2);
@@ -70,18 +74,23 @@ public class YharimGift extends BaseCurio {
         }
     }
 
+    @ApplyEvent
+    public final void onEntityLoot(EntitiesLootContext context) {
+        if (context.onlyVerification(EntityType.ENDER_DRAGON))
+            context.player.addItem(new ItemStack(this));
+    }
+
     @Override
-    protected void setAttributeModifiers(
-        UUID uuid, ItemStack stack, Multimap<Attribute, AttributeModifier> modifier, LivingEntity equipped) {
-        modifier.put(Attributes.MOVEMENT_SPEED, new AttributeModifier(uuid, "speed_bonus", 0.1, AttributeModifier.Operation.MULTIPLY_BASE));
-        double amplifier = equipped.getArmorValue() * 0.1 + 15;
-        modifier.put(Attributes.ARMOR, new AttributeModifier(uuid, "armor_bonus", amplifier, AttributeModifier.Operation.ADDITION));
+    protected void setAttributeModifiers(UUID uuid, ItemStack stack, Multimap<Attribute, AttributeModifier> modifier, LivingEntity equipped) {
+        modifier.put(Attributes.MOVEMENT_SPEED, new AttributeModifier(uuid, "yharim_gift", 0.15, AttributeModifier.Operation.MULTIPLY_BASE));
+        modifier.put(Attributes.ARMOR, new AttributeModifier(uuid, "yharim_gift", 15, AttributeModifier.Operation.ADDITION));
+        modifier.put(Attributes.ARMOR_TOUGHNESS, new AttributeModifier(uuid, "yharim_gift", 8, AttributeModifier.Operation.ADDITION));
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
     public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
-        CMLangUtil.batchColorTexts(tooltips, ChatFormatting.GOLD, "yharim_gift", 1, 2, 3);
+        CMLangUtil.batchColorTexts(tooltips, ChatFormatting.GOLD, "yharim_gift", 1, 2);
         return tooltips;
     }
 }

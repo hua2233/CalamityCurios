@@ -95,7 +95,7 @@ public class CalamityGen {
                 if (list != null) throw new UnsupportedOperationException("Duplicate registration types: " + key);
             } else DAMAGE.put(key, (List<String>) list);
             String lang = (String) map.get("zh_cn");
-            if (lang != null) ModLangGen.addAdditionalEntries(Objects.requireNonNullElse((String) map.get("msg"), key), lang);
+            if (lang != null) ModLangGen.addAdditionalEntries("death." + Objects.requireNonNullElse((String) map.get("msg"), key), lang);
         };
     }
 }

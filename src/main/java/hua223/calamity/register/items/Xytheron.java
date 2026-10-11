@@ -1,11 +1,11 @@
 package hua223.calamity.register.items;
 
 import com.google.common.collect.ImmutableMultimap;
-
 import hua223.calamity.register.RegisterList;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.util.CMLangUtil;
+import io.redspace.ironsspellbooks.api.backwards_compat.IBackwardsCompatDefaultNbtItem;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.effect.MobEffect;
@@ -22,25 +22,22 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-//From StarlessNight Up
-public class Xytheron extends SwordItem {
+//From StarlessNight Upgrade
+public class Xytheron extends SwordItem implements IBackwardsCompatDefaultNbtItem {
     @SuppressWarnings({"rawtypes", "unchecked"})
     public Xytheron() {
-        super(RegisterList.DRAGON, 114, -2, RegisterList.ITEM_CALAMITY);
+        super(RegisterList.DRAGON, 114, -2, RegisterList.CALAMITY_ONE);
         defaultModifiers = (ImmutableMultimap) ImmutableMultimap.builder().putAll(
             defaultModifiers).put(CalamityAttributes.ARMOR_PENETRATE.get(),
             new AttributeModifier(BASE_ATTACK_DAMAGE_UUID, "Xytheron",
                 99, AttributeModifier.Operation.ADDITION))
             .put(ForgeMod.ENTITY_REACH.get(), new AttributeModifier(BASE_ATTACK_DAMAGE_UUID,
                 "Xytheron", 2, AttributeModifier.Operation.ADDITION)).build();
-
     }
 
     @Override
-    public @NotNull ItemStack getDefaultInstance() {
-        ItemStack stack = new ItemStack(this);
-        stack.enchant(RegisterList.SHARED_PAIN.get(), 5);
-        return stack;
+    public void setupItem(ItemStack itemStack) {
+        itemStack.enchant(RegisterList.SHARED_PAIN.get(), 5);
     }
 
     @Override

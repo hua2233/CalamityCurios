@@ -2,11 +2,11 @@ package hua223.calamity.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import hua223.calamity.events.LogoutRelease;
-import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.util.FastColor;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
@@ -14,50 +14,40 @@ import org.joml.Matrix4f;
 
 @OnlyIn(Dist.CLIENT)
 public class IllusionBufferSource implements MultiBufferSource {
-    private static IllusionBufferSource source;
-    private static short reference;
-    private MultiBufferSource hijackSource;
-    private final IllusionVertexConsumer vertexConsumer;
+    private static final MultiBufferSource DELEGATE_SOURCE = Minecraft.getInstance().renderBuffers().bufferSource();
+    private static final IllusionBufferSource ILLUSION_BUFFER_SOURCE = new IllusionBufferSource();
+    private static final IllusionVertexConsumer CONSUMER = new IllusionVertexConsumer();
 
-    private IllusionBufferSource() {
-        vertexConsumer = new IllusionVertexConsumer();
+    public static @NotNull MultiBufferSource getSource() {
+       return getSource(1f, 1f, 1f, 1f);
     }
 
-    public static @NotNull MultiBufferSource getSource(MultiBufferSource source) {
-        IllusionBufferSource.source.hijackSource = source ==
-            IllusionBufferSource.source ? IllusionBufferSource.source.hijackSource : source;
-        return IllusionBufferSource.source;
+    public static @NotNull MultiBufferSource getSource(int packColor) {
+        return getSource(FastColor.ARGB32.red(packColor), FastColor.ARGB32.green(packColor),
+            FastColor.ARGB32.blue(packColor), FastColor.ARGB32.alpha(packColor));
     }
 
-    public static void create() {
-        if (source == null) source = new IllusionBufferSource();
-        reference++;
+    public static @NotNull MultiBufferSource getSource(int r, int g, int b , int a) {
+        setColor(r, g, b, a);
+        return IllusionBufferSource.ILLUSION_BUFFER_SOURCE;
+    }
+
+    public static @NotNull MultiBufferSource getSource(float r, float g, float b , float a) {
+        setColor(r, g, b, a);
+        return IllusionBufferSource.ILLUSION_BUFFER_SOURCE;
     }
 
     public static void setColor(int r, int g, int b, int a) {
-        source.vertexConsumer.defaultColor(r, g, b, a);
+        CONSUMER.defaultColor(r, g, b, a);
     }
 
     public static void setColor(float r, float g, float b, float a) {
-        source.vertexConsumer.defaultColor(r, g, b, a);
-    }
-
-    @LogoutRelease
-    public static void onLogOut(LocalPlayer player) {
-        reference = 0;
-        source = null;
-    }
-
-    public static void destroy() {
-        if (reference - 1 == 0) {
-            reference--;
-            source = null;
-        }
+        CONSUMER.defaultColor(r, g, b, a);
     }
 
     @Override
-    public @NotNull VertexConsumer getBuffer(@NotNull RenderType renderType) {
-        return vertexConsumer.setDelegate(hijackSource.getBuffer(renderType));
+    public @NotNull VertexConsumer getBuffer(@NotNull RenderType type) {
+        return CONSUMER.setDelegate(DELEGATE_SOURCE.getBuffer(type));
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -132,7 +122,7 @@ public class IllusionBufferSource implements MultiBufferSource {
         @Override
         public @NotNull VertexConsumer color(int i, int i1, int i2, int i3) {
             //End proxy immediately after proxy color
-            return hijackConsumer.color(r * 255, g * 255, b * 255, a * 255);
+            return hijackConsumer.color(r, g, b, a);
         }
 
         @Override

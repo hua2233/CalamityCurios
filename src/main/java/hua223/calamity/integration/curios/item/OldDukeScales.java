@@ -2,17 +2,15 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.events.LogoutRelease;
-import hua223.calamity.integration.curios.SprintCurio;
 import hua223.calamity.events.listeners.DeathListener;
+import hua223.calamity.integration.curios.SprintCurio;
+import hua223.calamity.net.IDataPackResponse;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.render.hud.FatigueHud;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.ICuriosStorage;
-import hua223.calamity.net.IDataPackResponse;
 import hua223.calamity.util.VariableAttributeModifier;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -123,20 +121,15 @@ public class OldDukeScales extends SprintCurio implements ICuriosStorage, IDataP
     @Override
     @OnlyIn(Dist.CLIENT)
     public void onClientResponse(CompoundTag tag) {
-        if (tag.contains("v")) {
+        if (tag.contains("v", 5)) {
             FatigueHud hud = FatigueHud.getInstance();
+
             float value = tag.getFloat("v");
             if (value < 0) {
                  if (value == -2f) hud.close();
                  else hud.start();
             } else hud.setProgress(value);
         } else super.onClientResponse(tag);
-    }
-
-    @LogoutRelease
-    @OnlyIn(Dist.CLIENT)
-    public static void onLogOut(LocalPlayer player) {
-        FatigueHud.getInstance().close();
     }
 
     @Override

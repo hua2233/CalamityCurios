@@ -2,8 +2,11 @@ package hua223.calamity.integration.curios.item.entropy;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.integration.curios.Card;
-import hua223.calamity.register.items.CalamityItems;
+import hua223.calamity.integration.jei.JeiInfo;
+import hua223.calamity.loots.ApplyGlobalLoot;
+import hua223.calamity.loots.FishingLootContext;
 import hua223.calamity.register.attribute.CalamityAttributes;
+import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.util.CMLangUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -12,6 +15,7 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.biome.Biomes;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.items.IItemHandlerModifiable;
@@ -20,6 +24,7 @@ import top.theillusivec4.curios.api.CuriosApi;
 import java.util.List;
 import java.util.UUID;
 
+@JeiInfo(zh_cn = "在深暗之域钓鱼可以获得，受幸运影响")
 public class Greed extends Card {
     public Greed(Properties properties) {
         super(properties);
@@ -33,19 +38,23 @@ public class Greed extends Card {
             for (int i = 0; i < modifiable.getSlots(); i++) {
                 IItemHandlerModifiable handler = modifiable.getEquippedCurios();
                 for (int j = 0; j < handler.getSlots(); j++) {
-                    if (!handler.getStackInSlot(i).isEmpty())
+                    if (!handler.getStackInSlot(j).isEmpty())
                         amount += amplifier;
                 }
             }
 
-            modifier.put(CalamityAttributes.DAMAGE_UP.get(),
-                new AttributeModifier(uuid, "greed", amount, AttributeModifier.Operation.MULTIPLY_BASE));
+            modifier.put(CalamityAttributes.DAMAGE_UP.get(), new AttributeModifier(uuid, "greed", amount, AttributeModifier.Operation.MULTIPLY_BASE));
         });
     }
 
     @Override
     protected Item getAffiliatedWith() {
         return CalamityItems.TAINTED_DECK.get();
+    }
+
+    @ApplyGlobalLoot
+    public void onFishing(FishingLootContext context) {
+        if (context.luckChance(.03f)  && context.matchBiome(Biomes.DEEP_DARK)) context.addLoot(this);
     }
 
     @Override

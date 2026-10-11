@@ -1,8 +1,8 @@
 package hua223.calamity.integration.curios.item.entropy;
 
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.Card;
 import hua223.calamity.events.listeners.PlayerHealListener;
+import hua223.calamity.integration.curios.Card;
 import hua223.calamity.loots.ApplyGlobalLoot;
 import hua223.calamity.loots.EntitiesLootContext;
 import hua223.calamity.register.items.CalamityItems;
@@ -24,13 +24,13 @@ public class RadianceCard extends Card {
 
     @ApplyEvent
     public final void onHeal(PlayerHealListener listener) {
-        listener.amplification += 0.2f;
+        listener.amplification += listener.player.Calamity$Player.cardDeck ? .2f : 0.12f;
     }
 
     @ApplyGlobalLoot
     public void onGlobalEntityLoot(EntitiesLootContext context) {
         if (context.onlyVerification(EntityRegistry.PRIEST.get())
-            && context.chance(0.4f)) context.addLoot(this, 1);
+            && context.chance(0.4f)) context.addLoot(this);
     }
 
     @Override

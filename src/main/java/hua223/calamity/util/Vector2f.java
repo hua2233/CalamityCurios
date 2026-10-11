@@ -4,8 +4,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import org.jetbrains.annotations.Contract;
 
-import java.util.Random;
-
 public class Vector2f {
     public static final Vector2f ZERO = new Vector2f(0f, 0f);
     public static final Vector2f NUNIT_Y = new Vector2f(0f, -1f);
@@ -124,6 +122,10 @@ public class Vector2f {
     }
 
     public float length() {
+        return length(x, y);
+    }
+
+    public static float length(float x, float y) {
         return (float) Math.sqrt(x * x + y * y);
     }
 
@@ -198,6 +200,12 @@ public class Vector2f {
         float dx = x - center.x;
         float dy = y - center.y;
         return (float) Math.sqrt(dx * dx + dy * dy);
+    }
+
+    public float distanceSquared(Vector2f v) {
+        float dx = this.x - v.x;
+        float dy = this.y - v.y;
+        return dx * dx + dy * dy;
     }
 
     public Vector2f lerp(float delta, Vector2f to) {

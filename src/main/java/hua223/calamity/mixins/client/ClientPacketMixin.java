@@ -1,6 +1,6 @@
 package hua223.calamity.mixins.client;
 
-import hua223.calamity.render.Item.ExhumedDecoratorSystem;
+import hua223.calamity.render.item.ExhumedDecoratorSystem;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.protocol.game.ClientboundUpdateRecipesPacket;
 import net.minecraft.world.item.crafting.RecipeManager;

@@ -1,23 +1,26 @@
 package hua223.calamity.integration.curios.item;
 
 import hua223.calamity.integration.curios.BaseCurio;
+import hua223.calamity.integration.jei.JeiInfo;
+import hua223.calamity.loots.ApplyGlobalLoot;
+import hua223.calamity.loots.ChestLootContext;
 import hua223.calamity.main.CalamityLightBlock;
 import hua223.calamity.util.CMLangUtil;
+import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.ICuriosStorage;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.phys.AABB;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.List;
 
+@JeiInfo(zh_cn = "在沉船战利品箱中可能找到")
 public class GiantPearl extends BaseCurio implements ICuriosStorage {
     public GiantPearl(Properties properties) {
         super(properties);
@@ -47,17 +50,20 @@ public class GiantPearl extends BaseCurio implements ICuriosStorage {
 
         if (tick > 40) {
             zeroCount(player, 0);
-            double x = player.getX(), y = player.getY(), z = player.getZ();
-            AABB box = new AABB(x + 5, y + 5, z + 5, x - 5, y - 5, z - 5);
-            List<LivingEntity> entities = player.level().getEntitiesOfClass(LivingEntity.class, box,
-                entity -> entity instanceof Enemy && entity.isAlive() && !entity.isAlliedTo(player));
-
+            List<LivingEntity> entities = CalamityHelp.getAttackableEntity(LivingEntity.class, player, player.getBoundingBox().inflate(5));
             if (entities.isEmpty()) return;
+
             for (LivingEntity entity : entities) {
                 if (!entity.hasEffect(MobEffects.MOVEMENT_SLOWDOWN))
                     entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 1));
             }
         }
+    }
+
+    @ApplyGlobalLoot
+    public void onChestLoot(ChestLootContext context) {
+        if (context.fromFuzzyType("shipwreck") && context.chance(0.1f))
+            context.addLoot(this);
     }
 
     @Override

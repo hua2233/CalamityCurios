@@ -1,0 +1,33 @@
+{
+  "feature": "calamity_curios:infernal_suevite_ore",
+  "placement": [
+    {
+      "type": "minecraft:count",
+      "count": {
+        "type": "minecraft:biased_to_bottom",
+        "value": {
+          "min_inclusive": 3,
+          "max_inclusive": 8
+        }
+      }
+    },
+    {
+      "type": "minecraft:in_square"
+    },
+    {
+      "type": "minecraft:height_range",
+      "height": {
+        "type": "minecraft:trapezoid",
+        "max_inclusive": {
+          "above_bottom": 110
+        },
+        "min_inclusive": {
+          "above_bottom": 10
+        }
+      }
+    },
+    {
+      "type": "minecraft:biome"
+    }
+  ]
+}

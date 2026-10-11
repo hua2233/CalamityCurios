@@ -1,9 +1,9 @@
 package hua223.calamity.integration.curios.item;
 
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.HurtListener;
-import hua223.calamity.events.listeners.PlayerAttackListener;
+import hua223.calamity.events.listeners.PreAttackListener;
+import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.GlobalCuriosStorage;
@@ -29,9 +29,8 @@ public class Evolution extends BaseCurio implements ICuriosStorage {
     }
 
     @ApplyEvent
-    public final void onAttack(PlayerAttackListener listener) {
-        if (listener.isFarAttack() && listener.getProjectile()
-            .getPersistentData().contains("evolution"))
+    public final void onAttack(PreAttackListener listener) {
+        if (listener.isFarAttack() && listener.getProjectile().getPersistentData().contains("evolution"))
             listener.amplifier += 10f;
     }
 

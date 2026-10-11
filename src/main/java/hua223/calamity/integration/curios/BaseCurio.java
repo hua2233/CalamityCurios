@@ -101,9 +101,9 @@ public abstract class BaseCurio extends Item implements ICurioItem {
     public Multimap<Attribute, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid, ItemStack stack) {
         LivingEntity entity = slotContext.entity();
         Multimap<Attribute, AttributeModifier> modifiers = HashMultimap.create();
-        if (entity != null && (entity.level().isClientSide ||
-            (!(this instanceof ICuriosStorage) || ((ICuriosStorage) this).getMemory(entity) != null)))
-            setAttributeModifiers(uuid, stack, modifiers, entity);
+
+        if (entity != null && entity.calamity$IsPlayer && (entity.level().isClientSide || (!(this instanceof ICuriosStorage)
+            || ((ICuriosStorage) this).getMemory(entity) != null))) setAttributeModifiers(uuid, stack, modifiers, entity);
         return modifiers;
     }
 

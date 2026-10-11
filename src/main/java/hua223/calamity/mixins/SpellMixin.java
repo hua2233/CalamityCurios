@@ -30,6 +30,6 @@ public abstract class SpellMixin {
 
     @ModifyVariable(method = "canBeCastedBy", at = @At(value = "STORE"), name = "hasEnoughMana")
     private boolean canCasted(boolean value) {
-        return value || calamity$TempData.Calamity$Player.usePotionMana(getManaCost(calamity$SpellLevel), true);
+        return value || calamity$TempData.Calamity$Player.usePotionMana(getManaCost(calamity$SpellLevel));
     }
 }

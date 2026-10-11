@@ -14,10 +14,10 @@ import java.util.List;
 public class WhiteWine extends CalamityEffect {
     public WhiteWine(MobEffectCategory category, int color) {
         super(category, color);
-        addAttributeModifier(AttributeRegistry.SPELL_POWER.get(),
-            "50cd184c-6dc0-486d-b52b-bb73cb5cc416", 0.15, AttributeModifier.Operation.MULTIPLY_BASE);
-        addAttributeModifier(Attributes.ARMOR, "50cd184c-6dc0-486d-b52b-bb73cb5cc416", -4, AttributeModifier.Operation.ADDITION);
-        addAttributeModifier(Attributes.MAX_HEALTH, "50cd184c-6dc0-486d-b52b-bb73cb5cc416", -0.1, AttributeModifier.Operation.MULTIPLY_BASE);
+        String id = getSelfUUID();
+        addAttributeModifier(AttributeRegistry.SPELL_POWER.get(), id, 0.15, AttributeModifier.Operation.MULTIPLY_BASE);
+        addAttributeModifier(Attributes.ARMOR, id, -4, AttributeModifier.Operation.ADDITION);
+        addAttributeModifier(Attributes.MAX_HEALTH, id, -0.1, AttributeModifier.Operation.MULTIPLY_BASE);
     }
 
     @Override

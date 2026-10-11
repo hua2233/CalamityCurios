@@ -1,5 +1,6 @@
 package hua223.calamity.register.effects;
 
+import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.util.CMLangUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.world.effect.MobEffectCategory;
@@ -15,8 +16,9 @@ import java.util.List;
 public class Mushy extends CalamityEffect {
     protected Mushy(MobEffectCategory pCategory, int pColor) {
         super(pCategory, pColor);
-        addAttributeModifier(Attributes.ARMOR, "123e4567-e89b-12d3-a456-426614174019",
-            4, AttributeModifier.Operation.ADDITION);
+        String uuid = getSelfUUID();
+        addAttributeModifier(Attributes.ARMOR, uuid, 6, AttributeModifier.Operation.ADDITION);
+        addAttributeModifier(CalamityAttributes.DAMAGE_UP.get(), uuid, 0.1, AttributeModifier.Operation.MULTIPLY_BASE);
     }
 
     @Override
@@ -25,7 +27,7 @@ public class Mushy extends CalamityEffect {
     }
 
     @Override
-    public void applyEffectTick(@NotNull LivingEntity pLivingEntity, int pAmplifier) {
+    public void applyServerTick(@NotNull LivingEntity pLivingEntity, int pAmplifier) {
         pLivingEntity.heal(2f);
     }
 

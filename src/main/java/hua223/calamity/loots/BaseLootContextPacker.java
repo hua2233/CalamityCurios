@@ -15,14 +15,15 @@ import java.util.Iterator;
 
 public abstract class BaseLootContextPacker {
     protected final ObjectArrayList<ItemStack> generatedLoot;
+
     protected final LootContext context;
-    public final RandomSource source;
+    public final RandomSource random;
     private boolean cancelDrop;
 
     public BaseLootContextPacker(ObjectArrayList<ItemStack> generatedLoot, LootContext context, RandomSource source) {
         this.generatedLoot = generatedLoot;
         this.context = context;
-        this.source = source;
+        this.random = source;
     }
 
     public abstract boolean triggeredByPlayers();
@@ -44,6 +45,10 @@ public abstract class BaseLootContextPacker {
         generatedLoot.clear();
     }
 
+    public void addLoot(Item item) {
+        addLoot(new ItemStack(item));
+    }
+
     public void addLoot(Item item, int count) {
         addLoot(new ItemStack(item, count));
     }
@@ -53,7 +58,7 @@ public abstract class BaseLootContextPacker {
     }
 
     public int getRandomCount(int min, int max) {
-        return Mth.nextInt(source, min, max);
+        return Mth.nextInt(random, min, max);
     }
 
     public void addRandomLoot(int chance, ItemStack... stack) {
@@ -77,12 +82,12 @@ public abstract class BaseLootContextPacker {
     }
 
     public boolean chance(float rate) {
-        return source.nextFloat() <= rate;
+        return random.nextFloat() <= rate;
     }
 
     public boolean chance(float rate, int count) {
         for (int i = 0; i < count; i++)
-            if (source.nextFloat() < rate)
+            if (random.nextFloat() < rate)
                 return true;
 
         return false;

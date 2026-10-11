@@ -28,7 +28,7 @@ public class HolyFlames extends CalamityEffect {
     }
 
     @Override
-    public void applyEffectTick(@NotNull LivingEntity target, int amplifier) {
+    public void applyServerTick(@NotNull LivingEntity target, int amplifier) {
         float maxHeath = target.getMaxHealth();
         float damage = amplifier + 1f;
         if (maxHeath > 100) damage *= (maxHeath * 0.02f);

@@ -5,15 +5,19 @@ import hua223.calamity.capability.CalamityCap;
 import hua223.calamity.capability.CalamityCap.CurseType;
 import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.events.LogoutRelease;
-import hua223.calamity.integration.curios.BaseCurio;
+import hua223.calamity.events.listeners.DamageListener;
 import hua223.calamity.events.listeners.HurtListener;
-import hua223.calamity.events.listeners.PlayerAttackListener;
+import hua223.calamity.events.listeners.PreAttackListener;
+import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.main.CalamityCurios;
 import hua223.calamity.net.IDataPackResponse;
-import hua223.calamity.register.damage.*;
+import hua223.calamity.register.damage.DamageRequester;
+import hua223.calamity.register.damage.DamageSupplier;
 import hua223.calamity.register.sounds.CalamitySounds;
-import hua223.calamity.util.*;
-import hua223.calamity.util.delaytask.DelayRunnable;
+import hua223.calamity.render.item.ICalamityBackground;
+import hua223.calamity.util.CMLangUtil;
+import hua223.calamity.util.ICuriosStorage;
+import hua223.calamity.util.VariableAttributeModifier;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
@@ -40,9 +44,11 @@ import top.theillusivec4.curios.api.type.capability.ICurio;
 import java.util.List;
 import java.util.UUID;
 
-import static hua223.calamity.generators.DamageMapping.*;
+import static hua223.calamity.generators.DamageMapping.MAGIC_FIRE;
+import static hua223.calamity.generators.DamageMapping.SPUTTERING;
 
-public class Calamity extends BaseCurio implements ICuriosStorage, IDataPackResponse {
+public class Calamity extends BaseCurio implements
+    ICuriosStorage, IDataPackResponse, ICalamityBackground {
     @DamageRequester(key = SPUTTERING, msg = "abyss",
         style = ChatFormatting.BLUE, zh_cn = "%s殁亡于深渊之中")
     public static DamageSupplier abyss;
@@ -66,10 +72,8 @@ public class Calamity extends BaseCurio implements ICuriosStorage, IDataPackResp
     }
 
     @ApplyEvent
-    public final void onAttack(PlayerAttackListener listener) {
-        if (!listener.player.Calamity$Player.calamityCap.isInverted(CurseType.SILVA))
-            listener.amplifier -= 0.3f;
-
+    public final void onAttack(PreAttackListener listener) {
+        listener.amplifier += listener.player.Calamity$Player.calamityCap.isInverted(CurseType.SILVA) ? .3f : -.3f;
         abyssAttackCurse(listener.player);
     }
 
@@ -91,7 +95,7 @@ public class Calamity extends BaseCurio implements ICuriosStorage, IDataPackResp
 
     //Global logic, triggered only when others are injured
     @SuppressWarnings("ConstantConditions")
-    public static void sunkCurse(HurtListener listener) {
+    public static void sunkCurse(DamageListener listener) {
         if (CalamityCap.notHasCalamity()) return;
         ServerPlayer player = listener.player;
         CalamityCap cap = player.Calamity$Player.calamityCap;
@@ -146,29 +150,18 @@ public class Calamity extends BaseCurio implements ICuriosStorage, IDataPackResp
     @SuppressWarnings("ConstantConditions")
     private void abyssAttackCurse(ServerPlayer player) {
         AttributeInstance attackSpeed = player.getAttribute(Attributes.ATTACK_SPEED);
-        AttributeInstance speed = player.getAttribute(Attributes.MOVEMENT_SPEED);
-
         boolean isBeneficial = player.Calamity$Player.calamityCap.isInverted(CurseType.ABYSS);
-        int count = DelayRunnable.getIterableCount(attackSpeed);
 
-        if (count != -1) {
-            int maxCount = isBeneficial ? 10 : 8;
-            if (count >= maxCount) return;
+        float[] counts = getMemory(player).count;
+        int count = (int) ++counts[1];
 
-            count++;
-            double amplifier = isBeneficial ? count * 0.05 : -count * 0.1;
-            VariableAttributeModifier modifier = (VariableAttributeModifier) attackSpeed.getModifier(getFirstUUID(player));
-            modifier.setBatchValue(amplifier, attackSpeed, speed);
+        int maxCount = isBeneficial ? 10 : 8;
+        if (count >= maxCount) return;
 
-            DelayRunnable.iterativeTask(attackSpeed);
-        } else {
-            double init = isBeneficial ? 0.05 : -0.1;
-            VariableAttributeModifier modifier = (VariableAttributeModifier) attackSpeed.getModifier(getFirstUUID(player));
-            modifier.setBatchValue(init, attackSpeed, speed);
-
-            DelayRunnable.addIterativeTask(120, attackSpeed,
-                () -> modifier.setBatchValue(0, attackSpeed, speed));
-        }
+        double amplifier = isBeneficial ? count * 0.05 : -count * 0.1;
+        VariableAttributeModifier modifier = (VariableAttributeModifier) attackSpeed.getModifier(getFirstUUID(player));
+        modifier.setBatchValue(amplifier, attackSpeed, player.getAttribute(Attributes.MOVEMENT_SPEED));
+        counts[2] = 120;
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -246,6 +239,18 @@ public class Calamity extends BaseCurio implements ICuriosStorage, IDataPackResp
             abyssCurse(player, player.getAttribute(Attributes.ARMOR), memory.uuids[0], isPlayerInDark(player),
                 player.Calamity$Player.calamityCap.isInverted(CurseType.ABYSS));
         }
+
+        if (--memory.count[2] == 0) {
+            memory.count[1] = 0;
+            AttributeInstance attackSpeed = player.getAttribute(Attributes.ATTACK_SPEED);
+            VariableAttributeModifier modifier = (VariableAttributeModifier) attackSpeed.getModifier(memory.uuids[0]);
+            modifier.setBatchValue(0, attackSpeed, player.getAttribute(Attributes.MOVEMENT_SPEED));
+        }
+    }
+
+    @Override
+    public int getCountSize() {
+        return 3;
     }
 
     @Override
@@ -278,10 +283,5 @@ public class Calamity extends BaseCurio implements ICuriosStorage, IDataPackResp
             tooltips.add(CMLangUtil.getView().withStyle(ChatFormatting.GOLD));
         }
         return tooltips;
-    }
-
-    @Override
-    public int getCountSize() {
-        return 1;
     }
 }

@@ -13,8 +13,9 @@ import java.util.List;
 public class Margarita extends CalamityEffect {
     public Margarita(MobEffectCategory category, int color) {
         super(category, color);
-        addAttributeModifier(Attributes.ARMOR, "50cd184c-6dc0-486d-b52b-bb73cb5cc415", -5, AttributeModifier.Operation.ADDITION);
-        addAttributeModifier(Attributes.ARMOR_TOUGHNESS, "50cd184c-6dc0-486d-b52b-bb73cb5cc415", -2, AttributeModifier.Operation.ADDITION);
+        String id = getSelfUUID();
+        addAttributeModifier(Attributes.ARMOR, id, -5, AttributeModifier.Operation.ADDITION);
+        addAttributeModifier(Attributes.ARMOR_TOUGHNESS, id, -2, AttributeModifier.Operation.ADDITION);
     }
 
     @Override

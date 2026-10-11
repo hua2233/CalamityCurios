@@ -2,8 +2,8 @@ package hua223.calamity.register.gui;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import hua223.calamity.main.CalamityCurios;
-import hua223.calamity.net.packets.CurseEnchantmentPack;
 import hua223.calamity.net.NetMessages;
+import hua223.calamity.net.packets.CurseEnchantmentPack;
 import hua223.calamity.util.delaytask.DelayRunnable;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;

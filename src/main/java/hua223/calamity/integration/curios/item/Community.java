@@ -2,10 +2,12 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.DeathListener;
+import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.register.attribute.CalamityAttributes;
+import hua223.calamity.render.font.CalamityFont;
 import hua223.calamity.util.*;
+import io.redspace.ironsspellbooks.api.backwards_compat.IBackwardsCompatDefaultNbtItem;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
@@ -26,8 +28,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.UUID;
 
-@ConflictChain(value = Community.class, isRoot = true)
-public class Community extends BaseCurio implements ICuriosStorage {
+@CurioRepel(isRoot = true)
+public class Community extends BaseCurio implements ICuriosStorage, IBackwardsCompatDefaultNbtItem {
 
     public Community(Properties properties) {
         super(properties);
@@ -36,7 +38,7 @@ public class Community extends BaseCurio implements ICuriosStorage {
     @Override
     @OnlyIn(Dist.CLIENT)
     public @NotNull Component getName(@NotNull ItemStack stack) {
-        return RenderUtil.getRainbow(Component.translatable(getDescriptionId(stack)));
+        return CalamityFont.getRainbow(Component.translatable(getDescriptionId(stack)));
     }
 
     @Override
@@ -53,10 +55,8 @@ public class Community extends BaseCurio implements ICuriosStorage {
     }
 
     @Override
-    public @NotNull ItemStack getDefaultInstance() {
-        ItemStack stack = new ItemStack(this);
-        applyNbt(stack.getOrCreateTag());
-        return stack;
+    public void setupItem(ItemStack itemStack) {
+        applyNbt(itemStack.getOrCreateTag());
     }
 
     private static void applyNbt(CompoundTag tag) {
@@ -181,8 +181,8 @@ public class Community extends BaseCurio implements ICuriosStorage {
 
             tooltips.add(CMLangUtil.blankLine());
             tooltips.add(CMLangUtil.getTranslatable("community", 5).setStyle(style));
-            tooltips.add((RenderUtil.getRainbow(CMLangUtil.getTranslatable("community", 6))));
-            tooltips.add(RenderUtil.getRainbow(CMLangUtil.getTranslatable("community", 7)));
+            tooltips.add((CalamityFont.getRainbow(CMLangUtil.getTranslatable("community", 6))));
+            tooltips.add(CalamityFont.getRainbow(CMLangUtil.getTranslatable("community", 7)));
 
             tooltips.add(CMLangUtil.blankLine());
             tooltips.add(CMLangUtil.getView().withStyle(ChatFormatting.LIGHT_PURPLE));

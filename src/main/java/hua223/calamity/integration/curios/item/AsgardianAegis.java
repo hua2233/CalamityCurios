@@ -2,11 +2,11 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.SprintCurio;
 import hua223.calamity.events.listeners.EffectListener;
+import hua223.calamity.integration.curios.SprintCurio;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.ConflictChain;
+import hua223.calamity.util.CurioRepel;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
@@ -27,7 +27,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 import java.util.UUID;
 
-@ConflictChain(value = SprintCurio.class, isRoot = true)
+@CurioRepel(SprintCurio.class)
 public class AsgardianAegis extends AsgardValor {
     public AsgardianAegis(Properties properties) {
         super(properties);

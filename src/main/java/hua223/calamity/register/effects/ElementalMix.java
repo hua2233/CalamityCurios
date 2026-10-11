@@ -22,10 +22,8 @@ public class ElementalMix extends CalamityEffect implements IEffectsCallBack {
         return pDuration % 40 == 0;
     }
 
-    public void applyEffectTick(@NotNull LivingEntity pLivingEntity, int pAmplifier) {
-        if (!pLivingEntity.level().isClientSide) {
-            pLivingEntity.hurt(pLivingEntity.damageSources().magic(), 4f);
-        }
+    public void applyServerTick(@NotNull LivingEntity target, int pAmplifier) {
+        target.hurt(target.damageSources().magic(), 4f);
     }
 
     @Override

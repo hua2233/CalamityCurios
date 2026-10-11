@@ -82,7 +82,7 @@ public class Nebula extends Projectile {
             }
         } else {
             Entity owner = getOwner();
-            if (tickCount >= 200 || owner == null) {
+            if (tickCount >= 200 || owner == null || owner.isRemoved()) {
                 discard();
                 return;
             }

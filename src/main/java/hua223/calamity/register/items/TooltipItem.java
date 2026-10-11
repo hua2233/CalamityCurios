@@ -28,7 +28,7 @@ public class TooltipItem extends Item {
     @SuppressWarnings("deprecation")
     public void appendHoverText(@NotNull ItemStack stack, @Nullable Level pLevel, @NotNull List<Component> tooltips, @NotNull TooltipFlag avanced) {
         Style style = Style.EMPTY.withColor(stack.getRarity().color);
+        tooltips.add(CMLangUtil.blankLine());
         tooltips.add(CMLangUtil.getTranslatable(name).setStyle(style));
     }
-
 }

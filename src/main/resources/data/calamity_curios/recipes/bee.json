@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "B" : {
+      "item": "minecraft:honeycomb"
+    },
+    "C": {
+      "item": "irons_spellbooks:amethyst_resonance_charm"
+    },
+    "D": {
+      "item": "minecraft:leather"
+    }
+  },
+  "pattern": [
+    "BBB",
+    " C ",
+    "DD "
+  ],
+  "result": {
+    "item": "calamity_curios:bee"
+  }
+}

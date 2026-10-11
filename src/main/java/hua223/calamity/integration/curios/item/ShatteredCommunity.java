@@ -3,18 +3,25 @@ package hua223.calamity.integration.curios.item;
 import com.google.common.collect.Multimap;
 import hua223.calamity.capability.Rage;
 import hua223.calamity.events.ApplyEvent;
+import hua223.calamity.events.listeners.PostAttackListener;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.net.IDataPackResponse;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.keys.IKeyDataPackResponse;
 import hua223.calamity.render.hud.RageHud;
-import hua223.calamity.util.*;
+import hua223.calamity.util.CMLangUtil;
+import hua223.calamity.util.CurioRepel;
+import hua223.calamity.util.ICuriosStorage;
+import hua223.calamity.util.RenderUtil;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.FastColor;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -23,21 +30,21 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 import java.util.UUID;
 
-@ConflictChain(Community.class)
+@CurioRepel(Community.class)
 public class ShatteredCommunity extends BaseCurio implements
     ICuriosStorage, IKeyDataPackResponse, IDataPackResponse {
     public ShatteredCommunity(Properties properties) {
         super(properties);
     }
 
-    //Calculate the trigger line for later events
-    @ApplyEvent(1200)
-    public final void onAttack(PlayerAttackListener listener) {
+    @ApplyEvent(2000)
+    public final void onPostAttack(PostAttackListener listener) {
         Rage rage = listener.player.Calamity$Player.rage;
         rage.addValue(Math.min(3, listener.baseAmount / 7));
         if (rage.isActive()) {
@@ -57,6 +64,16 @@ public class ShatteredCommunity extends BaseCurio implements
         setKeyMapping(player, false);
         player.Calamity$Player.rage.setEnabled(false);
         syncHealth(player);
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public @NotNull Component getName(@NotNull ItemStack stack) {
+        MutableComponent component = Component.translatable(getDescriptionId(stack));
+        float tick = (RenderUtil.getLocalTick() + Minecraft.getInstance().getPartialTick()) % 80;
+        float progress = Mth.sin(tick / 80f * Mth.PI);
+        component.setStyle(Style.EMPTY.withColor(FastColor.ARGB32.lerp(progress, 0xFF803E80, 0xFFF569F5)));
+        return component;
     }
 
     @Override
@@ -99,7 +116,6 @@ public class ShatteredCommunity extends BaseCurio implements
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
     public int getKeyCode() {
         return GLFW.GLFW_KEY_V;
     }
@@ -107,17 +123,30 @@ public class ShatteredCommunity extends BaseCurio implements
     @Override
     @OnlyIn(Dist.CLIENT)
     public void onClientResponse(CompoundTag tag) {
-        if (tag.contains("count")) RageHud.setRageCount(tag.getByte("count"));
-        if (tag.contains("state")) RageHud.rageEnabled = tag.getBoolean("state");
-        if (tag.contains("level")) RageHud.setShatteredLevel(tag.getByte("level"), tag.getInt("upDamage"));
-        if (tag.contains("damage")) RageHud.setCurrentDamage(tag.getInt("damage"));
-        if (tag.contains("value")) {
-            float v = tag.getFloat("value");
-            if (v < 0) {
-                RageHud.playAnimation();
-                v = -v;
+        byte stateInfo = tag.getByte("bit");
+        for (int i = 0; i < 6; i++)
+            if (((stateInfo >> i) & 1) == 1) byBit(i, tag);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private static void byBit(int bit, CompoundTag tag) {
+        switch (bit) {
+            case 0 -> RageHud.INSTANCE.setEnabled(tag.getBoolean("state"));
+            case 1 -> RageHud.INSTANCE.setDisplayCount(tag.getByte("count"));
+            case 2 -> {
+                float v = tag.getFloat("value");
+                if (v < 0) {
+                    RageHud.INSTANCE.playAnimation();
+                    v = -v;
+                }
+                RageHud.INSTANCE.setProgress(v);
             }
-            RageHud.setRageProgress(v);
+
+            case 3 -> RageHud.INSTANCE.setCurrentDamage(tag.getInt("damage"));
+
+            case 4 -> RageHud.INSTANCE.setShatteredLevel(tag.getByte("level"), tag.getInt("upDamage"));
+
+            case 5 -> RageHud.INSTANCE.active();
         }
     }
 
@@ -126,12 +155,14 @@ public class ShatteredCommunity extends BaseCurio implements
     public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
         CMLangUtil.batchColorTexts(tooltips, ChatFormatting.YELLOW, "shattered", 2, 3, 4, 5);
         Style style = Style.EMPTY.withColor(ChatFormatting.GOLD);
+        RageHud rage = RageHud.INSTANCE;
+
         tooltips.add(CMLangUtil.getDynamic("shattered", 6,
-            RageHud.shatteredLevel).setStyle(style));
+            rage.getShatteredLevel()).setStyle(style));
         tooltips.add(CMLangUtil.getDynamic("shattered", 7,
-            RageHud.levelUpProgress).setStyle(style));
+            rage.getUpProgress()).setStyle(style));
         tooltips.add(CMLangUtil.getDynamic("shattered", 8,
-            RageHud.getLevelBonus()).setStyle(style));
+            rage.getLevelBonus()).setStyle(style));
         tooltips.add(CMLangUtil.blankLine());
         tooltips.add(CMLangUtil.getTranslatable("shattered", 1)
             .withStyle(ChatFormatting.DARK_PURPLE));

@@ -4,20 +4,19 @@ import com.google.common.collect.Multimap;
 import hua223.calamity.integration.curios.Wings;
 import hua223.calamity.register.keys.IKeyDataPackResponse;
 import hua223.calamity.register.sounds.CalamitySounds;
-import hua223.calamity.util.*;
-import hua223.calamity.util.delaytask.DelayRunnable;
+import hua223.calamity.util.CMLangUtil;
+import hua223.calamity.util.CurioRepel;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Abilities;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -26,7 +25,7 @@ import org.lwjgl.glfw.GLFW;
 import java.util.List;
 import java.util.UUID;
 
-@ConflictChain(Wings.class)
+@CurioRepel(Wings.class)
 public class AscendantInsignia extends Wings implements IKeyDataPackResponse {
     public AscendantInsignia(Properties properties) {
         super(properties);
@@ -56,20 +55,12 @@ public class AscendantInsignia extends Wings implements IKeyDataPackResponse {
     @Override
     @SuppressWarnings("ConstantConditions")
     public void onServerResponse(ServerPlayer player, CompoundTag tag) {
-        ServerLevel level = player.serverLevel();
         CalamitySounds.ASCENDANT_ACTIVATE.playSound(player);
-        float[] count = getMemory(player).count;
-
-        count[2] = 1;
+        getMemory(player).count[2] = 160;
         player.getCooldowns().addCooldown(this, 800);
-        DelayRunnable.addRunTask(160, () -> {
-            count[2] = 0;
-            CalamitySounds.ASCENDANT_OFF.playSound(player);
-        });
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
     public int getKeyCode() {
         return GLFW.GLFW_KEY_Y;
     }
@@ -87,6 +78,12 @@ public class AscendantInsignia extends Wings implements IKeyDataPackResponse {
     }
 
     @Override
+    protected void onPlayerTick(Player player) {
+        super.onPlayerTick(player);
+        getCount(player)[2]--;
+    }
+
+    @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
         super.unEquipHandle(player, stack);
         setKeyMapping(player, false);
@@ -94,7 +91,7 @@ public class AscendantInsignia extends Wings implements IKeyDataPackResponse {
 
     @Override
     protected boolean cancelFlight(Abilities abilities, float[] count) {
-        return abilities.flying && count[2] != 1 && count[0]-- < 1;
+        return count[2] <= 0 && super.cancelFlight(abilities, count);
     }
 
     @Override

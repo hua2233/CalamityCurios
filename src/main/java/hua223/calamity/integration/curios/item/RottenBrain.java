@@ -2,16 +2,16 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
+import hua223.calamity.events.listeners.DamageListener;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.events.listeners.HurtListener;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.entity.projectiles.ShadowsRain;
 import hua223.calamity.util.CMLangUtil;
+import hua223.calamity.util.CurioRepel;
 import hua223.calamity.util.ICuriosStorage;
 import hua223.calamity.util.VariableAttributeModifier;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -25,9 +25,10 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 import java.util.UUID;
 
+@CurioRepel(AmalgamatedBrain.class)
 public class RottenBrain extends BaseCurio implements ICuriosStorage {
-    public RottenBrain(Properties pProperties) {
-        super(pProperties);
+    public RottenBrain(Properties properties) {
+        super(properties);
     }
 
     @Override
@@ -35,27 +36,23 @@ public class RottenBrain extends BaseCurio implements ICuriosStorage {
         if (equipped.level().isClientSide) return;
         getUUID(equipped)[0] = uuid;
         modifier.put(Attributes.MOVEMENT_SPEED,
-            new VariableAttributeModifier(uuid, "rotten", -0.05, AttributeModifier.Operation.MULTIPLY_BASE));
+            new VariableAttributeModifier(uuid, "rotten", 0, AttributeModifier.Operation.MULTIPLY_BASE));
         modifier.put(CalamityAttributes.DAMAGE_UP.get(),
-            new VariableAttributeModifier(uuid, "rotten", 0.1, AttributeModifier.Operation.MULTIPLY_BASE));
+            new VariableAttributeModifier(uuid, "rotten", 0, AttributeModifier.Operation.MULTIPLY_BASE));
     }
 
     @ApplyEvent
-    public final void onHurt(HurtListener listener) {
-        ServerPlayer player = listener.player;
-        if (player.getCooldowns().isOnCooldown(this)) return;
-
-        if (listener.isTriggerByLiving) {
-            if (player.getHealth() < player.getMaxHealth() / 2f) {
-                ShadowsRain.of(listener.entity, player, 6);
-                player.getCooldowns().addCooldown(this, 80);
-            }
+    public final void onDamage(DamageListener listener) {
+        if (listener.isTriggerByLiving && getCount(listener.player)[1] == 2
+            && !listener.player.getCooldowns().isOnCooldown(this)) {
+            ShadowsRain.of(listener.entity, listener.player, 6);
+            listener.player.getCooldowns().addCooldown(this, 80);
         }
     }
 
     @Override
     public int getCountSize() {
-        return 3;
+        return 2;
     }
 
     @Override
@@ -65,41 +62,46 @@ public class RottenBrain extends BaseCurio implements ICuriosStorage {
 
     @Override
     protected void onPlayerTick(Player player) {
-        if (addCount(player, 0) > 20) {
-            var p = getMemory(player);
-            float[] count = p.count;
-            double health = player.getHealth();
-            double maxHealth = player.getMaxHealth();
+        var memory = getMemory(player);
+        float[] count = memory.count;
+        if (count[0]++ > 10) {
+            count[0] = 0;
+            float healthRatio = player.getHealth() / player.getMaxHealth();
+            int state = healthRatio >= .75f ? 0 : healthRatio >= .5f ? 1 : 2;
+            if (state != count[1]) {
+                UUID uuid = memory.uuids[0];
+                switch ((int) (count[1] = state)) {
+                    case 0 : {
+                        removeModifier(player, Attributes.MOVEMENT_SPEED, uuid);
+                        removeModifier(player, CalamityAttributes.DAMAGE_UP.get(), uuid);
+                    }
 
-            if (health >= maxHealth * 0.75f) {
-                removeModifier(player, Attributes.MOVEMENT_SPEED, count, 1, p.uuids[0]);
-                removeModifier(player, CalamityAttributes.DAMAGE_UP.get(), count, 2, p.uuids[0]);
-            } else if (health >= maxHealth / 2f) {
-                removeModifier(player, Attributes.MOVEMENT_SPEED, count, 1, p.uuids[0]);
-                addModifier(player, CalamityAttributes.DAMAGE_UP.get(), count, 2, p.uuids[0], 0.1);
-            } else {
-                addModifier(player, Attributes.MOVEMENT_SPEED, count, 1, p.uuids[0], 0.05);
-                addModifier(player, CalamityAttributes.DAMAGE_UP.get(), count, 2, p.uuids[0], 0.1);
+                    case 1 : {
+                        removeModifier(player, Attributes.MOVEMENT_SPEED, uuid);
+                        addModifier(player, CalamityAttributes.DAMAGE_UP.get(), uuid, 0.1);
+                    }
+
+                    case 2 : {
+                        addModifier(player, Attributes.MOVEMENT_SPEED, uuid, 0.05);
+                        addModifier(player, CalamityAttributes.DAMAGE_UP.get(), uuid, 0.1);
+                    }
+                }
             }
         }
     }
 
-    private static void removeModifier(Player player, Attribute attribute, float[] count, int flag, UUID uuid) {
-        if (count[flag] == 0) {
-            AttributeInstance instance = player.getAttribute(attribute);
-            VariableAttributeModifier modifier = (VariableAttributeModifier) instance.getModifier(uuid);
-            modifier.setValue(0, instance);
-            count[flag] = 1;
-        }
+    @SuppressWarnings("ConstantConditions")
+    private static void removeModifier(Player player, Attribute attribute, UUID uuid) {
+        AttributeInstance instance = player.getAttribute(attribute);
+        VariableAttributeModifier modifier = (VariableAttributeModifier) instance.getModifier(uuid);
+        modifier.setValue(0, instance);
     }
 
-    private static void addModifier(Player player, Attribute attribute, float[] count, int flag, UUID uuid, double value) {
-        if (count[flag] == 1) {
-            AttributeInstance instance = player.getAttribute(attribute);
-            VariableAttributeModifier modifier = (VariableAttributeModifier) instance.getModifier(uuid);
-            modifier.setValue(value, instance);
-            count[flag] = 0;
-        }
+    @SuppressWarnings("ConstantConditions")
+    private static void addModifier(Player player, Attribute attribute, UUID uuid, double value) {
+        AttributeInstance instance = player.getAttribute(attribute);
+        VariableAttributeModifier modifier = (VariableAttributeModifier) instance.getModifier(uuid);
+        modifier.setValue(value, instance);
     }
 
     @Override

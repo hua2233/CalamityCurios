@@ -3,13 +3,13 @@ package hua223.calamity.integration.curios.item;
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.events.LogoutRelease;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.CriticalHitCheckListener;
 import hua223.calamity.events.listeners.ProjectileSpawnListener;
+import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.register.entity.TeslaAura;
 import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.ConflictChain;
+import hua223.calamity.util.CurioRepel;
 import hua223.calamity.util.ICuriosStorage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -30,7 +30,7 @@ import top.theillusivec4.caelus.api.CaelusApi;
 import java.util.List;
 import java.util.UUID;
 
-@ConflictChain(PlagueFuelPack.class)
+@CurioRepel(isRoot = true)
 public class BlunderBooster extends BaseCurio implements ICuriosStorage {
     @OnlyIn(Dist.CLIENT)
     public static int energy = 60;
@@ -51,8 +51,7 @@ public class BlunderBooster extends BaseCurio implements ICuriosStorage {
     @LogoutRelease
     public static void onLogOut(ServerPlayer player) {
         CalamityItems item = CalamityItems.BLUNDER_BOOSTER;
-        if (item.isEquip(player))
-            ((BlunderBooster) item.get()).killAffiliated(player);
+        if (item.isEquip(player)) ((BlunderBooster) item.get()).killAffiliated(player);
     }
 
     private void killAffiliated(ServerPlayer player) {
@@ -81,14 +80,16 @@ public class BlunderBooster extends BaseCurio implements ICuriosStorage {
     @Override
     @OnlyIn(Dist.CLIENT)
     protected void onClientTick(Player player) {
-        if (player.isFallFlying()) {
-            if (energy > 2 && player.getFallFlyingTicks() % 10 == 0
-                && Minecraft.getInstance().options.keyJump.isDown()) {
-                energy -= 2;
-                Vec3 vec3 = player.getLookAngle().normalize();
-                player.push(vec3.x * 0.75f, vec3.y * 0.55f, vec3.z * 0.75f);
-            }
-        } else if(energy < 60) energy += 2;
+        if (player.isLocalPlayer()) {
+            if (player.isFallFlying()) {
+                if (energy > 2 && player.getFallFlyingTicks() % 10 == 0
+                    && Minecraft.getInstance().options.keyJump.isDown()) {
+                    energy -= 2;
+                    Vec3 vec3 = player.getLookAngle().normalize();
+                    player.push(vec3.x * 0.75f, vec3.y * 0.55f, vec3.z * 0.75f);
+                }
+            } else if(energy < 60) energy += 2;
+        }
     }
 
     @Override

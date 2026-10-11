@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A" : {
+      "item": "irons_spellbooks:mithril_scrap"
+    },
+    "B": {
+      "item": "calamity_curios:deadshot_brooch"
+    },
+    "C": {
+      "item": "calamity_curios:galactica_singularity"
+    },
+    "D": {
+      "tag": "forge:gems/diamond"
+    }
+  },
+  "pattern": [
+    "AAA",
+    "CBC",
+    "DDD"
+  ],
+  "result": {
+    "item": "calamity_curios:daawnlight_spirit_origin"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A" : {
+      "item": "irons_spellbooks:cinder_essence"
+    },
+    "B": {
+      "item": "calamity_curios:counter_scarf"
+    }
+  },
+  "pattern": [
+    "AAA",
+    "ABA",
+    "AAA"
+  ],
+  "result": {
+    "item": "calamity_curios:evasion_scarf"
+  }
+}

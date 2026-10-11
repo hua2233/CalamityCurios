@@ -19,24 +19,27 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.NotNull;
 
 @AutoEntityRegister(sized = {.2f, .2f}, trackingRange = 8)
 public class AcidicRain extends BaseProjectile {
     @OnlyIn(Dist.CLIENT)
-    private final RenderType type = RenderType.entityCutoutNoCull(
-        CalamityCurios.ModResource("textures/entity/acidic_rain.png"));
+    private final RenderType type = RenderType.entityCutoutNoCull(CalamityCurios.ModResource("textures/entity/acidic_rain.png"));
+
     public AcidicRain(EntityType<? extends Projectile> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
         setDamage(3);
-        this.setDeltaMovement(0, -0.4, 0);
+        this.setDeltaMovement(0, -1, 0);
     }
 
-    public static AcidicRain of(Level level, LivingEntity target, ServerPlayer player) {
+    public static void of(Level level, LivingEntity target, ServerPlayer player) {
         AcidicRain acidicRain = CalamityCurios.getEntityType(AcidicRain.class).create(level);
-        Vec3 pos = new Vec3(target.getX(), target.getY() + level.random.nextInt(6, 9), target.getZ());
-        acidicRain.setPos(pos);
-        acidicRain.setOwner(player);
-        return acidicRain;
+        if (acidicRain != null) {
+            Vec3 pos = new Vec3(target.getX(), target.getY() + level.random.nextInt(6, 9), target.getZ());
+            acidicRain.setPos(pos);
+            acidicRain.setOwner(player);
+            level.addFreshEntity(acidicRain);
+        }
     }
 
     @Override
@@ -51,7 +54,7 @@ public class AcidicRain extends BaseProjectile {
         }
 
         @Override
-        public ResourceLocation getTextureLocation(AcidicRain entity) {
+        public @NotNull ResourceLocation getTextureLocation(@NotNull AcidicRain entity) {
             return CalamityCurios.ModResource("textures/entity/acidic_rain.png");
         }
 

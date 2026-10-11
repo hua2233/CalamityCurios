@@ -1,17 +1,17 @@
 package hua223.calamity.integration.curios.item;
 
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.generators.DamageMapping;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.DeathListener;
 import hua223.calamity.events.listeners.HurtListener;
+import hua223.calamity.generators.DamageMapping;
+import hua223.calamity.integration.curios.BaseCurio;
+import hua223.calamity.net.IDataPackResponse;
 import hua223.calamity.register.damage.DamageRequester;
 import hua223.calamity.register.damage.DamageSupplier;
+import hua223.calamity.register.keys.IKeyDataPackResponse;
 import hua223.calamity.render.hud.CrystallizationRenderLayer;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.ICuriosStorage;
-import hua223.calamity.register.keys.IKeyDataPackResponse;
-import hua223.calamity.net.IDataPackResponse;
 import hua223.calamity.util.delaytask.DelayRunnable;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -90,7 +90,7 @@ public class BlazingCore extends BaseCurio implements
             getPack().putByte("state", (byte) 0);
             sendToClient(player);
             DelayRunnable.addRunTask(300, () -> {
-                if (count[0] != 0) {
+                if (!player.isRemoved() && count[0] != 0) {
                     count[0] = 0;
                     player.getCooldowns().addCooldown(this, 300);
                     getPack().putByte("state", (byte) 2);
@@ -112,7 +112,6 @@ public class BlazingCore extends BaseCurio implements
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
     public int getKeyCode() {
         return GLFW.GLFW_KEY_C;
     }

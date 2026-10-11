@@ -1,16 +1,15 @@
 package hua223.calamity.register.gui;
 
-import hua223.calamity.capability.EnchantmentProvider;
-import hua223.calamity.net.packets.SpellTypeSync;
 import hua223.calamity.net.NetMessages;
-import hua223.calamity.register.items.CalamityItems;
+import hua223.calamity.net.packets.SpellTypeSync;
 import hua223.calamity.register.RegisterList;
+import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.register.recipe.CalamityCurseRecipe;
+import hua223.calamity.register.rune.SpellType;
 import hua223.calamity.util.CalamityHelp;
 import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -49,7 +48,7 @@ public class CalamityCurseMenu extends AbstractContainerMenu {
     private final ItemStackHandler curseSlot = new ItemStackHandler(1) {
         @Override
         protected void onContentsChanged(int slot) {
-            ItemStack stack = this.getStackInSlot(slot);
+            ItemStack stack = getStackInSlot(slot);
             if (stack.isEmpty() || hasBeenCursed(stack)) {
                 type = null;
                 spend = null;
@@ -111,7 +110,7 @@ public class CalamityCurseMenu extends AbstractContainerMenu {
                 ItemStack stack1 = slots.get(j).getItem();
                 if (stack1.is(item)) {
                     int c = stack1.getCount();
-                    if (c > count) {
+                    if (c >= count) {
                         enough[i] = true;
                     } else count -= c;
                 }
@@ -121,12 +120,6 @@ public class CalamityCurseMenu extends AbstractContainerMenu {
 
     public void setCurseItemChanged(ItemStack stack) {
         curseSlot.setStackInSlot(0, stack);
-    }
-
-    public void setShareRenderTag(ItemStack stack) {
-        CompoundTag tag = stack.getOrCreateTag();
-        tag.putInt(CalamityHelp.FONT_FLAG, 1);
-        tag.putString("spell", type.name());
     }
 
     public ItemStack getCurseSlotItem() {
@@ -218,7 +211,7 @@ public class CalamityCurseMenu extends AbstractContainerMenu {
 
     @SuppressWarnings("ConstantConditions")
     private boolean hasBeenCursed(ItemStack stack) {
-        return stack.hasTag() && stack.getTag().contains(CalamityHelp.FONT_FLAG);
+        return stack.hasTag() && stack.getTag().getInt(CalamityHelp.FONT_FLAG) == 1;
     }
 
     public boolean isEffectiveSlot() {

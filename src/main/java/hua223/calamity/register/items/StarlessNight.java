@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMultimap;
 import hua223.calamity.register.RegisterList;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.util.CMLangUtil;
+import io.redspace.ironsspellbooks.api.backwards_compat.IBackwardsCompatDefaultNbtItem;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -18,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class StarlessNight extends SwordItem {
+public class StarlessNight extends SwordItem implements IBackwardsCompatDefaultNbtItem {
     @SuppressWarnings({"rawtypes", "unchecked"})
     public StarlessNight(Properties properties) {
         super(RegisterList.MOON, 15, -2.8f, properties);
@@ -29,11 +30,10 @@ public class StarlessNight extends SwordItem {
     }
 
     @Override
-    public @NotNull ItemStack getDefaultInstance() {
-        ItemStack stack = new ItemStack(this);
-        stack.enchant(RegisterList.SHARED_PAIN.get(), 3);
-        return stack;
+    public void setupItem(ItemStack itemStack) {
+        itemStack.enchant(RegisterList.SHARED_PAIN.get(), 3);
     }
+
     @Override
     @OnlyIn(Dist.CLIENT)
     public boolean isFoil(@NotNull ItemStack stack) {

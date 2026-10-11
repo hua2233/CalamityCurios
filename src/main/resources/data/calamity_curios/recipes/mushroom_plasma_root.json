@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "minecraft:brown_mushroom_block"
+    },
+    "C": {
+      "item": "minecraft:mushroom_stem"
+    },
+    "B": {
+      "item": "minecraft:red_mushroom_block"
+    },
+    "D": {
+      "item": "minecraft:mycelium"
+    }
+  },
+  "pattern": [
+    "AAA",
+    "DCD",
+    "BBB"
+  ],
+  "result": {
+    "item": "calamity_curios:mirage_mirror"
+  }
+}

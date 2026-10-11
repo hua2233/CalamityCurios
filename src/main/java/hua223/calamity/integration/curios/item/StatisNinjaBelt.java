@@ -1,12 +1,12 @@
 package hua223.calamity.integration.curios.item;
 
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.SprintCurio;
 import hua223.calamity.events.listeners.HurtListener;
+import hua223.calamity.integration.curios.SprintCurio;
+import hua223.calamity.net.IDataPackResponse;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.CalamityHelp;
-import hua223.calamity.util.ConflictChain;
-import hua223.calamity.net.IDataPackResponse;
+import hua223.calamity.util.CurioRepel;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -19,7 +19,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.List;
 
-@ConflictChain(value = SprintCurio.class)
+@CurioRepel(SprintCurio.class)
 public class StatisNinjaBelt extends SprintCurio implements IDataPackResponse {
     public final boolean immuneFall;
 

@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A" : {
+      "item": "irons_spellbooks:cinder_essence"
+    },
+    "B": {
+      "tag": "minecraft:coals"
+    },
+    "C": {
+      "tag": "forge:ingots/gold"
+    },
+    "D": {
+      "item": "minecraft:magma_block"
+    }
+  },
+  "pattern": [
+    "AAA",
+    "DCD",
+    "BBB"
+  ],
+  "result": {
+    "item": "calamity_curios:scoria_ingot"
+  }
+}

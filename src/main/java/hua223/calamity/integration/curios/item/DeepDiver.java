@@ -3,11 +3,10 @@ package hua223.calamity.integration.curios.item;
 import com.google.common.collect.Multimap;
 import hua223.calamity.integration.curios.SprintCurio;
 import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.ConflictChain;
+import hua223.calamity.util.CurioRepel;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -19,7 +18,7 @@ import net.minecraftforge.common.ForgeMod;
 import java.util.List;
 import java.util.UUID;
 
-@ConflictChain(value = SprintCurio.class)
+@CurioRepel(value = SprintCurio.class)
 public class DeepDiver extends SprintCurio {
     public DeepDiver(Properties properties) {
         super(properties);

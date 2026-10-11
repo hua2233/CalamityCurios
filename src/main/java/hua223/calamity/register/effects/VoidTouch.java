@@ -2,7 +2,6 @@ package hua223.calamity.register.effects;
 
 import hua223.calamity.util.CMLangUtil;
 import net.minecraft.ChatFormatting;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -16,7 +15,7 @@ import java.util.List;
 public class VoidTouch extends CalamityEffect {
     public VoidTouch(MobEffectCategory category, int color) {
         super(category, color);
-        addAttributeModifier(Attributes.MOVEMENT_SPEED, "50cd184c-6dc0-486d-b52b-bb73cb5cc417", 0.1, AttributeModifier.Operation.MULTIPLY_BASE);
+        addAttributeModifier(Attributes.MOVEMENT_SPEED, getSelfUUID(), 0.1, AttributeModifier.Operation.MULTIPLY_BASE);
     }
 
     @Override
@@ -25,9 +24,8 @@ public class VoidTouch extends CalamityEffect {
     }
 
     @Override
-    public void applyEffectTick(@NotNull LivingEntity target, int amplifier) {
-        if (!target.level().isClientSide)
-            target.hurt(target.damageSources().fellOutOfWorld(), 3 * (amplifier + 1));
+    public void applyServerTick(@NotNull LivingEntity target, int amplifier) {
+        target.hurt(target.damageSources().fellOutOfWorld(), 3 * (amplifier + 1));
     }
 
     @Override

@@ -38,9 +38,8 @@ public class CurseEnchantmentPack extends DataPack {
                         item = menu.result;
                     } else return;
                 } else {
-                    item.getCapability(EnchantmentProvider.CURSE_ENCHANTMENT).ifPresent(enchantment ->
-                        enchantment.setRunes(menu.type));
-                    menu.setShareRenderTag(item);
+                    ItemStack finalItem = item;
+                    item.getCapability(EnchantmentProvider.CURSE_ENCHANTMENT).ifPresent(enchantment -> enchantment.setRunes(finalItem, menu.type));
                 }
 
                 for (Int2IntMap.Entry entry : slotChange.int2IntEntrySet()) {

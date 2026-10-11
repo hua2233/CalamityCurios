@@ -2,7 +2,7 @@ package hua223.calamity.register.effects;
 
 import hua223.calamity.capability.EnchantmentProvider;
 import hua223.calamity.register.effects.factor.CountFactorEffects;
-import hua223.calamity.register.gui.SpellType;
+import hua223.calamity.register.rune.SpellType;
 import hua223.calamity.util.CMLangUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.server.level.ServerPlayer;
@@ -21,7 +21,7 @@ import java.util.List;
 public class Apoptosis extends CountFactorEffects implements IEffectsCallBack {
     protected Apoptosis(MobEffectCategory category, int color) {
         super(category, color);
-        addAttributeModifier(Attributes.ATTACK_DAMAGE, "123e4567-e89b-12d3-a456-426614174028", 1, AttributeModifier.Operation.MULTIPLY_BASE);
+        addAttributeModifier(Attributes.ATTACK_DAMAGE, getSelfUUID(), 1, AttributeModifier.Operation.MULTIPLY_BASE);
     }
 
     @Override
@@ -51,12 +51,10 @@ public class Apoptosis extends CountFactorEffects implements IEffectsCallBack {
     }
 
     @Override
-    public void applyEffectTick(@NotNull LivingEntity livingEntity, int amplifier) {
-        if (!livingEntity.level().isClientSide) {
-            float factor = fromTargetGet(livingEntity).getFactor()[0];
-            livingEntity.hurt(livingEntity.damageSources().magic()
-                , (float) (2 * Math.pow(1.5, (factor / 60))));
-        }
+    public void applyServerTick(@NotNull LivingEntity livingEntity, int amplifier) {
+        float factor = fromTargetGet(livingEntity).getFactor()[0];
+        livingEntity.hurt(livingEntity.damageSources().magic()
+            , (float) (2 * Math.pow(1.5, (factor / 60))));
     }
 
     @Override

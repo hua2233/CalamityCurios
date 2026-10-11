@@ -1,11 +1,14 @@
 package hua223.calamity.integration.curios.item.entropy;
 
 import hua223.calamity.integration.curios.Card;
+import hua223.calamity.integration.jei.JeiInfo;
 import hua223.calamity.loots.ApplyGlobalLoot;
 import hua223.calamity.loots.EntitiesLootContext;
 import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.util.CMLangUtil;
+import hua223.calamity.util.IServantsReinforcement;
 import hua223.calamity.util.PlayerServantsManager;
+import io.redspace.ironsspellbooks.registries.EntityRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -20,33 +23,33 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.List;
 
-public class Temperance extends Card {
+@JeiInfo(zh_cn = "击杀高位唤魔者掉落")
+public class Temperance extends Card implements IServantsReinforcement {
     public Temperance(Properties properties) {
         super(properties);
     }
 
     @Override
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
-        final boolean deck = equipFromDeck(stack);
-        PlayerServantsManager.loadPlayerServantsEntity(player, servant -> modifyServantAttribute(servant, deck));
+        PlayerServantsManager.addServantsReinforcement(player, this);
     }
 
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
-        final boolean deck = equipFromDeck(stack);
-        PlayerServantsManager.removePlayerServantsEntity(player, servant -> modifyServantAttribute(servant, deck));
+        PlayerServantsManager.removeServantsReinforcement(player, this);
     }
 
-    private void modifyServantAttribute(LivingEntity servant, boolean deck) {
-        PlayerServantsManager.changeAttribute(servant, Attributes.MAX_HEALTH, deck ? 1 : 0.6, AttributeModifier.Operation.MULTIPLY_BASE);
-        PlayerServantsManager.changeAttribute(servant, Attributes.ARMOR, deck ? 8 : 4, AttributeModifier.Operation.ADDITION);
+    @Override
+    public void modifyServant(boolean apply, ServerPlayer player, LivingEntity servant) {
+        boolean deck = player.Calamity$Player.cardDeck;
+        PlayerServantsManager.changeAttribute(apply, servant, Attributes.MAX_HEALTH, deck ? 1 : 0.6, AttributeModifier.Operation.MULTIPLY_BASE);
+        PlayerServantsManager.changeAttribute(apply, servant, Attributes.ARMOR, deck ? 8 : 4, AttributeModifier.Operation.ADDITION);
     }
-
 
     @ApplyGlobalLoot
     public void onGlobalEntityLoot(EntitiesLootContext context) {
-        if (context.chance(0.4f) && context.entity instanceof OwnableEntity entity
-            && entity.getOwner() == context.player) context.addLoot(this, 1);
+        if (context.onlyVerification(EntityRegistry.ARCHEVOKER.get())
+            && context.chance(0.7f)) context.addLoot(this);
     }
 
     @Override

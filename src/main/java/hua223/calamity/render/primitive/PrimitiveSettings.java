@@ -2,8 +2,6 @@ package hua223.calamity.render.primitive;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import hua223.calamity.util.Vector2f;
-import net.minecraft.client.Camera;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -26,8 +24,6 @@ public abstract class PrimitiveSettings {
 
     public abstract int getCapacity();
 
-    public abstract float widthCorrectionRatio();
-
     public abstract VertexConsumer getConsumer();
 
     public void offset(float completionRatio, Vector2f vertex) {}
@@ -40,8 +36,8 @@ public abstract class PrimitiveSettings {
         index++;
     }
 
-    public boolean smoothen() {
-        return true;
+    public SamplingPointMode sampling() {
+        return SamplingPointMode.SMOOTHEN;
     }
 
     protected void buildVertex(VertexConsumer consumer, Matrix4f matrix4f, short index) {

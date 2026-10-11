@@ -14,6 +14,7 @@ import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -24,14 +25,14 @@ public class Beer extends Item {
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {
+    public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player, @NotNull InteractionHand usedHand) {
         if (player.getCooldowns().isOnCooldown(this))
             return InteractionResultHolder.fail(player.getItemInHand(usedHand));
         return super.use(level, player, usedHand);
     }
 
     @Override
-    public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity entity) {
+    public @NotNull ItemStack finishUsingItem(@NotNull ItemStack stack, Level level, @NotNull LivingEntity entity) {
         if (!level.isClientSide && entity.calamity$IsPlayer && getCooldown() > 0)
             entity.calamity$Player.getCooldowns().addCooldown(this, getCooldown());
         endOfUse(stack, level, entity);
@@ -39,7 +40,7 @@ public class Beer extends Item {
     }
 
     @Override
-    public int getUseDuration(ItemStack stack) {
+    public int getUseDuration(@NotNull ItemStack stack) {
         return 48;
     }
 
@@ -47,7 +48,7 @@ public class Beer extends Item {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public UseAnim getUseAnimation(ItemStack stack) {
+    public @NotNull UseAnim getUseAnimation(@NotNull ItemStack stack) {
         return UseAnim.DRINK;
     }
 
@@ -57,7 +58,7 @@ public class Beer extends Item {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltips, TooltipFlag isAdvanced) {
+    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, List<Component> tooltips, @NotNull TooltipFlag isAdvanced) {
         tooltips.add(CMLangUtil.getTranslatable("beer_harmful").withStyle(ChatFormatting.YELLOW));
     }
 }

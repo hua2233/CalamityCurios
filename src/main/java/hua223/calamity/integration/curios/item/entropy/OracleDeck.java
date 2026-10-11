@@ -2,12 +2,12 @@ package hua223.calamity.integration.curios.item.entropy;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.Decks;
+import hua223.calamity.events.listeners.DamageListener;
 import hua223.calamity.events.listeners.HurtListener;
-import hua223.calamity.register.items.CalamityItems;
-import hua223.calamity.register.items.UnsealingRope;
+import hua223.calamity.integration.curios.Decks;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.util.CMLangUtil;
+import hua223.calamity.util.CurioRepel;
 import hua223.calamity.util.ICuriosStorage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -24,6 +24,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 import java.util.UUID;
 
+@CurioRepel(Decks.class)
 public class OracleDeck extends Decks implements ICuriosStorage {
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
@@ -41,8 +42,8 @@ public class OracleDeck extends Decks implements ICuriosStorage {
         }
     }
 
-    @ApplyEvent
-    public final void onHurt(HurtListener listener) {
+    @ApplyEvent(120)
+    public final void onDamage(DamageListener listener) {
         float max = listener.player.getMaxHealth() / 2;
         if (listener.baseAmount > max) listener.setFinalAmount(max);
     }

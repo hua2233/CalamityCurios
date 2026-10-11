@@ -3,6 +3,7 @@ package hua223.calamity.integration.curios.item;
 import com.google.common.collect.Multimap;
 import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.register.attribute.CalamityAttributes;
+import hua223.calamity.util.CurioRepel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -11,25 +12,22 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.UUID;
 
-import static hua223.calamity.register.items.CalamityItems.BLOODY_WORM_TOOTH;
-
+@CurioRepel(BloodyWormTooth.class)
 public class BloodyWormScarf extends BaseCurio {
-    public BloodyWormScarf(Properties pProperties) {
-        super(pProperties);
+    public BloodyWormScarf(Properties properties) {
+        super(properties);
     }
 
     @Override
     protected void setAttributeModifiers(
         UUID uuid, ItemStack stack, Multimap<Attribute, AttributeModifier> modifier, LivingEntity equipped) {
-        if (!BLOODY_WORM_TOOTH.isEquip(equipped)) {
-            modifier.put(Attributes.ATTACK_DAMAGE,
-                new AttributeModifier(uuid, "attack_bonus", 0.1, AttributeModifier.Operation.MULTIPLY_BASE));
-        }
+        modifier.put(Attributes.ATTACK_DAMAGE,
+            new AttributeModifier(uuid, "bloody_worm_scarf", 0.15, AttributeModifier.Operation.MULTIPLY_BASE));
+
         modifier.put(Attributes.ARMOR,
-            new AttributeModifier(uuid, "armor_bonus", 7, AttributeModifier.Operation.ADDITION));
+            new AttributeModifier(uuid, "bloody_worm_scarf", 7, AttributeModifier.Operation.ADDITION));
 
         modifier.put(CalamityAttributes.INJURY_OFFSET.get(),
-            new AttributeModifier(uuid, "injury_free_bonus", 0.1, AttributeModifier.Operation.MULTIPLY_BASE));
-        
+            new AttributeModifier(uuid, "bloody_worm_scarf", 0.1, AttributeModifier.Operation.MULTIPLY_BASE));
     }
 }

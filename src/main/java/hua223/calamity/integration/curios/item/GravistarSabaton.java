@@ -1,14 +1,14 @@
 package hua223.calamity.integration.curios.item;
 
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.HurtListener;
-import hua223.calamity.net.packets.DataPackActive;
+import hua223.calamity.integration.curios.BaseCurio;
+import hua223.calamity.net.IDataPackResponse;
 import hua223.calamity.net.NetMessages;
+import hua223.calamity.net.packets.DataPackActive;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.register.keys.IKeyDataPackResponse;
 import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.net.IDataPackResponse;
 import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.delaytask.DelayRunnable;
 import net.minecraft.ChatFormatting;
@@ -18,12 +18,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.DamageTypeTags;
-import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -70,7 +67,6 @@ public class GravistarSabaton extends BaseCurio implements IKeyDataPackResponse 
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
     public int getKeyCode() {
         return GLFW.GLFW_KEY_X;
     }

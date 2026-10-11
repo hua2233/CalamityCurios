@@ -3,9 +3,8 @@ package hua223.calamity.register.entity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import hua223.calamity.main.CalamityCurios;
-import hua223.calamity.render.CalamityCelestialBodyShader;
+import hua223.calamity.render.shaders.CalamityShaders;
 import hua223.calamity.util.CalamityHelp;
-import hua223.calamity.util.RenderUtil;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -27,24 +26,17 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
-import org.joml.Vector3f;
 
 import java.util.UUID;
 
 @AutoEntityRegister(sized = {1f, 1f}, trackingRange = 16, velocityUpdates = false, name = "sun")
 public class StarPet extends Entity implements OwnableEntity {
     @OnlyIn(Dist.CLIENT)
-    private final RenderType circleSmall = RenderUtil.Shaders.getCircleSmall();
-//    @OnlyIn(Dist.CLIENT)
-//    private final RenderType radialShine = RenderUtil.Shaders.getRadialShineRenderType();
+    private RenderType circleSmall;
     @OnlyIn(Dist.CLIENT)
-    private final RenderType sun = RenderUtil.Shaders.getSunRenderType();
+    private RenderType radialShine;
     @OnlyIn(Dist.CLIENT)
-    private final Vector3f[] uniforms = new Vector3f[] {
-        new Vector3f(255, 255, 255),
-        new Vector3f(204, 92, 25),
-        new Vector3f(181, 0, 0)
-    };
+    private RenderType sun;
 
     @OnlyIn(Dist.CLIENT)
     private int lSteps;
@@ -59,6 +51,11 @@ public class StarPet extends Entity implements OwnableEntity {
 
     public StarPet(EntityType<?> entityType, Level level) {
         super(entityType, level);
+        if (level.isClientSide) {
+            circleSmall = CalamityShaders.getCircleSmall();
+            radialShine = CalamityShaders.getRadialShineRenderType();
+            sun = CalamityShaders.getSunRenderType();
+        }
     }
 
     @Override
@@ -133,43 +130,66 @@ public class StarPet extends Entity implements OwnableEntity {
 
     @OnlyIn(Dist.CLIENT)
     public static class Renderer extends EntityRenderer<StarPet> {
+
+
         public Renderer(EntityRendererProvider.Context context) {
             super(context);
         }
 
         @Override
         public void render(StarPet entity, float yaw, float partialTick, PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
-            poseStack.mulPose(entityRenderDispatcher.cameraOrientation());
-            Matrix4f matrix4f = poseStack.last().pose();
+            if (buffer instanceof MultiBufferSource.BufferSource source) {
+                poseStack.mulPose(entityRenderDispatcher.cameraOrientation());
+                Matrix4f matrix4f = poseStack.last().pose();
 
-            VertexConsumer circleSmall = buffer.getBuffer(entity.circleSmall);
-            buildVertex(circleSmall, matrix4f,  0.003f,1.5f,  179, 179, 0, 0);
-            buildVertex(circleSmall, matrix4f, 0.002f, 1.82f,  200, 0, 0, 0);
+//                //Immediate Mode
+                buildVertex(buffer.getBuffer(entity.circleSmall), matrix4f, 1.377f,  179, 179, 0, 0);
+                source.endBatch(entity.circleSmall);
+                buildVertex(buffer.getBuffer(entity.circleSmall), matrix4f, 2.333f,  115, 0, 0, 0);
+                source.endBatch(entity.circleSmall);
 
-            //FIXME: unresolved background confusion issue
-//            buildVertex(buffer.getBuffer(entity.radialShine), matrix4f, 0.001f, 2.8f, 60, 51, 27, 61);
-            CalamityCelestialBodyShader.setSunUniform(0.05f, entity.uniforms[0],
-                entity.uniforms[1], entity.uniforms[2], RenderUtil.getLocalTick() + partialTick);
-            buildVertex(buffer.getBuffer(entity.sun), matrix4f, 0f, 0.85f, 255, 255, 255, 255);
+//                //(FIXME: unresolved background confusion issue) fixed therefore the entry is invalid
+                buildVertex(buffer.getBuffer(entity.radialShine), matrix4f, 1.813f, 60, 51, 27, 61);
+                source.endBatch(entity.radialShine);
+
+                VertexConsumer consumer = buffer.getBuffer(entity.sun);
+                consumer.vertex(matrix4f, -1f, -1f, 0)
+                    .uv(1, 1)
+                    .endVertex();
+
+                consumer.vertex(matrix4f, -1f, 1f, 0)
+                    .uv(1, 0)
+                    .endVertex();
+
+                consumer.vertex(matrix4f, 1f, 1f, 0)
+                    .uv(0, 0)
+                    .endVertex();
+
+                consumer.vertex(matrix4f, 1f, -1f, 0)
+                    .uv(0, 1)
+                    .endVertex();
+
+                source.endBatch(entity.sun);
+            }
         }
 
-        public static void buildVertex(VertexConsumer consumer, Matrix4f matrix4f, float offset, float size, int r, int g, int b, int a) {
-            consumer.vertex(matrix4f, -size, -size, offset)
+        public static void buildVertex(VertexConsumer consumer, Matrix4f matrix4f, float size, int r, int g, int b, int a) {
+            consumer.vertex(matrix4f, -size, -size, 0)
                 .color(r, g, b, a)
                 .uv(1, 1)
                 .endVertex();
 
-            consumer.vertex(matrix4f, -size, size, offset)
+            consumer.vertex(matrix4f, -size, size, 0)
                 .color(r, g, b, a)
                 .uv(1, 0)
                 .endVertex();
 
-            consumer.vertex(matrix4f, size, size, offset)
+            consumer.vertex(matrix4f, size, size, 0)
                 .color(r, g, b, a)
                 .uv(0, 0)
                 .endVertex();
 
-            consumer.vertex(matrix4f, size, -size, offset)
+            consumer.vertex(matrix4f, size, -size, 0)
                 .color(r, g, b, a)
                 .uv(0, 1)
                 .endVertex();
@@ -177,7 +197,7 @@ public class StarPet extends Entity implements OwnableEntity {
 
         @Override
         public @NotNull ResourceLocation getTextureLocation(@NotNull StarPet starPet) {
-            return CalamityCelestialBodyShader.DENDRITIC_NOISE;
+            return CalamityShaders.DENDRITIC_NOISE;
         }
     }
 }

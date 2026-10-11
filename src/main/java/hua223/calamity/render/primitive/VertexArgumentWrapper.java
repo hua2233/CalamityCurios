@@ -1,8 +1,6 @@
 package hua223.calamity.render.primitive;
 
 import hua223.calamity.util.Vector2f;
-import net.minecraft.world.phys.Vec2;
-import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.joml.Vector4i;

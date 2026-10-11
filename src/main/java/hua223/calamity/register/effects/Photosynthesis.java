@@ -12,7 +12,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Vector3f;
 
 import java.util.List;
 
@@ -27,9 +26,9 @@ public class Photosynthesis extends CalamityEffect {
     }
 
     @Override
-    public void applyEffectTick(@NotNull LivingEntity target, int amplifier) {
+    public void applyServerTick(@NotNull LivingEntity target, int amplifier) {
         Level level = target.level();
-        if (!level.isClientSide && target.calamity$IsPlayer && level.isDay() && !level.isThundering()) {
+        if (target.calamity$IsPlayer && level.isDay() && !level.isThundering()) {
             Vec3 p = target.getEyePosition();
             BlockPos pos = new BlockPos((int) p.x, (int) p.y, (int) p.z);
             if (!level.isRainingAt(pos) && level.getBrightness(LightLayer.SKY, pos) > 10) {

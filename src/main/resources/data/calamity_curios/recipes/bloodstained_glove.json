@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A" : {
+      "item": "calamity_curios:rotten_dog_tooth"
+    },
+    "C": {
+      "tag": "forge:leather"
+    }
+  },
+  "pattern": [
+    "  C",
+    "CAC",
+    "CCC"
+  ],
+  "result": {
+    "item": "calamity_curios:bloodstained_glove"
+  }
+}

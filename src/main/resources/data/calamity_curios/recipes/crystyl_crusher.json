@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "minecraft:netherite_pickaxe"
+    },
+    "B": {
+      "item": "calamity_curios:exodium_cluster"
+    },
+    "C": {
+      "item": "calamity_curios:shadow_spec_bar"
+    }
+  },
+  "pattern": [
+    "CAC",
+    " B ",
+    " B "
+  ],
+  "result": {
+    "item": "calamity_curios:crystyl_crusher"
+  }
+}

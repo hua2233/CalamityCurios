@@ -25,8 +25,8 @@ import java.util.List;
 import java.util.UUID;
 
 public class EtherealTalisman extends BaseCurio {
-    public EtherealTalisman(Properties pProperties) {
-        super(pProperties);
+    public EtherealTalisman(Properties properties) {
+        super(properties);
     }
 
     @Override

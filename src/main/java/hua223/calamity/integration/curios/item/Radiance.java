@@ -22,8 +22,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 import java.util.UUID;
 
-@ConflictChain(value = Radiance.class, isRoot = true)
-public class Radiance extends BaseCurio implements ICuriosStorage, IDataPackResponse, IBackwardsCompatDefaultNbtItem {
+@CurioRepel(isRoot = true)
+public class Radiance extends BaseCurio implements
+    ICuriosStorage, IDataPackResponse, IBackwardsCompatDefaultNbtItem {
     public Radiance(Properties properties) {
         super(properties);
     }

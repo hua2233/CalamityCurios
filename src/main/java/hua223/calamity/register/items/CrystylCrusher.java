@@ -1,7 +1,7 @@
 package hua223.calamity.register.items;
 
 import hua223.calamity.register.RegisterList;
-import hua223.calamity.render.Item.CrusherRender;
+import hua223.calamity.render.item.CrusherRender;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.RenderUtil;
 import net.minecraft.ChatFormatting;
@@ -95,6 +95,11 @@ public class CrystylCrusher extends PickaxeItem {
                 destroyBlock(level, result.getBlockPos(), result.getDirection());
             }
         }
+    }
+
+    @Override
+    public boolean isDamageable(ItemStack stack) {
+        return false;
     }
 
     @Override

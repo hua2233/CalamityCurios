@@ -2,19 +2,21 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.DeathListener;
-import hua223.calamity.events.listeners.PlayerAttackListener;
+import hua223.calamity.events.listeners.PreAttackListener;
+import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.register.keys.IKeyDataPackResponse;
 import hua223.calamity.register.sounds.CalamitySounds;
-import hua223.calamity.util.*;
+import hua223.calamity.util.CMLangUtil;
+import hua223.calamity.util.CalamityHelp;
+import hua223.calamity.util.ICuriosStorage;
+import hua223.calamity.util.PlayerServantsManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
@@ -53,7 +55,7 @@ public class AngelicAlliance extends BaseCurio implements ICuriosStorage, IKeyDa
     }
 
     @ApplyEvent(300)
-    public final void onAttack(PlayerAttackListener listener) {
+    public final void onAttack(PreAttackListener listener) {
         if (listener.player.hasEffect(CalamityEffects.DIVINE_BLESS.get())) {
             float[] count = getCount(listener.player);
             CalamityHelp.addIfDoesNotExist(listener.entity, (int) (count[2] * 20), (int) count[3], CalamityEffects.HOLY_FLAMES.get());
@@ -73,12 +75,12 @@ public class AngelicAlliance extends BaseCurio implements ICuriosStorage, IKeyDa
 
     @Override
     public void onServerResponse(ServerPlayer player, CompoundTag tag) {
-        List<? extends LivingEntity> servants = PlayerServantsManager.loadLevelServantsEntity(player);
+        List<? extends LivingEntity> servants = PlayerServantsManager.getPlayerServants(player);
         if (!servants.isEmpty()) {
             player.getCooldowns().addCooldown(this, 1200);
             int k = 0;
             for (LivingEntity entity : servants) {
-                entity.discard();
+                entity.kill();
                 k++;
             }
 
@@ -110,7 +112,6 @@ public class AngelicAlliance extends BaseCurio implements ICuriosStorage, IKeyDa
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
     public int getKeyCode() {
         return 73;
     }

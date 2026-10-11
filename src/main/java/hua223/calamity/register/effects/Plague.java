@@ -38,8 +38,9 @@ public class Plague extends UniversalFactorEffect<float[], Plague.PlagueFactor> 
 
     protected Plague(MobEffectCategory category, int color) {
         super(category, color);
-        addAttributeModifier(Attributes.MOVEMENT_SPEED, "50cd184c-6dc0-486d-b52b-bb73cb5cc4c1", -0.03, AttributeModifier.Operation.MULTIPLY_BASE);
-        addAttributeModifier(Attributes.ATTACK_DAMAGE, "50cd184c-6dc0-486d-b52b-bb73cb5cc4c1", -0.02, AttributeModifier.Operation.MULTIPLY_BASE);
+        String id = getSelfUUID();
+        addAttributeModifier(Attributes.MOVEMENT_SPEED, id, -0.03, AttributeModifier.Operation.MULTIPLY_BASE);
+        addAttributeModifier(Attributes.ATTACK_DAMAGE, id, -0.02, AttributeModifier.Operation.MULTIPLY_BASE);
     }
 
     @Override
@@ -49,30 +50,28 @@ public class Plague extends UniversalFactorEffect<float[], Plague.PlagueFactor> 
 
     @Override
     @SuppressWarnings("ConstantConditions")
-    public void applyEffectTick(@NotNull LivingEntity target, int amplifier) {
-        if (!target.level().isClientSide) {
-            MobEffectInstance source = target.getEffect(this);
-            PlagueFactor factor = source.calamity$GetUniversalFactor(this);
-            int value = amplifier + 1;
-            //If the host has no transmission value, the plague will kill it
-            if (target.getHealth() > value || (source.getDuration() < 20 || --factor.getFactor()[4] == 0))
-                target.hurt(factor.getSource(), value);
+    public void applyServerTick(@NotNull LivingEntity target, int amplifier) {
+        MobEffectInstance source = target.getEffect(this);
+        PlagueFactor factor = source.calamity$GetUniversalFactor(this);
+        int value = amplifier + 1;
+        //If the host has no transmission value, the plague will kill it
+        if (target.getHealth() > value || (source.getDuration() < 20 || --factor.getFactor()[4] == 0))
+            target.hurt(factor.getSource(), value);
 
-            if (factor.infect) {
-                List<LivingEntity> entities = target.level().getEntitiesOfClass(LivingEntity.class, target.getBoundingBox().inflate(5));
-                if (entities.isEmpty()) return;
-                int duration = factor.getInfectionTime();
-                int level = factor.getInfectionLevel(source.getDuration());
-                LivingEntity owner = factor.getOwner();
-                RandomSource random = target.getRandom();
-                for (LivingEntity victim : entities)
-                    if (!victim.isDeadOrDying() && victim != owner && !victim.hasEffect(this)) {
-                        MobEffectInstance instance = new MobEffectInstance(this, duration, level);
-                        instance.calamity$GetUniversalFactor(this).fromInfectionSource(random, factor);
-                        victim.addEffect(instance);
-                    }
-                factor.infect = false;
-            }
+        if (factor.infect) {
+            List<LivingEntity> entities = target.level().getEntitiesOfClass(LivingEntity.class, target.getBoundingBox().inflate(5));
+            if (entities.isEmpty()) return;
+            int duration = factor.getInfectionTime();
+            int level = factor.getInfectionLevel(source.getDuration());
+            LivingEntity owner = factor.getOwner();
+            RandomSource random = target.getRandom();
+            for (LivingEntity victim : entities)
+                if (!victim.isDeadOrDying() && victim != owner && !victim.hasEffect(this)) {
+                    MobEffectInstance instance = new MobEffectInstance(this, duration, level);
+                    instance.calamity$GetUniversalFactor(this).fromInfectionSource(random, factor);
+                    victim.addEffect(instance);
+                }
+            factor.infect = false;
         }
     }
 

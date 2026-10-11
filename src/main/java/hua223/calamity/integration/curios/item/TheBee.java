@@ -1,9 +1,9 @@
 package hua223.calamity.integration.curios.item;
 
 import hua223.calamity.events.ApplyEvent;
+import hua223.calamity.events.listeners.DamageListener;
+import hua223.calamity.events.listeners.PostAttackListener;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.events.listeners.HurtListener;
-import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.util.CMLangUtil;
 import net.minecraft.ChatFormatting;
@@ -22,23 +22,19 @@ public class TheBee extends BaseCurio {
     }
 
     @ApplyEvent
-    public final void onAttack(PlayerAttackListener listener) {
-        ServerPlayer player = listener.player;
-        if (player.getMaxHealth() == player.getHealth()) {
-            double value = listener.player.getAttributeValue(CalamityAttributes.INJURY_OFFSET.get()) - 1;
-            if (value <= 0) return;
-            listener.amplifier += (float) value / 2;
-        }
+    public final void onAttack(PostAttackListener listener) {
+        if (listener.player.getMaxHealth() == listener.player.getHealth())
+            listener.amplifier += (float) listener.player.getAttributeValue(CalamityAttributes.INJURY_OFFSET.get()) - 1;
     }
 
     @ApplyEvent
-    public final void onHurt(HurtListener listener) {
+    public final void onDamage(DamageListener listener) {
         ServerPlayer player = listener.player;
         if (player.getMaxHealth() == player.getHealth()) {
             ItemCooldowns cooldowns = player.getCooldowns();
             if (cooldowns.isOnCooldown(this)) return;
             listener.amplifier -= 0.5f;
-            cooldowns.addCooldown(this, 200);
+            cooldowns.addCooldown(this, 140);
         }
     }
 

@@ -13,8 +13,7 @@ import java.util.List;
 public class Eutrophication extends CalamityEffect {
     public Eutrophication(MobEffectCategory category, int color) {
         super(category, color);
-        //50cd184c-6dc0-486d-b52b-bb73cb5cc4c9 From an error report
-        addAttributeModifier(Attributes.MOVEMENT_SPEED, "50cd184c-6dc0-486d-b52b-bb73cb5cc4c9", -0.15, AttributeModifier.Operation.MULTIPLY_BASE);
+        addAttributeModifier(Attributes.MOVEMENT_SPEED, getSelfUUID(), -0.15, AttributeModifier.Operation.MULTIPLY_BASE);
     }
 
     @Override

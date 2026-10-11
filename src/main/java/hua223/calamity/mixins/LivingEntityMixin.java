@@ -2,6 +2,8 @@ package hua223.calamity.mixins;
 
 import hua223.calamity.events.listeners.CriticalHitTriggerListener;
 import hua223.calamity.events.listeners.HurtListener;
+import hua223.calamity.net.NetMessages;
+import hua223.calamity.net.packets.EffectSync;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.effects.CalamityEffects;
 import net.minecraft.server.level.ServerPlayer;
@@ -19,9 +21,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import org.jetbrains.annotations.NotNull;
-import org.spongepowered.asm.mixin.*;
-import org.spongepowered.asm.mixin.gen.Invoker;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.living.MobEffectEvent;
+import org.objectweb.asm.Opcodes;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
@@ -29,7 +35,6 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 @Mixin(LivingEntity.class)
@@ -37,15 +42,13 @@ public abstract class LivingEntityMixin extends Entity {
     public LivingEntityMixin(EntityType<?> entityType, Level level) {
         super(entityType, level);
     }
-
-    @Shadow public abstract boolean hurt(@NotNull DamageSource source, float amount);
-
     @Shadow public abstract AttributeMap getAttributes();
 
-    @Invoker("addEffect")
-    public abstract boolean invokeAddEffect(MobEffectInstance pEffectInstance, @Nullable Entity pEntity);
+    @Shadow @Final private Map<MobEffect, MobEffectInstance> activeEffects;
 
-    @Shadow public abstract boolean addEffect(MobEffectInstance pEffectInstance);
+    @Shadow private boolean effectsDirty;
+
+    @Shadow protected float lastHurt;
 
     @Unique public boolean calamity$NoMoving;
 
@@ -72,6 +75,9 @@ public abstract class LivingEntityMixin extends Entity {
 
     @Unique
     public byte calamity$InactivationCount;
+
+    @Unique
+    public boolean calamity$DisableInvulnerable;
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void init(CallbackInfo ci) {
@@ -112,7 +118,7 @@ public abstract class LivingEntityMixin extends Entity {
         if (calamity$Source.getEntity() instanceof ServerPlayer player) {
             float penetrationValue = (float) player.getAttributeValue(CalamityAttributes.ARMOR_PENETRATE.get());
             if (CriticalHitTriggerListener.singlePenetration > 0) {
-                //Modify this value during the player's attack and clear the context after it is officially applied,
+                //Modify this value during the tracker's attack and clear the context after it is officially applied,
                 //Because Minecraft Server is single threaded。
                 penetrationValue += CriticalHitTriggerListener.singlePenetration;
                 CriticalHitTriggerListener.singlePenetration = 0;
@@ -120,7 +126,8 @@ public abstract class LivingEntityMixin extends Entity {
 
             if (penetrationValue > 0) {
                 totalArmor -= penetrationValue;
-                toughnessAttribute -= penetrationValue / 3;
+                //穿透护甲为负数，韧性最高保持0，否则公式将会在某个临界值扭转它成为免伤，尽管韧性仍为负数
+                toughnessAttribute = Math.max(0, toughnessAttribute - penetrationValue / 3);
             }
         }
 
@@ -128,11 +135,11 @@ public abstract class LivingEntityMixin extends Entity {
         return CombatRules.getDamageAfterAbsorb(damage, totalArmor, toughnessAttribute);
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Redirect(method = "hurt", at = @At(value = "INVOKE", target =
         "Lnet/minecraft/world/entity/LivingEntity;hasEffect(Lnet/minecraft/world/effect/MobEffect;)Z"))
     private boolean redirectFireResistanceCheck(LivingEntity instance, MobEffect effect) {
-        if (calamity$IsPlayer && !calamity$Player.isLocalPlayer()
-            && calamity$Player.Calamity$Player.calamityCap.isCursePlayer()) return false;
+        if (calamity$IsPlayer && !level().isClientSide && calamity$Player.Calamity$Player.calamityCap.isCursePlayer()) return false;
         else return instance.hasEffect(effect);
     }
 
@@ -145,6 +152,18 @@ public abstract class LivingEntityMixin extends Entity {
         return vec3;
     }
 
+    @Redirect(method = "hurt", at = @At(value = "FIELD", target =
+        "Lnet/minecraft/world/entity/LivingEntity;lastHurt:F", opcode = Opcodes.PUTFIELD))
+    private void disableInvulnerableHurt(LivingEntity instance, float value) {
+        lastHurt = calamity$DisableInvulnerable ? lastHurt : value;
+    }
+
+    @Redirect(method = "hurt", at = @At(value = "FIELD", target =
+        "Lnet/minecraft/world/entity/LivingEntity;invulnerableTime:I", opcode = Opcodes.PUTFIELD))
+    private void disableInvulnerableTime(LivingEntity instance, int value) {
+        invulnerableTime = calamity$DisableInvulnerable ? invulnerableTime : value;
+    }
+
     @Unique
     public void setPos(double x, double y, double z) {
         if (firstTick || !calamity$NoMoving)
@@ -153,6 +172,22 @@ public abstract class LivingEntityMixin extends Entity {
 
     @Unique
     public final void calamity$ForciblyAddEffect(MobEffectInstance instance, LivingEntity source) {
-        invokeAddEffect(instance, source);
+        MobEffect newEffect = instance.getEffect();
+        MobEffectInstance mobeffectinstance = activeEffects.put(newEffect, instance);
+        effectsDirty = true;
+        if (!level().isClientSide) {
+            AttributeMap map = getAttributes();
+            int amplifier = instance.getAmplifier();
+            if (mobeffectinstance == null) newEffect.addAttributeModifiers(calamity$Entity, map, amplifier);
+            else {
+                newEffect.removeAttributeModifiers(calamity$Entity, map, mobeffectinstance.getAmplifier());
+                newEffect.addAttributeModifiers(calamity$Entity, map, amplifier);
+            }
+
+            MinecraftForge.EVENT_BUS.post(new MobEffectEvent.Added(calamity$Entity, mobeffectinstance, instance, source));
+
+            if (calamity$IsPlayer) NetMessages.sendToTrackingAndSelf(calamity$Player.Calamity$Player.getPlayer(), new EffectSync(getId(), instance));
+            else NetMessages.sendToTracking(this, new EffectSync(getId(), instance));
+        }
     }
 }

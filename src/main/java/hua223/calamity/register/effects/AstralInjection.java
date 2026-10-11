@@ -24,7 +24,7 @@ public class AstralInjection extends CalamityEffect implements IEffectsCallBack 
 
     public AstralInjection(MobEffectCategory category, int color) {
         super(category, color);
-        addAttributeModifier(AttributeRegistry.MANA_REGEN.get(), "50cd184c-6dc0-486d-b52b-bb73cb5cc415", 10, AttributeModifier.Operation.MULTIPLY_BASE);
+        addAttributeModifier(AttributeRegistry.MANA_REGEN.get(), getSelfUUID(), 10, AttributeModifier.Operation.MULTIPLY_BASE);
     }
 
     @Override
@@ -33,8 +33,8 @@ public class AstralInjection extends CalamityEffect implements IEffectsCallBack 
     }
 
     @Override
-    public void applyEffectTick(@NotNull LivingEntity target, int amplifier) {
-        if (!target.level().isClientSide) target.hurt(supplier.get(), 4);
+    public void applyServerTick(@NotNull LivingEntity target, int amplifier) {
+        target.hurt(supplier.get(), 4);
     }
 
     @Override

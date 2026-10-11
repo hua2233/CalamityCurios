@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "calamity_curios:sunlight_essence"
+    },
+    "C": {
+      "item": "irons_spellbooks:hogskin"
+    }
+  },
+  "pattern": [
+    " A ",
+    "ACA",
+    " A "
+  ],
+  "result": {
+    "item": "calamity_curios:radiance_card"
+  }
+}

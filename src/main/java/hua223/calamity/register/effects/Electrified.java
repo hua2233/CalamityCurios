@@ -2,7 +2,6 @@ package hua223.calamity.register.effects;
 
 import hua223.calamity.util.CMLangUtil;
 import net.minecraft.ChatFormatting;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.api.distmarker.Dist;
@@ -22,14 +21,12 @@ public class Electrified extends CalamityEffect {
     }
 
     @Override
-    public void applyEffectTick(@NotNull LivingEntity entity, int pAmplifier) {
-        if (!entity.level().isClientSide) {
-            float amount = 1f;
-            if (entity.isInWaterOrRain()) amount += 3f;
-            //it hurts when you move.
-            if (entity.walkDist != entity.walkDistO) amount += 3f;
-            entity.hurt(entity.damageSources().lightningBolt(), amount);
-        }
+    public void applyServerTick(@NotNull LivingEntity entity, int pAmplifier) {
+        float amount = 1f;
+        if (entity.isInWaterOrRain()) amount += 3f;
+        //it hurts when you move.
+        if (entity.walkDist != entity.walkDistO) amount += 3f;
+        entity.hurt(entity.damageSources().lightningBolt(), amount);
     }
 
     @Override

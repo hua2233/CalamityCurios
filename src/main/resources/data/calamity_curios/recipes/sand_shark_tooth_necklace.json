@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:weapon_parts"
+    },
+    "B": {
+      "item": "irons_spellbooks:magic_cloth"
+    },
+    "C": {
+      "item": "calamity_curios:rotten_dog_tooth"
+    },
+    "D": {
+      "item":"calamity_curios:calamity_core"
+    },
+    "E": {
+      "item":"irons_spellbooks:cinder_essence"
+    }
+  },
+  "pattern": [
+    "BEB",
+    "BAB",
+    "DCD"
+  ],
+  "result": {
+    "item": "calamity_curios:sand_shark_tooth_necklace"
+  }
+}

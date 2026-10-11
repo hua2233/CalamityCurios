@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "calamity_curios:sand_shark_tooth_necklace"
+    },
+    "B": {
+      "item": "calamity_curios:lumenyl"
+    },
+    "C": {
+      "item": "irons_spellbooks:mithril_weave"
+    },
+    "D": {
+      "item": "calamity_curios:ruinous_soul"
+    }
+  },
+  "pattern": [
+    "C D",
+    " AB",
+    "DBB"
+  ],
+  "result": {
+    "item": "calamity_curios:reaper_tooth_necklace"
+  }
+}

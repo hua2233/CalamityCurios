@@ -59,9 +59,9 @@ public class ColorfulTotemType extends FastParticleType<ColorfulTotemType.Colorf
         private float adjustColor(int color, RandomSource source) {
             float portion = color / 255f;
             //Maintain the original theme color to ensure it is not too flashy
-            if (portion < .95f && source.nextFloat() > .45f)  {
-                float change = 1f - portion;
-                portion += (change - source.nextFloat() * (change * 2));
+            if (portion < .95f && portion > .05f && source.nextFloat() > .45f)  {
+                float change = (1f - portion) * .15F;
+                portion += (change - source.nextFloat() * change * 2);
             }
 
             return portion;

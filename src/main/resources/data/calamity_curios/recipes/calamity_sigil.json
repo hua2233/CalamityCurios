@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:smithing_transform",
+  "addition": {
+    "item": "calamity_curios:scoria_ingot"
+  },
+  "base": {
+    "tag": "forge:nether_stars"
+  },
+  "result": {
+    "item": "calamity_curios:calamity_sigil"
+  },
+  "template": {
+    "item": "calamity_curios:calamity_core"
+  }
+}

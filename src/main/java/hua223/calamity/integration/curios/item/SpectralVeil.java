@@ -1,12 +1,13 @@
 package hua223.calamity.integration.curios.item;
 
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.CriticalHitCheckListener;
 import hua223.calamity.events.listeners.HurtListener;
+import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.register.keys.IKeyDataPackResponse;
-import hua223.calamity.util.*;
+import hua223.calamity.util.CMLangUtil;
+import hua223.calamity.util.ICuriosStorage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
@@ -94,7 +95,6 @@ public class SpectralVeil extends BaseCurio implements ICuriosStorage, IKeyDataP
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
     public int getKeyCode() {
         return GLFW.GLFW_KEY_F;
     }

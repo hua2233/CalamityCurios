@@ -3,6 +3,7 @@ package hua223.calamity.events.levelevent;
 import net.minecraft.world.entity.Entity;
 import net.minecraftforge.event.entity.living.LivingDropsEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -21,7 +22,7 @@ public interface ILevelWave extends Comparable<ILevelWave> {
 
     boolean isMobInWave(Entity entity);
 
-    default void onKillDrop(LivingDropsEvent event) {}
+    default void onKillDrop(@Nullable LivingDropsEvent event) {}
 
     default UUID getEventUUID() {
         return UUID.nameUUIDFromBytes(getClass().getSimpleName().getBytes());

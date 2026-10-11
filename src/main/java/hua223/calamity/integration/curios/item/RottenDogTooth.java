@@ -1,18 +1,22 @@
 package hua223.calamity.integration.curios.item;
 
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.CriticalHitTriggerListener;
+import hua223.calamity.integration.curios.BaseCurio;
+import hua223.calamity.integration.jei.JeiInfo;
+import hua223.calamity.loots.EntitiesLootContext;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.CalamityHelp;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.List;
 
+@JeiInfo(zh_cn = "杀死狼时小概率掉落")
 public class RottenDogTooth extends BaseCurio {
     public RottenDogTooth(Properties properties) {
         super(properties);
@@ -23,6 +27,11 @@ public class RottenDogTooth extends BaseCurio {
         listener.applyAmplifier(0.08f);
         CalamityHelp.addIfDoesNotExist(listener.target,
             40, 1, CalamityEffects.CRUMBLING.get());
+    }
+
+    public void onEntityLoot(EntitiesLootContext context) {
+        if (context.onlyVerification(EntityType.WOLF) && context.chance(.14f))
+            context.addLoot(this);
     }
 
     @Override

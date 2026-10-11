@@ -1,15 +1,12 @@
 package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
-import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.integration.curios.SprintCurio;
-import hua223.calamity.events.listeners.HurtListener;
 import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.ConflictChain;
+import hua223.calamity.util.CurioRepel;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -21,15 +18,10 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 import java.util.UUID;
 
-@ConflictChain(value = SprintCurio.class)
+@CurioRepel(value = SprintCurio.class)
 public class OrnateShield extends SprintCurio {
     public OrnateShield(Properties properties) {
         super(properties);
-    }
-
-    @ApplyEvent
-    public final void onHurt(HurtListener listener) {
-        if (listener.source.is(DamageTypeTags.IS_FREEZING)) listener.canceledEvent();
     }
 
     protected static void immuneSprint(ServerPlayer player, LivingEntity target, int damage, int time) {
@@ -66,7 +58,7 @@ public class OrnateShield extends SprintCurio {
     @Override
     @OnlyIn(Dist.CLIENT)
     public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
-        CMLangUtil.batchColorTexts(tooltips, ChatFormatting.GOLD, "ornate_shield", 1, 2, 3);
+        CMLangUtil.batchColorTexts(tooltips, ChatFormatting.GOLD, "ornate_shield", 1, 2);
         return tooltips;
     }
 }

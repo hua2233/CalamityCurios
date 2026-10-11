@@ -6,24 +6,23 @@ import hua223.calamity.capability.Rage;
 import hua223.calamity.events.EventTypes;
 import hua223.calamity.events.MethodHandlerSorter;
 import hua223.calamity.main.CalamityCurios;
-import hua223.calamity.mixed.ICalamityHeartType;
-import hua223.calamity.net.IDataPackResponse;
+import hua223.calamity.register.items.MagicItem;
+import hua223.calamity.register.items.SupremeManaPotion;
+import hua223.calamity.register.rune.IRuneReinforcement;
 import hua223.calamity.register.items.edible.LifeFruit;
-import hua223.calamity.register.items.edible.ManaPotion;
-import hua223.calamity.register.gui.SpellType;
 import hua223.calamity.render.IPlayerPostRenderer;
 import hua223.calamity.util.delaytask.DelayRunnable;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
+import io.redspace.ironsspellbooks.registries.MobEffectRegistry;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
-import net.minecraft.world.effect.MobEffects;
+import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -39,13 +38,15 @@ public final class CalamityPlayer {
     private final ServerPlayer player;
 
     //#Capability
+    public final Rage rage;
     public final MagicData data;
     public final Adrenaline adrenaline;
-    public final Rage rage;
     public final CalamityCap calamityCap;
 
     //#Curios Data
     public boolean canSprintingHit;
+    public boolean blessingGiver;
+    public boolean fungalSymbiosis;
     public float extraFlyTime;
     public float flySpeedAmplifier;
     public float flyTimeAmplifier = 1f;
@@ -57,33 +58,38 @@ public final class CalamityPlayer {
     public boolean cardDeck;
     private byte magicItemLevel;
     public boolean automaticUsePotion;
-    private SpellType.SpellData spellData;
+
     ObjectOpenHashSet<GlobalCuriosStorage.CuriosMemory> curiosStorage;
     private Map<EventTypes<?>, List<MethodHandlerSorter>> curioEvents;
+    private Object2ObjectOpenHashMap<IRuneReinforcement, Object> runeDatas;
 
     //#Client
     @OnlyIn(Dist.CLIENT)
-    public ICalamityHeartType astr;
-    @OnlyIn(Dist.CLIENT)
-    private ICalamityHeartType renderHeart;
-    @OnlyIn(Dist.CLIENT)
-    public int astrAmount;
-    @OnlyIn(Dist.CLIENT)
-    public boolean freeze;
-    @OnlyIn(Dist.CLIENT)
-    public boolean crescent;
-    @OnlyIn(Dist.CLIENT)
-    public boolean sneakingSpeedBonus;
+    public float sneakingSpeedBonus;
     @OnlyIn(Dist.CLIENT)
     public boolean fluidStand;
     @OnlyIn(Dist.CLIENT)
     public float jumpPower = 1f;
     @OnlyIn(Dist.CLIENT)
     public boolean canClimbable;
+
+    //#Tracking data
     @OnlyIn(Dist.CLIENT)
-    private IPlayerPostRenderer renderer;
+    public boolean freeze;
+    @OnlyIn(Dist.CLIENT)
+    public boolean crescent;
     @OnlyIn(Dist.CLIENT)
     public byte nihilityShell;
+    @OnlyIn(Dist.CLIENT)
+    public float shieldDurability;
+    @OnlyIn(Dist.CLIENT)
+    public float shieldDurabilityMax;
+    @OnlyIn(Dist.CLIENT)
+    public boolean disableLegRendering;
+
+    //#Tracking Renderer Sync
+    @OnlyIn(Dist.CLIENT)
+    private IPlayerPostRenderer renderer;
 
     public CalamityPlayer(Player player) {
         if (player.level().isClientSide) {
@@ -117,7 +123,7 @@ public final class CalamityPlayer {
 
     public void onClone(Player old, boolean isDeath) {
         if (player == null) {
-            renderHeart = old.Calamity$Player.renderHeart;
+            magicItemLevel = old.Calamity$Player.magicItemLevel;
         } else {
             adrenaline.onClone(old, isDeath);
             rage.onClone(old, isDeath);
@@ -132,15 +138,21 @@ public final class CalamityPlayer {
     }
 
     public void logInServerInitialization() {
-        calamityCap.syncData();
-        adrenaline.syncData();
         rage.syncData();
+        adrenaline.syncData();
+        calamityCap.syncData();
         LifeFruit.setTexture(player);
+        MagicItem.syncMagicLevel(this);
         GlobalCuriosStorage.addPlayerStorage(player);
     }
 
-    public SpellType.SpellData getSpellData() {
-        return spellData == null ? spellData = new SpellType.SpellData() : spellData;
+    @SuppressWarnings("unchecked")
+    public <T> T getRuneData(IRuneReinforcement rune) {
+        if (runeDatas == null) runeDatas = new Object2ObjectOpenHashMap<>(4);
+
+        Object o = runeDatas.get(rune);
+        if (o == null) runeDatas.put(rune, o = rune.addData());
+        return (T) o;
     }
 
     public void addEvent(EventTypes<?> eventType, MethodHandlerSorter sorter) {
@@ -171,21 +183,14 @@ public final class CalamityPlayer {
     }
 
     //#Magic Expand
-    public boolean usePotionMana(float consume, boolean sync) {
+    public boolean usePotionMana(float consume) {
         if (automaticUsePotion && consume <= player.getAttributeValue(AttributeRegistry.MAX_MANA.get())) {
-            ItemStack[] manaPotions = player.getInventory().items.stream().filter(item -> item.getItem() instanceof ManaPotion)
-                .sorted(Comparator.comparing(stack -> (ManaPotion) stack.getItem())).toArray(ItemStack[]::new);
+            Tuple<ItemStack, Integer> tuple = SupremeManaPotion.queryManaPotion(player);
 
-            for (ItemStack stack : manaPotions) {
-                ManaPotion potion = (ManaPotion) stack.getItem();
-                for (int i = 0; i < stack.getCount(); i++) {
-                    potion.apply(false, player);
-                    stack.shrink(1);
-                    if (data.getMana() >= consume) {
-                        if (sync) PacketDistributor.sendToPlayer(player, new SyncManaPacket(data));
-                        return true;
-                    }
-                }
+            if (tuple != null) {
+                tuple.getA().shrink(1);
+                MobEffectRegistry.INSTANT_MANA.get().applyInstantenousEffect(null, null, player, tuple.getB(), 0);
+                return data.getMana() >= consume;
             }
         }
 
@@ -215,10 +220,9 @@ public final class CalamityPlayer {
     }
 
     public boolean consumeMana(float mana) {
-        if (data.getMana() >= mana || usePotionMana(mana, false)) {
+        if (data.getMana() >= mana || usePotionMana(mana)) {
             data.setMana(data.getMana() - mana);
-            if (player != null)
-                PacketDistributor.sendToPlayer(player, new SyncManaPacket(data));
+            if (player != null) PacketDistributor.sendToPlayer(player, new SyncManaPacket(data));
             return true;
         }
 
@@ -235,6 +239,10 @@ public final class CalamityPlayer {
         if (invisible < 1f) event.modifyVisibility(invisible);
     }
 
+    public byte getMagicItemLevel() {
+        return magicItemLevel;
+    }
+
     public void changeInvisible(float value) {
         invisible = Mth.clamp(invisible + value, 0f, 1f);
     }
@@ -243,48 +251,9 @@ public final class CalamityPlayer {
         return player;
     }
 
-    //HEART
     @OnlyIn(Dist.CLIENT)
-    public void setAstrHeart(int value) {
-        astrAmount = value;
-        if (value > 0 && astr == null)
-            astr = createNewHeartType(70);
-        else if (value <= 0) astr = null;
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public void setFromLifeFruitLevel(int level) {
-        renderHeart = createNewHeartType(106 + level * 36);
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public ICalamityHeartType forPlayer(Player player) {
-        Object type;
-        if (player.hasEffect(MobEffects.POISON))  type = Gui.HeartType.POISIONED;
-        else if (player.hasEffect(MobEffects.WITHER)) type = Gui.HeartType.WITHERED;
-        else if (player.isFullyFrozen()) type = Gui.HeartType.FROZEN;
-        else if (renderHeart != null) return renderHeart;
-        else type = Gui.HeartType.NORMAL;
-
-        return (ICalamityHeartType) type;
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    private static ICalamityHeartType createNewHeartType(final int baseX) {
-        return new ICalamityHeartType() {
-            @Override
-            public int calamity$GetX(boolean halfHeart, boolean renderHighlight) {
-                int x = baseX;
-                if (halfHeart) x += 9;
-                if (renderHighlight) x += 18;
-                return x ;
-            }
-
-            @Override
-            public int calamity$GetY(int y) {
-                return 18;
-            }
-        };
+    public void setClientMagicItemLevel(byte level) {
+        if (player == null) magicItemLevel = level;
     }
 
     @OnlyIn(Dist.CLIENT)

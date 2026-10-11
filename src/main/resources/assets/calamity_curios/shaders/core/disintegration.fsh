@@ -24,7 +24,7 @@ void main() {
         float flickerOne = cos(GameTime * 700) * 0.05;
         float flickerTwo = cos(GameTime * 3100) * 0.06;
         float flickerThree = sin(GameTime * 16700) * 0.04;
-        float fullErasureThreshold = 0.61f + flickerOne + flickerTwo + flickerThree;
+        float fullErasureThreshold = 0.61 + flickerOne + flickerTwo + flickerThree;
         float glowThreshold = fullErasureThreshold - 0.1;
 
         // If the noise over the erasure threshold, completely erase this pixel.

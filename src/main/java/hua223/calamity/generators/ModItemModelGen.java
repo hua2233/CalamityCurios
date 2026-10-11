@@ -24,19 +24,16 @@ public class ModItemModelGen extends ItemModelProvider {
 
     @Override
     protected void registerModels() {
-        final String ITEM_GENERATED = "item/generated";
-        final String ITEM_SWORD = "item/handheld";
         final String LAYER0 = "layer0";
-        final StringBuilder builder = new StringBuilder("item/");
+        final String ITEM_SWORD = "item/handheld";
+        final String ITEM_GENERATED = "item/generated";
 
         List<CalamityItems> swordItem = Lists.newArrayList(CalamityItems.ZENITH,
             CalamityItems.CRYSTYL_CRUSHER);
 
         for (CalamityItems item : swordItem) {
             String name = item.getId().getPath();
-            withExistingParent(name, ITEM_SWORD).texture(LAYER0,
-                CalamityCurios.ModResource(builder.append(name).toString()));
-            builder.setLength(5);
+            withExistingParent(name, ITEM_SWORD).texture(LAYER0, CalamityCurios.ModResource("item/" + name));
         }
 
         Set<CalamityItems> items = EnumSet.allOf(CalamityItems.class);
@@ -44,9 +41,7 @@ public class ModItemModelGen extends ItemModelProvider {
 
         for (CalamityItems item : items) {
             String name = item.getId().getPath();
-            withExistingParent(name, ITEM_GENERATED).texture(LAYER0,
-                CalamityCurios.ModResource(builder.append(name).toString()));
-            builder.setLength(5);
+            withExistingParent(name, ITEM_GENERATED).texture(LAYER0, CalamityCurios.ModResource("item/" + name));
         }
     }
 
@@ -55,7 +50,8 @@ public class ModItemModelGen extends ItemModelProvider {
              CalamityItems.EXCELSUS, CalamityItems.ATARAXIA, CalamityItems.NEBULOUS_CATACLYSM,
              CalamityItems.YHARIMS_CRYSTAL, CalamityItems.DREAM_CATCHER, CalamityItems.ANTI_VOID,
              CalamityItems.STARLESS_NIGHT, CalamityItems.XYTHERON, CalamityItems.STORM_MAIDENS_RETRIBUTION,
-             CalamityItems.ICE_SNOW_MIRROR, CalamityItems.BRIMSTONE_BARRIER);
+             CalamityItems.ICE_SNOW_MIRROR, CalamityItems.BRIMSTONE_BARRIER, CalamityItems.EMPTINESS_SPRAYER,
+             CalamityItems.PORTAL_SKIRT, CalamityItems.INFERNAL_SUEVITE_ORE, CalamityItems.EXODIUM_CLUSTER_ORE);
          return preExclusion;
     }
 

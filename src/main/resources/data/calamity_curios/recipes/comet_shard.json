@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A" : {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "B": {
+      "item": "calamity_curios:calamity_core"
+    },
+    "C": {
+      "item": "calamity_curios:nebula_fragment"
+    },
+    "D": {
+      "item": "irons_spellbooks:divine_pearl"
+    }
+  },
+  "pattern": [
+    "CAC",
+    "ABA",
+    "DAD"
+  ],
+  "result": {
+    "item": "calamity_curios:comet_shard"
+  }
+}

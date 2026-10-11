@@ -2,16 +2,13 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.integration.curios.SprintCurio;
 import hua223.calamity.events.listeners.EffectListener;
 import hua223.calamity.events.listeners.HurtListener;
-import hua223.calamity.register.items.CalamityItems;
+import hua223.calamity.integration.curios.BaseCurio;
+import hua223.calamity.integration.curios.SprintCurio;
 import hua223.calamity.register.effects.CalamityEffects;
-import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.CalamityHelp;
-import hua223.calamity.util.ConflictChain;
-import hua223.calamity.util.ICuriosStorage;
+import hua223.calamity.register.items.CalamityItems;
+import hua223.calamity.util.*;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -30,7 +27,7 @@ import top.theillusivec4.curios.api.SlotContext;
 import java.util.List;
 import java.util.UUID;
 
-@ConflictChain(value = SprintCurio.class, node = DeitiesRampart.class)
+@CurioRepel(isRoot = true)
 public class OdinsRefuge extends AsgardianAegis implements ICuriosStorage {
     public OdinsRefuge(Properties properties) {
         super(properties);

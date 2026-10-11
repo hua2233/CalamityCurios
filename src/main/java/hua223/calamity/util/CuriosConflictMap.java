@@ -17,7 +17,10 @@ import org.objectweb.asm.Type;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 //Upgrade From ConflictChain Class
 public class CuriosConflictMap {
@@ -96,7 +99,7 @@ public class CuriosConflictMap {
     private static class ConflictNode {
         private final LongSet curioSet = new LongArraySet();
         private final Int2IntMap idMap = new Int2IntArrayMap();
-        private final Int2ObjectArrayMap<IntList> reverse = new Int2ObjectArrayMap<>();
+        private final Int2ObjectArrayMap<IntList> inverse = new Int2ObjectArrayMap<>();
 
         public ConflictNode(Class<?> root) {
             int id = root.hashCode();
@@ -108,10 +111,10 @@ public class CuriosConflictMap {
             if (idMap.containsKey(i)) throw new IllegalArgumentException("Duplicate node path!");
             int s = superNode.hashCode();
             idMap.put(i, s);
-            IntList list = reverse.get(s);
+            IntList list = inverse.get(s);
             if (list == null) {
                 list = new IntArrayList();
-                reverse.put(s, list);
+                inverse.put(s, list);
             }
 
             list.add(i);
@@ -123,7 +126,7 @@ public class CuriosConflictMap {
         }
 
         private boolean exploreDownwards(int id, int node) {
-            IntList list = reverse.get(node);
+            IntList list = inverse.get(node);
             if (list != null) {
                 for (int i = 0; i < list.size(); i++) {
                     int sub = list.getInt(i);
@@ -144,7 +147,7 @@ public class CuriosConflictMap {
         }
 
         private void downwardChain(int id, int node, boolean lock) {
-            IntList list = reverse.get(node);
+            IntList list = inverse.get(node);
             if (list == null) return;
 
             for (int i = 0; i < list.size(); i++) {

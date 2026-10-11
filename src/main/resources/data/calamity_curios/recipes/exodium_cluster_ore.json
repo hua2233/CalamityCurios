@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "cookingtime": 1200,
+  "experience": 10,
+  "ingredient": {
+    "item": "calamity_curios:exodium_cluster_ore"
+  },
+  "result": {
+    "item": "calamity_curios:exodium_cluster",
+    "count": 2
+  }
+}

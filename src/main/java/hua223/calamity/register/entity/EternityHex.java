@@ -11,10 +11,13 @@ import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.register.particle.ParticleRegister;
 import hua223.calamity.register.sounds.CalamitySounds;
 import hua223.calamity.render.CircleBuffer;
-import hua223.calamity.util.*;
-import hua223.calamity.util.delaytask.DelayRunnable;
 import hua223.calamity.render.primitive.PrimitiveRenderer;
 import hua223.calamity.render.primitive.PrimitiveSettings;
+import hua223.calamity.render.shaders.CalamityShaders;
+import hua223.calamity.util.CalamityHelp;
+import hua223.calamity.util.RenderUtil;
+import hua223.calamity.util.Vector2f;
+import hua223.calamity.util.delaytask.DelayRunnable;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -183,7 +186,7 @@ public class EternityHex extends Entity {
         target.calamity$EternityLock = effect;
         tag.putBoolean("flag", effect);
         tag.putInt("id", target.getId());
-        response.sendToAllClient();
+        response.sendToTracking(this);
     }
 
     private boolean canAlive() {
@@ -225,7 +228,7 @@ public class EternityHex extends Entity {
         // The amount of dust from the explosion = pointsPerStarStrip * starPoints * 2.
         int pointsPerStarStrip = 40;
         int starPoints = 9;
-        //Prevents random source thread access issues
+        //Prevents random random thread access issues
         ThreadLocalRandom localRandom = ThreadLocalRandom.current();
 
         float minStarOutwardness = localRandom.nextFloat(0.6f, 1f);
@@ -335,7 +338,7 @@ public class EternityHex extends Entity {
         private final Vector4i HEAD_COLOR = RenderUtil.interpolateColor(RenderUtil.black(), magenta, 0.1f, null);
 
         public EternitySettings() {
-            super(RenderUtil.Shaders.getLemniscateRenderType(CalamityCurios.ModResource("textures/entity/eternity_streak.png")));
+            super(CalamityShaders.getLemniscateRenderType(CalamityCurios.ModResource("textures/entity/eternity_streak.png")));
         }
 
         @Override
@@ -359,11 +362,6 @@ public class EternityHex extends Entity {
         @Override
         public int getCapacity() {
             return 3;
-        }
-
-        @Override
-        public float widthCorrectionRatio() {
-            return 40;
         }
 
         @Override

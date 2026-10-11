@@ -12,6 +12,7 @@
     import net.minecraft.world.level.Level;
     import net.minecraftforge.api.distmarker.Dist;
     import net.minecraftforge.api.distmarker.OnlyIn;
+    import org.jetbrains.annotations.NotNull;
     import org.jetbrains.annotations.Nullable;
 
     import java.util.List;
@@ -36,7 +37,7 @@
 
         @Override
         @OnlyIn(Dist.CLIENT)
-        public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltips, TooltipFlag isAdvanced) {
+        public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, List<Component> tooltips, @NotNull TooltipFlag isAdvanced) {
             tooltips.add(CMLangUtil.getTranslatable("white_wine").withStyle(ChatFormatting.WHITE));
             super.appendHoverText(stack, level, tooltips, isAdvanced);
         }

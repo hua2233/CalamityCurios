@@ -26,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Optional;
 
+//Developer's Gift
 public class PerversePurse extends Item {
     public PerversePurse(Properties properties) {
         super(properties);
@@ -66,12 +67,13 @@ public class PerversePurse extends Item {
                         BlockPos pos = context.getClickedPos();
                         entity.setPos(pos.getX(), pos.getY() + entity.getBbHeight(), pos.getZ());
                         level.addFreshEntity(entity);
+                        return InteractionResult.SUCCESS;
                     }
                 }
             }
         }
 
-        return InteractionResult.SUCCESS;
+        return InteractionResult.PASS;
     }
 
     @Override
@@ -89,6 +91,7 @@ public class PerversePurse extends Item {
                     stackTag.put("0", tag);
                     stackTag.putInt("LastSave", 0);
                     player.setItemInHand(usedHand, stack);
+                    return InteractionResult.SUCCESS;
                 } else {
                     int id = stackTag.getInt("LastSave");
                     if (id < 2 || !stackTag.contains(String.valueOf(id - 1))
@@ -99,12 +102,13 @@ public class PerversePurse extends Item {
                         stackTag.put(String.valueOf(++id), tag);
                         stackTag.putInt("LastSave", id);
                         player.setItemInHand(usedHand, stack);
+                        return InteractionResult.SUCCESS;
                     }
                 }
             }
         }
 
-        return InteractionResult.SUCCESS;
+        return InteractionResult.PASS;
     }
 
     @Override

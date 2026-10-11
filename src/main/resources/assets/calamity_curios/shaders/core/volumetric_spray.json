@@ -1,0 +1,27 @@
+{
+  "blend": {
+    "func": "add",
+    "srcrgb": "1",
+    "dstrgb": "1-srcalpha"
+  },
+  "vertex": "calamity_curios:volumetric_spray",
+  "fragment": "calamity_curios:volumetric_spray",
+  "attributes": [
+    "Position",
+    "UV0"
+  ],
+  "samplers": [
+    {"name": "Sampler0" },
+    {"name": "Sampler1" }
+  ],
+  "uniforms": [
+    { "name": "ModelViewMat", "type": "matrix4x4", "count": 16, "values": [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1] },
+    { "name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1] },
+    { "name": "IViewRotMat", "type": "matrix3x3", "count": 9, "values": [1,0,0, 0,1,0, 0,0,1] },
+    { "name": "GameTime", "type": "float", "count": 1, "values": [0.0] },
+    { "name": "HalfSize", "type": "float", "count": 1, "values": [0.5] },
+    { "name": "JetLength", "type": "float", "count": 1, "values": [1.0] },
+    { "name": "NozzlePos", "type": "float", "count": 3, "values": [0.0, 0.0, 0.0] },
+    { "name": "JetDir", "type": "float", "count": 3, "values": [0.0, 0.0, 1.0] }
+  ]
+}

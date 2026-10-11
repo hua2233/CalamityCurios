@@ -15,8 +15,7 @@ import java.util.List;
 public class AstralInfection extends CalamityEffect implements IEffectsCallBack {
     protected AstralInfection(MobEffectCategory pCategory, int pColor) {
         super(pCategory, pColor);
-        addAttributeModifier(Attributes.ATTACK_DAMAGE,
-            "123e4567-e89b-12d3-a456-426614174026", -0.1, AttributeModifier.Operation.MULTIPLY_BASE);
+        addAttributeModifier(Attributes.ATTACK_DAMAGE, getSelfUUID(), -0.1, AttributeModifier.Operation.MULTIPLY_BASE);
     }
 
     @Override
@@ -25,8 +24,8 @@ public class AstralInfection extends CalamityEffect implements IEffectsCallBack 
     }
 
     @Override
-    public void applyEffectTick(@NotNull LivingEntity entity, int pAmplifier) {
-        if (entity.level().isClientSide || CalamityItems.INFECTED_JEWEL.isEquip(entity)) return;
+    public void applyServerTick(@NotNull LivingEntity entity, int pAmplifier) {
+        if (CalamityItems.INFECTED_JEWEL.isEquip(entity)) return;
         entity.hurt(entity.damageSources().magic(), 3f);
     }
 

@@ -4,15 +4,15 @@ uniform sampler2D Sampler0;
 uniform sampler2D Sampler1;
 uniform float GameTime;
 
-uniform float BlackHoleRadius;
-uniform float AccretionDiskRadius;
-uniform float AspectRatioCorrectionFactor;
-uniform float CameraAngle;
-uniform vec2 Zoom;
 uniform vec3 CameraRotationAxis;
-uniform vec3 BlackHoleCenter;
-uniform vec3 AccretionDiskColor;
-uniform vec3 AccretionDiskScale;
+const float BlackHoleRadius = 0.3;
+const float AccretionDiskRadius = 0.45;
+const float AspectRatioCorrectionFactor = 1;
+const float CameraAngle = 0.32;
+const vec2 Zoom = vec2(.7);
+const vec3 BlackHoleCenter = vec3(0);
+const vec3 AccretionDiskColor = vec3(.9607, .4117, .2392);
+const vec3 AccretionDiskScale = vec3(1, 0.33, 1);
 
 in vec2 texCoord0;
 out vec4 fragColor;

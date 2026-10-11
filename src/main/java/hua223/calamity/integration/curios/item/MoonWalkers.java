@@ -2,17 +2,15 @@ package hua223.calamity.integration.curios.item;
 
 import hua223.calamity.integration.curios.Wings;
 import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.ConflictChain;
-import net.minecraft.ChatFormatting;
+import hua223.calamity.util.CurioRepel;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.List;
 
-@ConflictChain(Wings.class)
+@CurioRepel(Wings.class)
 public class MoonWalkers extends AngelTreads {
     public MoonWalkers(Properties properties) {
         super(properties);

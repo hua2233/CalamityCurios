@@ -3,7 +3,10 @@ package hua223.calamity.mixins;
 import hua223.calamity.loots.GlobalLoot;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.entries.LootPoolEntryContainer;
-import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
+import org.spongepowered.asm.mixin.Shadow;
 
 import java.util.function.Predicate;
 

@@ -2,7 +2,7 @@ package hua223.calamity.render.hud;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import hua223.calamity.main.CalamityCurios;
-import hua223.calamity.util.delaytask.DelayRunnable;
+import hua223.calamity.util.RenderUtil;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -14,27 +14,32 @@ import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 
 @OnlyIn(Dist.CLIENT)
 public abstract class EnergyBarHud implements IGuiOverlay {
+    protected int color;
     protected float progress;
+    protected final int yOffset;
+    protected byte tickProgress;
     protected float lastProgress;
     protected float finalProgress;
-    protected byte tickProgress;
     protected float frameProgress;
     public boolean notRender = true;
-    protected final int yOffset;
-    protected final int maxValue;
-    protected int color;
 
     protected TextureAtlasSprite MAIN_TEXTURE;
     private static TextureAtlasSprite FRAME_TEXTURE;
+    protected static short tick;
 
-    protected EnergyBarHud(int yOffset, int maxValue) {
+    protected EnergyBarHud(int yOffset) {
         this.yOffset = yOffset;
-        this.maxValue = maxValue;
     }
 
     @Override
     public void render(ForgeGui forgeGui, GuiGraphics guiGraphics, float partialTick, int screenWidth, int screenHeight) {
         if (notRender) return;
+
+        if (tick != RenderUtil.getLocalTick()) {
+            tick = RenderUtil.getLocalTick();
+            onTick();
+        }
+
         int x = screenWidth / 2;
         int y = screenHeight / 2 - yOffset;
         guiGraphics.setColor(1f, 1f, 1f, 1f);
@@ -63,32 +68,39 @@ public abstract class EnergyBarHud implements IGuiOverlay {
 
     public void start() {
         notRender = false;
-    }
-
-    public void close() {
-        notRender = true;
         progress = 0;
         tickProgress = 0;
         frameProgress = 0;
-        DelayRunnable.removeTask(getClass());
+    }
+
+    public abstract float getMaxValue();
+
+    public void close() {
+        notRender = true;
     }
 
     protected abstract void renderMain(GuiGraphics guiGraphics, int x, int y);
 
+    //Interpolate between Ticks to balance the growth of energy
     public void setProgress(float value) {
         lastProgress = progress;
-        finalProgress = Mth.clamp(value / maxValue, 0f, 1f);
-        //Interpolate between Ticks to balance the growth of energy
-        if (!DelayRunnable.addUniqueLoopTask(() -> {
-            frameProgress = progress;
-            progress = Mth.lerp(++tickProgress / 20f, lastProgress, finalProgress);
-            if (progress == finalProgress) {
-                tickProgress = 0;
-                return true;
-            }
-            return false;
-        }, 1, getClass())) tickProgress = 0;
+        finalProgress = Mth.clamp(value / getMaxValue(), 0f, 1f);
+        tickProgress = 0;
     }
+
+    protected void onTick() {
+        if (progress == finalProgress) return;
+
+        frameProgress = progress;
+        if (++tickProgress >= 20) {
+            progress = finalProgress;
+            tickProgress = 0;
+        } else progress = Mth.lerp(tickProgress / 20f, lastProgress, finalProgress);
+
+        onTickProgress();
+    }
+
+    protected void onTickProgress() {}
 
     //Interpolate between frames to obtain smooth animation
     private float obtainPartialProgress(float partialTick) {

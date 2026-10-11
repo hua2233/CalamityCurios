@@ -3,6 +3,7 @@ package hua223.calamity.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import hua223.calamity.events.LogoutRelease;
 import hua223.calamity.main.CalamityCurios;
+import hua223.calamity.render.font.CalamityFont;
 import hua223.calamity.util.RenderUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
@@ -26,28 +27,25 @@ public class CalamityPsychedelicRenderer {
     private final Minecraft minecraft = Minecraft.getInstance();
 
     private static CalamityPsychedelicRenderer renderer;
-    private static final String HEAT_DISTORTION_SHADER = "calamity_curios:shaders/post/heat_distortion.json";
+    private static final String HEAT_DISTORTION_SHADER = "shaders/post/heat_distortion.json";
 
     public CalamityPsychedelicRenderer() {
-        if (renderer == null) IllusionBufferSource.create();
-
         renderer = this;
-        color = RenderUtil.getRainbowStyle();
+        color = CalamityFont.getRainbowStyle();
         PostChain shader = renderer.minecraft.gameRenderer.currentEffect();
         rawShader = shader != null ? shader.getName() : null;
         if (!HEAT_DISTORTION_SHADER.equals(rawShader))
-            renderer.minecraft.gameRenderer.loadEffect(CalamityCurios.resource(HEAT_DISTORTION_SHADER));
+            renderer.minecraft.gameRenderer.loadEffect(CalamityCurios.ModResource(HEAT_DISTORTION_SHADER));
     }
 
     @LogoutRelease
     public static void stop(@Nullable LocalPlayer player) {
         if (renderer != null) {
             PostChain shader = renderer.minecraft.gameRenderer.currentEffect();
-            if (shader != null && shader.getName().equals(HEAT_DISTORTION_SHADER)) {
+            if (shader != null && shader.getName().endsWith(HEAT_DISTORTION_SHADER)) {
                 if (renderer.rawShader == null) renderer.minecraft.gameRenderer.shutdownEffect();
                 else renderer.minecraft.gameRenderer.loadEffect(CalamityCurios.resource(renderer.rawShader));
             }
-            IllusionBufferSource.destroy();
             renderer = null;
         }
     }
@@ -56,7 +54,8 @@ public class CalamityPsychedelicRenderer {
     public static void psychedelic(RenderLivingEvent.Pre<? extends LivingEntity, ? extends EntityModel<? extends LivingEntity>> event) {
         if (renderer != null && renderer.notTrippyRender) {
             event.setCanceled(true);
-            MultiBufferSource buffer = IllusionBufferSource.getSource(event.getMultiBufferSource());
+            MultiBufferSource buffer = IllusionBufferSource.getSource(FastColor.ARGB32.red(renderer.color),
+                FastColor.ARGB32.green(renderer.color), FastColor.ARGB32.blue(renderer.color), 255);
             PoseStack pose = event.getPoseStack();
             LivingEntityRenderer<LivingEntity, ? extends EntityModel<? extends LivingEntity>> eventRenderer =
                 (LivingEntityRenderer<LivingEntity, ? extends EntityModel<? extends LivingEntity>>) event.getRenderer();
@@ -77,13 +76,7 @@ public class CalamityPsychedelicRenderer {
 
             renderer.notTrippyRender = true;
 
-            if (RenderUtil.getRainbowStyle() != renderer.color) {
-                renderer.color = RenderUtil.getRainbowStyle();
-                IllusionBufferSource.setColor(
-                    FastColor.ARGB32.red(renderer.color),
-                    FastColor.ARGB32.green(renderer.color),
-                    FastColor.ARGB32.blue(renderer.color), 255);
-            }
+            renderer.color = CalamityFont.getRainbowStyle();
         }
     }
 }

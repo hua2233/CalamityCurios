@@ -2,10 +2,11 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.ProjectileSpawnListener;
+import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.util.CMLangUtil;
+import hua223.calamity.util.CurioRepel;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
@@ -18,15 +19,15 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 import java.util.UUID;
 
+@CurioRepel(isRoot = true)
 public class DeadshotBrooch extends BaseCurio {
-    public DeadshotBrooch(Properties pProperties) {
-        super(pProperties);
+    public DeadshotBrooch(Properties properties) {
+        super(properties);
     }
 
     @ApplyEvent
-    public final void ArrowSet(ProjectileSpawnListener listener) {
-        if (listener.isArrow)
-            listener.speedVectorAmplifier += .3;
+    public final void arrowSpawn(ProjectileSpawnListener listener) {
+        if (listener.isArrow) listener.speedVectorAmplifier += .3;
     }
 
     @Override

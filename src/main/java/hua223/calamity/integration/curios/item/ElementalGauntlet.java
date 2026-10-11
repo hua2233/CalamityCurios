@@ -2,11 +2,12 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
+import hua223.calamity.events.listeners.PostAttackListener;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.util.CMLangUtil;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.effect.MobEffect;
@@ -24,12 +25,12 @@ import java.util.List;
 import java.util.UUID;
 
 public class ElementalGauntlet extends BaseCurio {
-    public ElementalGauntlet(Properties pProperties) {
-        super(pProperties);
+    public ElementalGauntlet(Properties properties) {
+        super(properties);
     }
 
     @ApplyEvent
-    public final void onAttack(PlayerAttackListener listener) {
+    public final void onAttack(PostAttackListener listener) {
         LivingEntity target = listener.entity;
         MobEffect effect = CalamityEffects.ELEMENTAL_MIX.get();
         if (target.hasEffect(effect)) return;
@@ -47,6 +48,9 @@ public class ElementalGauntlet extends BaseCurio {
 
         modifier.put(Attributes.ATTACK_DAMAGE,
             new AttributeModifier(uuid, "gauntlet", 0.15, AttributeModifier.Operation.MULTIPLY_BASE));
+
+        modifier.put(AttributeRegistry.SPELL_POWER.get(),
+            new AttributeModifier(uuid, "gauntlet", 0.12, AttributeModifier.Operation.MULTIPLY_BASE));
 
         modifier.put(Attributes.ATTACK_KNOCKBACK,
             new AttributeModifier(uuid, "gauntlet", 0.1, AttributeModifier.Operation.ADDITION));

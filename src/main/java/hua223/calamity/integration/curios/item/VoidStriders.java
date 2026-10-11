@@ -2,7 +2,7 @@ package hua223.calamity.integration.curios.item;
 
 import hua223.calamity.integration.curios.Wings;
 import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.ConflictChain;
+import hua223.calamity.util.CurioRepel;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraftforge.api.distmarker.Dist;
@@ -10,7 +10,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.List;
 
-@ConflictChain(Wings.class)
+@CurioRepel(Wings.class)
 public class VoidStriders extends AngelTreads {
     public VoidStriders(Properties properties) {
         super(properties);

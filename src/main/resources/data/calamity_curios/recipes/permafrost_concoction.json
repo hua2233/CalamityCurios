@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:ice_rune"
+    },
+    "C": {
+      "item": "minecraft:blue_ice"
+    },
+    "B": {
+      "item": "minecraft:glass_bottle"
+    },
+    "D": {
+      "item": "irons_spellbooks:permafrost_shard"
+    },
+    "E": {
+      "item": "irons_spellbooks:arcane_ingot"
+    }
+  },
+  "pattern": [
+    "AEA",
+    "CDC",
+    "BCB"
+  ],
+  "result": {
+    "item": "calamity_curios:permafrost_concoction"
+  }
+}

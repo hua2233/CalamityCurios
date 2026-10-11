@@ -3,17 +3,15 @@ package hua223.calamity.events;
 import hua223.calamity.events.listeners.*;
 import hua223.calamity.main.CalamityCurios;
 import hua223.calamity.util.CalamityHelp;
-import hua223.calamity.util.CalamityPlayer;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import net.jodah.typetools.TypeResolver;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -21,20 +19,36 @@ import java.util.Map;
 public class EventTypes<T extends BaseListener<?>> {
     private static final List<EventTypes<?>> EVENT_TYPES = new ArrayList<>();
 
+    //Add from first to last according to possible triggers
     public static final EventTypes<HurtListener> HURT =
         new EventTypes<>(HurtListener.class);
+
+    public static final EventTypes<PreAttackListener> HURT_ATTACK =
+        new EventTypes<>(PreAttackListener.class);
+
+    public static final EventTypes<DamageListener> DAMAGE =
+        new EventTypes<>(DamageListener.class);
+
+    public static final EventTypes<PostAttackListener> DAMAGE_ATTACK =
+        new EventTypes<>(PostAttackListener.class);
+
+    public static final EventTypes<CriticalHitCheckListener> CRITICAL_HIT_CHECK =
+        new EventTypes<>(CriticalHitCheckListener.class);
+
+    public static final EventTypes<CriticalHitTriggerListener> CRITICAL_HIT_TRIGGER =
+        new EventTypes<>(CriticalHitTriggerListener.class);
 
     public static final EventTypes<PlayerHealListener> HEAL =
         new EventTypes<>(PlayerHealListener.class);
 
-    public static final EventTypes<DeathListener> DEATH =
-        new EventTypes<>(DeathListener.class);
+    public static final EventTypes<TrackedListener> TRACKED =
+        new EventTypes<>(TrackedListener.class);
 
     public static final EventTypes<EffectListener> EFFECT =
         new EventTypes<>(EffectListener.class);
 
-    public static final EventTypes<PlayerAttackListener> ATTACK =
-        new EventTypes<>(PlayerAttackListener.class);
+    public static final EventTypes<DeathListener> DEATH =
+        new EventTypes<>(DeathListener.class);
 
     public static final EventTypes<ProjectileHitListener> PROJECTILE_HIT =
         new EventTypes<>(ProjectileHitListener.class);
@@ -45,16 +59,10 @@ public class EventTypes<T extends BaseListener<?>> {
     public static final EventTypes<ChangedDimensionListener> DIMENSION_CHANGE =
         new EventTypes<>(ChangedDimensionListener.class);
 
-    public static final EventTypes<CriticalHitCheckListener> CRITICAL_HIT_CHECK =
-        new EventTypes<>(CriticalHitCheckListener.class);
-
-    public static final EventTypes<CriticalHitTriggerListener> CRITICAL_HIT_TRIGGER =
-        new EventTypes<>(CriticalHitTriggerListener.class);
-
 //    private final Map<Item, MethodReference> eventCache = new Object2ObjectOpenHashMap<>(32);
-    private final ObjectOpenHashSet<MethodHandlerSorter> eventCaches = CalamityHelp.createMappingSet();
     public final Class<T> listenerClass;
     private final MethodHandle supplier;
+    private final ObjectOpenHashSet<MethodHandlerSorter> eventCaches = CalamityHelp.createMappingSet();
 
     public EventTypes(Class<T> listener) {
         listenerClass = listener;
@@ -112,9 +120,10 @@ public class EventTypes<T extends BaseListener<?>> {
 
     public static List<Method> collectEvents(Class<?> eventClass) {
         List<Method> methods = new ArrayList<>(4);
-        int modifier = 17;
-        for (Method method : eventClass.getMethods()) {
-            if ((modifier & method.getModifiers()) == modifier
+        int modifier = Modifier.FINAL | Modifier.PUBLIC;
+
+        for (Method method : eventClass.getDeclaredMethods()) {
+            if ((method.getModifiers() & (modifier | Modifier.STATIC)) == modifier
                 && method.getReturnType() == void.class
                 && method.isAnnotationPresent(ApplyEvent.class)) {
                 methods.add(method);
@@ -128,8 +137,10 @@ public class EventTypes<T extends BaseListener<?>> {
     public static void applyEvent(Object eventHolder, ServerPlayer player, final boolean apply) {
         try {
             Class<?> eClass = eventHolder.getClass();
-            MethodHandles.Lookup lookup = eClass.isEnum() ? MethodHandles.privateLookupIn(
-                eClass, MethodHandles.lookup()) : MethodHandles.publicLookup();
+            //eClass.isEnum() Unavailable, Because class must be a direct subclass of enum，
+            //Subclass derived from abstract enumeration will be considered as non enumeration class
+            MethodHandles.Lookup lookup = eventHolder instanceof Enum<?> ? MethodHandles.
+                privateLookupIn(eClass, MethodHandles.lookup()) : MethodHandles.publicLookup();
 
             for (Method method : collectEvents(eClass)) {
                 //fromClassGet

@@ -2,11 +2,12 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
+import hua223.calamity.events.listeners.PostAttackListener;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.register.effects.SurvivableEffectInstance;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.ICuriosStorage;
+import io.redspace.ironsspellbooks.registries.MobEffectRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -31,7 +32,7 @@ public class Camper extends BaseCurio implements ICuriosStorage {
     }
 
     @ApplyEvent
-    public final void onAttack(PlayerAttackListener listener) {
+    public final void onAttack(PostAttackListener listener) {
         ServerPlayer player = listener.player;
         listener.amplifier += player.walkDist != player.walkDistO ? -0.9f : 0.25f;
     }
@@ -54,20 +55,20 @@ public class Camper extends BaseCurio implements ICuriosStorage {
                 ItemStack main = player.getMainHandItem();
 
                 if (main == ItemStack.EMPTY && !player.hasEffect(MobEffects.DAMAGE_RESISTANCE)) {
-                    player.addEffect(new SurvivableEffectInstance(MobEffects.DAMAGE_RESISTANCE, 60, 1,
+                    player.addEffect(new SurvivableEffectInstance(MobEffects.DAMAGE_RESISTANCE, -1, 1,
                         () -> count[1] == 1 && player.getMainHandItem() == ItemStack.EMPTY).setNoFlicker());
                     return;
                 }
 
                 Item item = main.getItem();
                 if (item.isEdible() && !player.hasEffect(MobEffects.SATURATION)) {
-                    player.addEffect(new SurvivableEffectInstance(MobEffects.SATURATION, 600, 1,
+                    player.addEffect(new SurvivableEffectInstance(MobEffects.SATURATION, -1, 1,
                         () -> count[1] == 1 && player.getMainHandItem().isEdible()).setNoFlicker());
                 } else if (item instanceof SwordItem && !player.hasEffect(MobEffects.DAMAGE_BOOST)) {
-                    player.addEffect(new SurvivableEffectInstance(MobEffects.DAMAGE_BOOST, 600, 2,
+                    player.addEffect(new SurvivableEffectInstance(MobEffects.DAMAGE_BOOST, -1, 2,
                         () -> count[1] == 1 && player.getMainHandItem().getItem() instanceof SwordItem).setNoFlicker());
-                } else if ((item instanceof BowItem || item instanceof CrossbowItem) && !player.hasEffect(MobEffects.INVISIBILITY)) {
-                    player.addEffect(new SurvivableEffectInstance(MobEffects.INVISIBILITY, 600, 2,
+                } else if ((item instanceof BowItem || item instanceof CrossbowItem) && !player.hasEffect(MobEffectRegistry.TRUE_INVISIBILITY.get())) {
+                    player.addEffect(new SurvivableEffectInstance(MobEffectRegistry.TRUE_INVISIBILITY.get(), -1, 2,
                         () -> {
                             Item i = player.getMainHandItem().getItem();
                             return count[1] == 1 && (i instanceof BowItem || i instanceof CrossbowItem);

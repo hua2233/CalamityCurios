@@ -1,10 +1,10 @@
 package hua223.calamity.register.particle;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import hua223.calamity.util.CurveSegment;
+import hua223.calamity.render.shaders.CalamityShaders;
 import hua223.calamity.util.CalamityHelp;
-import org.jetbrains.annotations.NotNull;
-import org.joml.Quaternionf;
-import hua223.calamity.render.CurveSegment;
+import hua223.calamity.util.EasingType;
 import hua223.calamity.util.RenderUtil;
 import hua223.calamity.util.Vector2f;
 import net.minecraft.client.Camera;
@@ -18,6 +18,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.NotNull;
+import org.joml.Quaternionf;
 import org.joml.Vector4i;
 
 import java.util.ArrayList;
@@ -38,7 +40,7 @@ public class Pulse extends SingleTexturedParticle {
     private final Quaternionf varQuaternion = new Quaternionf();
 
     private final CurveSegment[] curveSegments = new CurveSegment[]{
-        new CurveSegment(CurveSegment.EasingType.POLY_OUT, 0f, 0f, 1f, 4)};
+        new CurveSegment(EasingType.POLY_OUT, 0f, 0f, 1f, 4)};
     private float scale;
     private float scaleOld;
 
@@ -115,7 +117,7 @@ public class Pulse extends SingleTexturedParticle {
 
     @Override
     public @NotNull ParticleRenderType getRenderType() {
-        return RenderUtil.Shaders.GENERIC_BLOOM;
+        return CalamityShaders.GENERIC_BLOOM;
     }
 
     @OnlyIn(Dist.CLIENT)

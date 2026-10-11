@@ -2,11 +2,8 @@ package hua223.calamity.register.entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import org.jetbrains.annotations.NotNull;
-import org.joml.Matrix3f;
-import org.joml.Matrix4f;
 import hua223.calamity.main.CalamityCurios;
+import hua223.calamity.render.shaders.CalamityShaders;
 import hua223.calamity.util.RenderUtil;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -16,6 +13,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -30,6 +28,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.NotNull;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
 import org.joml.Vector4i;
 
 @AutoEntityRegister(sized = {.3f, .3f}, trackingRange = 32, name = "heal_orb")
@@ -44,7 +45,7 @@ public class GladiatorHealOrb extends Entity {
     @OnlyIn(Dist.CLIENT)
     private final Vector4i limeGreen = new Vector4i(50, 205, 50, 255);
     @OnlyIn(Dist.CLIENT)
-    private final RenderType type = RenderUtil.Shaders.getGlowRenderType(
+    private final RenderType type = CalamityShaders.getGlowRenderType(
         CalamityCurios.ModResource("textures/entity/small_creyscale_circle.png"));
     private Player followingPlayer;
     @OnlyIn(Dist.CLIENT)

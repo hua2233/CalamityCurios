@@ -2,8 +2,8 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.HurtListener;
+import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.util.CMLangUtil;
@@ -27,10 +27,11 @@ public class Baroclaw extends BaseCurio {
     }
 
     @ApplyEvent
+    //Anti damage is calculated based on the original event value before armor calculation
     public final void onHurt(HurtListener listener) {
         if (listener.isTriggerByLiving) {
-            listener.entity.hurt(listener.player.damageSources().genericKill(), listener.baseAmount * 0.35f + 2f);
-            CalamityHelp.addIfDoesNotExist(listener.entity, 100, 0,
+            listener.entity.hurt(listener.player.damageSources().generic(), listener.baseAmount * 0.35f + 2f);
+            CalamityHelp.addAllIfDoesNotExist(listener.entity, 100, 0,
                 CalamityEffects.CRUMBLING.get(),CalamityEffects.CRUSH_DEPTH.get());
         }
     }
@@ -43,8 +44,6 @@ public class Baroclaw extends BaseCurio {
 
         modifier.put(CalamityAttributes.INJURY_OFFSET.get(),
             new AttributeModifier(uuid, "baroclaw", 0.05, AttributeModifier.Operation.MULTIPLY_BASE));
-
-        
     }
 
     @Override

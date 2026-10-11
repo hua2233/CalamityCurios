@@ -1,9 +1,6 @@
 package hua223.calamity.register.particle;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import org.jetbrains.annotations.NotNull;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
@@ -12,7 +9,10 @@ import net.minecraft.client.particle.TextureSheetParticle;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 import org.joml.Vector4i;
 
 public abstract class SingleTexturedParticle extends TextureSheetParticle {

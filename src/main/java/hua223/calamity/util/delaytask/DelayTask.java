@@ -2,9 +2,10 @@ package hua223.calamity.util.delaytask;
 
 public class DelayTask {
     final int runTick;
-    protected Runnable task;
     protected int tick;
+    boolean deprecated;
     protected Object flag;
+    protected Runnable task;
 
     public DelayTask(int runTick, Runnable task) {
         this.runTick = runTick;
@@ -20,6 +21,10 @@ public class DelayTask {
     public DelayTask setFlag(Object o) {
         if (flag == null && o != null) flag = o;
         return this;
+    }
+
+    public Runnable getTask() {
+        return task;
     }
 
     public boolean matchFlag(Object id) {

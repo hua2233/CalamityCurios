@@ -1,5 +1,7 @@
 package hua223.calamity.integration.curios.item;
 
+import hua223.calamity.events.ApplyEvent;
+import hua223.calamity.events.listeners.DamageListener;
 import hua223.calamity.events.listeners.HurtListener;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.CurioRepel;
@@ -13,7 +15,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import java.util.Collection;
 import java.util.List;
 
 @CurioRepel(Absorber.class)
@@ -22,24 +23,20 @@ public class GrandGelatin extends VitalJelly {
         super(properties);
     }
 
-    public final void onHurt(HurtListener listener) {
+    @ApplyEvent
+    public final void onHurt(DamageListener listener) {
         ServerPlayer player = listener.player;
         if (player.getHealth() < player.getMaxHealth() / 2) {
             ItemCooldowns cooldowns = player.getCooldowns();
             if (cooldowns.isOnCooldown(this)) return;
             player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 160, 1));
             removeAllDeBuff(player);
-            cooldowns.addCooldown(this, 600);
+            cooldowns.addCooldown(this, 300);
         }
     }
 
     public static void removeAllDeBuff(ServerPlayer player) {
-        Collection<MobEffectInstance> effects = player.getActiveEffects();
-        if (effects.isEmpty()) return;
-
-        for (MobEffectInstance instance : effects.stream().filter(
-            effect -> !effect.getEffect().isBeneficial()).toList())
-            player.removeEffect(instance.getEffect());
+        player.getActiveEffects().removeIf(instance -> !instance.getEffect().isBeneficial());
     }
 
     @Override

@@ -28,7 +28,7 @@ public class GlobalLootModifier extends LootModifier {
         DeferredRegister<Codec<? extends IGlobalLootModifier>> codec =
             DeferredRegister.create(ForgeRegistries.Keys.GLOBAL_LOOT_MODIFIER_SERIALIZERS, MODID);
         final Codec<GlobalLootModifier> CODEC = RecordCodecBuilder.create(inst -> codecStart(inst)
-            .and(Codec.STRING.fieldOf("loot_type").forGetter(g -> g.loot.toString()))
+            .and(Codec.STRING.fieldOf("loot_type").forGetter(g -> g.loot.name()))
             .apply(inst, (conditions, type) ->
                 //If the corresponding enumeration type cannot be found, an error will be reported directly,
                 //and forcibly throwing it may result in unexpected errors

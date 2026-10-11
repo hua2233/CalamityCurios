@@ -4,7 +4,6 @@ import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
-import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -34,35 +33,35 @@ public class CalamityCommands {
         CommandBuildContext buildContext = event.getBuildContext();
 
 //        LiteralArgumentBuilder<CommandSourceStack> root =
-//            Commands.literal("calamity").requires(player -> player.hasPermission(2));
+//            Commands.literal("calamity").requires(tracker -> tracker.hasPermission(2));
 
 //        root.then(Commands.argument("capability", CalamityArgument.getBlackInstance())
 //            .then(Commands.literal("set")
 //                .then(Commands.argument("value", IntegerArgumentType.integer(0))
 //                    .executes(context -> {
-//                        ServerPlayer player = context.getSource().getPlayer();
-//                        if (player == null) return 2;
+//                        ServerPlayer tracker = context.getSource().getPlayer();
+//                        if (tracker == null) return 2;
 //                        int value = context.getArgument("value", Integer.class);
 //
 //                        if (CalamityArgument.getType(context, "capability").equals("magic")) {
-//                            CalamityCapProvider.MAGIC.getCapabilityFrom(player).ifPresent(magic -> {
-//                                magic.setTempValue(value, player);
-//                                NetMessages.sendToClient(new MagicDataSync(magic.getValue()), player);
+//                            CalamityCapProvider.MAGIC.getCapabilityFrom(tracker).ifPresent(magic -> {
+//                                magic.setTempValue(value, tracker);
+//                                NetMessages.sendToClient(new MagicDataSync(magic.getValue()), tracker);
 //                            });
-//                        } else player.getCapabilityFrom(CalamityCapProvider.RAGE.getCapabilityFrom()).ifPresent(rage -> rage.setRageValue(value, player));
+//                        } else tracker.getCapabilityFrom(CalamityCapProvider.RAGE.getCapabilityFrom()).ifPresent(rage -> rage.setRageValue(value, tracker));
 //
 //                        return 1;
 //                    })))
 //            .then(Commands.literal("start")
 //                .then(Commands.argument("value", BoolArgumentType.bool())
 //                    .executes(context -> {
-//                        ServerPlayer player = context.getSource().getPlayer();
-//                        if (player == null) return 2;
+//                        ServerPlayer tracker = context.getSource().getPlayer();
+//                        if (tracker == null) return 2;
 //                        boolean is = BoolArgumentType.getBool(context, "value");
 //
 //                        if (CalamityArgument.getType(context, "capability").equals("magic")) {
-//                            Magic.setEnabledState(player, is);
-//                        } else player.getCapabilityFrom(CalamityCapProvider.RAGE.getCapabilityFrom()).ifPresent(rage -> rage.setEnabled(is, player));
+//                            Magic.setEnabledState(tracker, is);
+//                        } else tracker.getCapabilityFrom(CalamityCapProvider.RAGE.getCapabilityFrom()).ifPresent(rage -> rage.setEnabled(is, tracker));
 //                        return 1;
 //                    })))
 //        );

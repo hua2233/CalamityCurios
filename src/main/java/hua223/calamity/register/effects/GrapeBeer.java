@@ -13,8 +13,9 @@ import java.util.List;
 public class GrapeBeer extends CalamityEffect {
     public GrapeBeer(MobEffectCategory category, int color) {
         super(category, color);
-        addAttributeModifier(Attributes.ARMOR, "50cd184c-6dc0-486d-b52b-bb73cb5cc415", -3, AttributeModifier.Operation.ADDITION);
-        addAttributeModifier(Attributes.MOVEMENT_SPEED, "50cd184c-6dc0-486d-b52b-bb73cb5cc415", -0.07, AttributeModifier.Operation.MULTIPLY_BASE);
+        String id = getSelfUUID();
+        addAttributeModifier(Attributes.ARMOR, id, -3, AttributeModifier.Operation.ADDITION);
+        addAttributeModifier(Attributes.MOVEMENT_SPEED, id, -0.07, AttributeModifier.Operation.MULTIPLY_BASE);
     }
 
     @Override

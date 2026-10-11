@@ -1,0 +1,57 @@
+package hua223.calamity.net.packets;
+
+import hua223.calamity.capability.EnchantmentProvider;
+import hua223.calamity.net.CommunicationDirection;
+import hua223.calamity.net.DataPack;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.item.Item;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.NetworkEvent;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@CommunicationDirection(NetworkDirection.PLAY_TO_CLIENT)
+public class PersistentCurseFontSync extends DataPack {
+    private final List<FontInfo> fontInfos;
+
+    public PersistentCurseFontSync(int preSize) {
+        fontInfos = new ArrayList<>(preSize);
+    }
+
+    public void addSync(Item stack, int[] info) {
+        fontInfos.add(new FontInfo(stack, info));
+    }
+
+    public PersistentCurseFontSync(FriendlyByteBuf buf) {
+        int size = buf.readVarInt();
+        fontInfos = new ArrayList<>(size);
+
+        for (int i = 0; i < size; i++)
+            fontInfos.add(FontInfo.deserialization(buf));
+    }
+
+    @Override
+    public void toBytes(FriendlyByteBuf byteBuf) {
+        byteBuf.writeVarInt(fontInfos.size());
+        fontInfos.forEach(fontInfo -> fontInfo.serializationTo(byteBuf));
+    }
+
+    @Override
+    public void handler(NetworkEvent.Context context) {
+        for (FontInfo info : fontInfos) EnchantmentProvider.addStyleProvider(info.item, info.info, false);
+    }
+
+    @SuppressWarnings("deprecation")
+    private record FontInfo(Item item, int[] info) {
+        public void serializationTo(FriendlyByteBuf byteBuf) {
+            byteBuf.writeId(BuiltInRegistries.ITEM, item);
+            byteBuf.writeVarIntArray(info);
+        }
+
+        public static FontInfo deserialization(FriendlyByteBuf buf) {
+            return new FontInfo(buf.readById(BuiltInRegistries.ITEM), buf.readVarIntArray());
+        }
+    }
+}

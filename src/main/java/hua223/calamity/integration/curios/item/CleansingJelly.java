@@ -1,10 +1,10 @@
 package hua223.calamity.integration.curios.item;
 
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.HurtListener;
+import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.ConflictChain;
+import hua223.calamity.util.CurioRepel;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -16,10 +16,10 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.Collection;
 import java.util.List;
 
-@ConflictChain(GrandGelatin.class)
+@CurioRepel(GrandGelatin.class)
 public class CleansingJelly extends BaseCurio {
-    public CleansingJelly(Properties pProperties) {
-        super(pProperties);
+    public CleansingJelly(Properties properties) {
+        super(properties);
     }
 
     @ApplyEvent
@@ -31,9 +31,7 @@ public class CleansingJelly extends BaseCurio {
         if (effects.isEmpty()) return;
         List<MobEffectInstance> harmful = effects.stream().filter(effect -> !effect.getEffect().isBeneficial()).toList();
         if (harmful.size() < 2) return;
-        for (MobEffectInstance instance : harmful) {
-            player.removeEffect(instance.getEffect());
-        }
+        for (MobEffectInstance instance : harmful) player.removeEffect(instance.getEffect());
         cooldowns.addCooldown(this, 400);
     }
 

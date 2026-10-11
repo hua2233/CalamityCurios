@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "minecraft:sculk"
+    },
+    "C": {
+      "item": "minecraft:echo_shard"
+    },
+    "D": {
+      "item": "calamity_curios:vortex_fragment"
+    }
+  },
+  "pattern": [
+    "CAA",
+    "DCA",
+    "AAA"
+  ],
+  "result": {
+    "item": "calamity_curios:meld_construct",
+    "count": 3
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "calamity_curios:exodium_cluster"
+    },
+    "C": {
+      "item": "calamity_curios:ruinous_soul"
+    }
+  },
+  "pattern": [
+    "A A",
+    "CAC",
+    "ACA"
+  ],
+  "result": {
+    "item": "calamity_curios:affliction"
+  }
+}

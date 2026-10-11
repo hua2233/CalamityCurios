@@ -15,8 +15,7 @@ import java.util.List;
 public class NaturePain extends FragileEffect {
     protected NaturePain(MobEffectCategory pCategory, int pColor) {
         super(pCategory, pColor);
-        addAttributeModifier(Attributes.ATTACK_DAMAGE, "123e4567-e89b-12d3-a456-426614174023",
-            -0.2, AttributeModifier.Operation.MULTIPLY_BASE);
+        addAttributeModifier(Attributes.ATTACK_DAMAGE, getSelfUUID(), -0.2, AttributeModifier.Operation.MULTIPLY_BASE);
     }
 
     @Override
@@ -30,9 +29,8 @@ public class NaturePain extends FragileEffect {
     }
 
     @Override
-    public void applyEffectTick(@NotNull LivingEntity pLivingEntity, int pAmplifier) {
-        if (!pLivingEntity.level().isClientSide)
-            pLivingEntity.hurt(pLivingEntity.damageSources().magic(), 3f);
+    public void applyServerTick(@NotNull LivingEntity pLivingEntity, int pAmplifier) {
+        pLivingEntity.hurt(pLivingEntity.damageSources().magic(), 3f);
     }
 
     @Override

@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A" : {
+      "item": "calamity_curios:ascendant_spirit_essence"
+    },
+    "B": {
+      "item": "calamity_curios:calamity_sigil"
+    },
+    "C": {
+      "item": "minecraft:pitcher_plant"
+    },
+    "D": {
+      "item": "minecraft:torchflower"
+    }
+  },
+  "pattern": [
+    "ACA",
+    "DBD",
+    "ACA"
+  ],
+  "result": {
+    "item": "calamity_curios:ethereal_talisman"
+  }
+}

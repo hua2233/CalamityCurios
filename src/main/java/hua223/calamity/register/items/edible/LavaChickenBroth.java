@@ -50,7 +50,7 @@ public class LavaChickenBroth extends Item {
     @ApplyGlobalLoot
     public void onGetChestLoot(ChestLootContext context) {
         if (context.fromSpecificName("battleground/burial_loot") && context.chance(0.005f))
-            context.addLoot(this, 1);
+            context.addLoot(this);
     }
 
     @Override

@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "calamity_curios:infernal_suevite"
+    },
+    "B": {
+      "item": "calamity_curios:havoc_essence"
+    }
+  },
+  "pattern": [
+    " B ",
+    "ABA",
+    "AAA"
+  ],
+  "result": {
+    "item": "calamity_curios:unholy_core",
+    "count": 5
+  }
+}

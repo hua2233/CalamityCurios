@@ -14,7 +14,7 @@ import net.minecraft.world.item.ItemStack;
 //Developer's Prayer
 public class BrimstoneCrescentStaff extends StaffItem implements IPresetSpellContainer {
     public BrimstoneCrescentStaff() {
-        super(RegisterList.ITEM_CALAMITY, new StaffTier(22.0F, -3F,
+        super(RegisterList.CALAMITY_ONE, new StaffTier(22.0F, -3F,
             new AttributeContainer(AttributeRegistry.BLOOD_SPELL_POWER, 0.7, AttributeModifier.Operation.MULTIPLY_BASE),
             new AttributeContainer(AttributeRegistry.SUMMON_DAMAGE, 0.2, AttributeModifier.Operation.MULTIPLY_BASE),
             new AttributeContainer(AttributeRegistry.SPELL_POWER, 0.12, AttributeModifier.Operation.MULTIPLY_BASE)));

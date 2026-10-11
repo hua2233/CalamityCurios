@@ -18,8 +18,7 @@ void main() {
 
     float centerGlow = smoothstep(0.18, 0, polar.y) * 0.4 / polar.y;
     vec4 result = smoothstep(0, 0.85, pow(baseGlow, 2.4)) * vertexColor + centerGlow * vertexColor.a;
+    result.a = 0;
 
-    if(!(texCoord0.x > 0.3 && texCoord0.x < 0.7) || !(texCoord0.y > 0.3 && texCoord0.y < 0.7)) discard;
-
-    fragColor = vec4(clamp(result.rgb, 0.0, 0.97), vertexColor.a);
+    fragColor = result;
 }

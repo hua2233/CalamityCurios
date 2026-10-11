@@ -2,8 +2,8 @@ package hua223.calamity.capability;
 
 import hua223.calamity.events.LogoutRelease;
 import hua223.calamity.integration.curios.item.Calamity;
-import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.net.IDataPackResponse;
+import hua223.calamity.register.items.CalamityItems;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
@@ -11,6 +11,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CalamityCap implements BaseCap {
@@ -56,7 +57,7 @@ public class CalamityCap implements BaseCap {
 
     @SuppressWarnings("ConstantConditions")
     public List<ServerPlayer> getRestCalamity() {
-        List<ServerPlayer> players = player.getServer().getPlayerList().getPlayers();
+        List<ServerPlayer> players = new ArrayList<>(player.getServer().getPlayerList().getPlayers());
         players.removeIf(p -> p == player || !p.Calamity$Player.calamityCap.isCursePlayer);
         return players;
     }
@@ -79,12 +80,12 @@ public class CalamityCap implements BaseCap {
 
     @Override
     public void save(CompoundTag tag) {
-        tag.putByte("curse", curseFlags);
+        tag.putByte("CalamityCap", curseFlags);
     }
 
     @Override
     public void load(CompoundTag tag) {
-        curseFlags = tag.getByte("curse");
+        curseFlags = tag.getByte("CalamityCap");
     }
 
     public enum CurseType {

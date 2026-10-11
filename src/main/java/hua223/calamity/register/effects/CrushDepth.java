@@ -23,18 +23,16 @@ public class CrushDepth extends CalamityEffect implements IEffectsCallBack {
     }
 
     @Override
-    public void applyEffectTick(@NotNull LivingEntity pLivingEntity, int pAmplifier) {
-        if (!pLivingEntity.level().isClientSide) {
-            if (pLivingEntity.isInWater()) {
-                pLivingEntity.setAirSupply(pLivingEntity.getAirSupply() - 10 * pAmplifier);
-                if (pLivingEntity.getAirSupply() <= 0) {
-                    pLivingEntity.hurt(pLivingEntity.damageSources().drown(), 8f);
-                    return;
-                }
+    public void applyServerTick(@NotNull LivingEntity pLivingEntity, int pAmplifier) {
+        if (pLivingEntity.isInWater()) {
+            pLivingEntity.setAirSupply(pLivingEntity.getAirSupply() - 10 * pAmplifier);
+            if (pLivingEntity.getAirSupply() <= 0) {
+                pLivingEntity.hurt(pLivingEntity.damageSources().drown(), 8f);
+                return;
             }
-
-            pLivingEntity.hurt(pLivingEntity.damageSources().drown(), 4f);
         }
+
+        pLivingEntity.hurt(pLivingEntity.damageSources().drown(), 4f);
     }
 
     @Override

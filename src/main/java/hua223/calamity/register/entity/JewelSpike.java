@@ -2,7 +2,6 @@ package hua223.calamity.register.entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Axis;
 import hua223.calamity.main.CalamityCurios;
 import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.RenderUtil;
@@ -137,7 +136,7 @@ public class JewelSpike extends Entity {
             RenderUtil.reuseQuaternions(entity.varQuaternion, CalamityHelp.UNIT_Y,
                 -Mth.rotLerp(partialTick, entity.owner.yRotO, entity.owner.getYRot()));
 
-            //Afterwards, there was no further operation, just rotate the source matrix directly
+            //Afterwards, there was no further operation, just rotate the random matrix directly
             poseStack.mulPose(entity.varQuaternion);
             Matrix4f matrix4f = poseStack.last().pose();
             Matrix3f normal = poseStack.last().normal();

@@ -1,9 +1,9 @@
 package hua223.calamity.register.entity;
 
 import hua223.calamity.main.CalamityCurios;
+import hua223.calamity.net.IDataPackResponse;
 import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.register.sounds.CalamitySounds;
-import hua223.calamity.net.IDataPackResponse;
 import hua223.calamity.util.Vector2f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
@@ -65,7 +65,7 @@ public class UniverseSplitterField extends Entity {
             entity.calamity$NoMoving = true;
             tag.putBoolean("flag", true);
             tag.putInt("id", entity.getId());
-            response.sendToAllClient();
+            response.sendToTracking(entity);
         } else pos = player.getEyePosition().add(player.getLookAngle().normalize().scale(20));
 
         field.setPos(pos);
@@ -101,7 +101,7 @@ public class UniverseSplitterField extends Entity {
         target.calamity$NoMoving = false;
         tag.putInt("id", target.getId());
         tag.putBoolean("flag", false);
-        response.sendToAllClient();
+        response.sendToTracking(this);
     }
 
     @OnlyIn(Dist.CLIENT)

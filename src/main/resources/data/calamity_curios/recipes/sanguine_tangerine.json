@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A" : {
+      "item": "irons_spellbooks:blood_vial"
+    },
+    "C": {
+      "item": "minecraft:glow_berries"
+    },
+    "D": {
+      "item": "minecraft:honeycomb"
+    }
+  },
+  "pattern": [
+    "ADA",
+    "ACA",
+    " A "
+  ],
+  "result": {
+    "item": "calamity_curios:sanguine_tangerine"
+  }
+}

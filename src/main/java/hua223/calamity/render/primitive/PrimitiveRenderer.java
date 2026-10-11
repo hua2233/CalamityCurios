@@ -1,12 +1,12 @@
 package hua223.calamity.render.primitive;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import hua223.calamity.util.Vector2f;
-import org.joml.Matrix4f;
 import hua223.calamity.render.CircleBuffer;
 import hua223.calamity.util.RenderUtil;
+import hua223.calamity.util.Vector2f;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.joml.Matrix4f;
 import org.joml.Vector4i;
 
 @OnlyIn(Dist.CLIENT)
@@ -41,81 +41,92 @@ public class PrimitiveRenderer {
         privateRender(matrix4f, settings);
     }
 
-    private static boolean assignPointsRectangleTrail(CircleBuffer<Vector2f> positions, PrimitiveSettings settings,
-                                                      int samplingPoint) {
-        // Don't smoothen the points unless explicitly told do so.
-        if (!settings.smoothen()) {
-            positionsIndex = 0;
+    private static boolean assignPointsRectangleTrail(CircleBuffer<Vector2f> positions, PrimitiveSettings settings, int samplingPoint) {
+        switch (settings.sampling()) {
+            case LINEAR -> {
+                positionsIndex = 0;
+                if (positions.getCount() < 2) return false;
 
-            float endPos = samplingPoint - 1f;
-            int maxIndex = positions.getCount() - 1;
-
-            for (int i = 0; i < samplingPoint; i++) {
-                float completionRatio = i / endPos;
-                int currentIndex = (int) (completionRatio * maxIndex);
-
-                Vector2f currentPoint = positions.get(currentIndex);
-                Vector2f nextPoint = positions.get(++currentIndex);
-
-                // offset function needs to apply even in cases where smoothing is off.
-                Vector2f finalPos = currentPoint.lerp(completionRatio * maxIndex % 0.99999f, nextPoint);
-                settings.offset(completionRatio, finalPos);
-
-                MAIN_POSITIONS[positionsIndex] = finalPos;
-                positionsIndex++;
-            }
-        } else {
-            // Due to the first point being manually added, points should be added starting at the second position instead of the first.
-            positionsIndex = 1;
-
-            // Create the control points for the spline.
-            // Don't incorporate points that are zeroed out.
-            // They are almost certainly a result of incomplete oldPos arrays.
-
-            // Avoid stupid index errors.
-            if (positions.getCount() <= 4) return false;
-            float fPoint = (float) samplingPoint;
-
-            float newMaxSize = positions.getCount() - 1;
-            float newSizeLess = newMaxSize - 1f;
-            for (int j = 0; j < samplingPoint; j++) {
-                float splineInterpolant = j / fPoint;
-                float localSplineInterpolant = splineInterpolant * newMaxSize % 1f;
-                int localSplineIndex = (int) (splineInterpolant * newMaxSize);
-
-                Vector2f farLeft;
-                Vector2f left = positions.get(localSplineIndex);
-                Vector2f right = positions.get(localSplineIndex + 1);
-                Vector2f farRight;
-
-                // Special case: If the spline attempts to access the previous/next index but the index is already at the very beginning/end, simply
-                // cheat a little bit by creating a phantom point that's mirrored from the previous one.
-                farLeft = localSplineIndex == 0 ? left.clone().mul(2).add(-right.x, -right.y) : positions.get(localSplineIndex - 1).clone();
-                farRight = localSplineIndex >= newSizeLess ? right.clone().mul(2f).add(-left.x, -left.y) : positions.get(localSplineIndex + 2).clone();
-
-                MAIN_POSITIONS[positionsIndex] = RenderUtil.catmullRomVec(farLeft, left, right, farRight, localSplineInterpolant);
-                positionsIndex++;
+                float index = positions.getCount() - 1;
+                for (int i = 0; i < positions.getCount(); i++) {
+                    Vector2f vector2f = positions.get(i);
+                    //If you are in this mode, remember to back up new points
+                    settings.offset( i / index, vector2f);
+                    MAIN_POSITIONS[positionsIndex++] = vector2f;
+                }
             }
 
-            // Manually insert the front and end points.
-            MAIN_POSITIONS[0] = positions.getHead().clone();
-            MAIN_POSITIONS[positionsIndex] = positions.getLast().clone();
-            positionsIndex++;
+            case SMOOTHEN -> {
+                // Due to the first point being manually added, points should be added starting at the second position instead of the first.
+                positionsIndex = 1;
+
+                // Create the control points for the spline.
+                // Don't incorporate points that are zeroed out.
+                // They are almost certainly a result of incomplete oldPos arrays.
+
+                // Avoid stupid index errors.
+                if (positions.getCount() <= 4) return false;
+                float fPoint = (float) samplingPoint;
+
+                float newMaxSize = positions.getCount() - 1;
+                float newSizeLess = newMaxSize - 1f;
+                for (int j = 0; j < samplingPoint; j++) {
+                    float splineInterpolant = j / fPoint;
+                    float localSplineInterpolant = splineInterpolant * newMaxSize % 1f;
+                    int localSplineIndex = (int) (splineInterpolant * newMaxSize);
+
+                    Vector2f farLeft;
+                    Vector2f left = positions.get(localSplineIndex);
+                    Vector2f right = positions.get(localSplineIndex + 1);
+                    Vector2f farRight;
+
+                    // Special case: If the spline attempts to access the previous/next index but the index is already at the very beginning/end, simply
+                    // cheat a little bit by creating a phantom point that's mirrored from the previous one.
+                    farLeft = localSplineIndex == 0 ? left.clone().mul(2).add(-right.x, -right.y) : positions.get(localSplineIndex - 1).clone();
+                    farRight = localSplineIndex >= newSizeLess ? right.clone().mul(2f).add(-left.x, -left.y) : positions.get(localSplineIndex + 2).clone();
+
+                    MAIN_POSITIONS[positionsIndex] = RenderUtil.catmullRomVec(farLeft, left, right, farRight, localSplineInterpolant);
+                    positionsIndex++;
+                }
+
+                // Manually insert the front and end points.
+                MAIN_POSITIONS[0] = positions.getHead().clone();
+                MAIN_POSITIONS[positionsIndex] = positions.getLast().clone();
+                positionsIndex++;
+            }
+
+            case NON_SMOOTHEN -> {
+                positionsIndex = 0;
+                if (positions.getCount() < 2) return false;
+
+                float endPos = samplingPoint - 1f;
+                int maxIndex = positions.getCount() - 1;
+                for (int i = 0; i < samplingPoint; i++) {
+                    float completionRatio = i / endPos;
+                    int currentIndex = (int) (completionRatio * maxIndex);
+
+                    Vector2f currentPoint = positions.get(currentIndex);
+                    Vector2f nextPoint = positions.get(++currentIndex);
+
+                    // offset function needs to apply even in cases where smoothing is off.
+                    Vector2f finalPos = currentPoint.lerp(completionRatio * maxIndex % 0.99999f, nextPoint);
+                    settings.offset(completionRatio, finalPos);
+
+                    MAIN_POSITIONS[positionsIndex] = finalPos;
+                    positionsIndex++;
+                }
+            }
         }
 
         return true;
     }
 
-    private static Vector2f relative(Vector2f base, Vector2f point) {
-        return new Vector2f(base.x - point.x, base.y = point.y);
-    }
-
-    //In Terraria, this is drawn using the triangular list type, and to avoid unexpected problems, triangles are also used instead of quadrilaterals
+    //In Terraria, this is drawn using the triangular list type
     private static void assignVerticesRectangleTrail(PrimitiveSettings settings) {
         verticesIndex = 0;
         float maxIndexLess = positionsIndex - 1;
         for (int i = 0; i < positionsIndex; i++) {
-            float completionRatio = i == 0 ? i : (i - 1f) / maxIndexLess;
+            float completionRatio = i / maxIndexLess;
             float widthAtVertex = settings.vertexWidth(completionRatio);
             //This is the same color container object and should only write this color information without modifying it
             Vector4i vertexColor = settings.vertexColor(completionRatio);
@@ -128,9 +139,9 @@ public class PrimitiveRenderer {
             directionToAhead.safeNormalize(Vector2f.ZERO);
 
             //Revert the vertex width that was originally in Terraria, as this acts on shader sampling
-            float rawWidth = widthAtVertex * settings.widthCorrectionRatio();
-            Vector2f leftCurrentTextureCoord = new Vector2f(completionRatio, 0.5f - rawWidth * 0.5f);
-            Vector2f rightCurrentTextureCoord = new Vector2f(completionRatio, 0.5f + rawWidth * 0.5f);
+            //float rawWidth = widthAtVertex * settings.widthCorrectionRatio();
+            Vector2f leftCurrentTextureCoord = new Vector2f(completionRatio, 0.5f - widthAtVertex * 0.5f);
+            Vector2f rightCurrentTextureCoord = new Vector2f(completionRatio, 0.5f + widthAtVertex * 0.5f);
 
             // Point 90 degrees away from the direction towards the next point, and use it to mark the edges of the rectangle.
             // This doesn't use RotatedBy for the sake of performance (there can potentially be a lot of trail points).
@@ -143,9 +154,9 @@ public class PrimitiveRenderer {
             // What this is doing, at its core, is defining a rectangle based on two triangles.
             // These triangles are defined based on the width of the strip at that point.
             // The resulting rectangles combined are what make the trail itself.
-            settings.addArgument(left, vertexColor, leftCurrentTextureCoord, rawWidth);
+            settings.addArgument(left, vertexColor, leftCurrentTextureCoord, widthAtVertex);
             verticesIndex++;
-            settings.addArgument(right, vertexColor, rightCurrentTextureCoord, rawWidth);
+            settings.addArgument(right, vertexColor, rightCurrentTextureCoord, widthAtVertex);
             verticesIndex++;
         }
     }

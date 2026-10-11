@@ -39,8 +39,8 @@ public class SilvasCrown extends BaseCurio implements ICuriosStorage {
             if (operation != null) {
                 double amplifier = switch (operation) {
                     case ADDITION -> 5;
-                    case MULTIPLY_BASE -> 0.1;
-                    case MULTIPLY_TOTAL -> 0.05;
+                    case MULTIPLY_BASE -> .25;
+                    case MULTIPLY_TOTAL -> 0.1;
                 };
 
                 instance.addTransientModifier(new AttributeModifier(uuid, "SilvasCrown", amplifier, operation));

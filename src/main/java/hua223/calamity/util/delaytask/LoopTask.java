@@ -12,12 +12,8 @@ public class LoopTask extends DelayTask {
     public boolean tryExecute() {
         if (tick++ >= runTick) {
             task.run();
-            if (--loopCount <= 0) {
-                tick = 0;
-                return false;
-            }
-
-            return true;
+            tick = 0;
+            return --loopCount <= 0;
         }
 
         return false;

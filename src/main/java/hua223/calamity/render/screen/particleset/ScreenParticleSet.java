@@ -15,19 +15,19 @@ import java.util.Queue;
 
 @OnlyIn(Dist.CLIENT)
 @SuppressWarnings("rawtypes")
-public abstract class ScreenParticleSet <T extends ScreenParticleSet.ScreenParticle> {
-    protected final int PARTICLE_LIFETIME;
+public abstract class ScreenParticleSet<T extends ScreenParticleSet.ScreenParticle> {
+    protected int PARTICLE_LIFETIME;
     protected final int MAX_NUMBER;
     private short count;
-    private final Vector4i[] textureInfo = new Vector4i[] {
-        new Vector4i(-1, 1, 0, 0),
-        new Vector4i(1, 1, 0, 1),
-        new Vector4i(1, -1, 1, 1),
-        new Vector4i(-1, -1, 1, 0)
-    };
 
     protected final Queue<T> active;
     protected final Queue<T> pool;
+    protected final Vector4i[] textureInfo = new Vector4i[] {
+        new Vector4i(-1, 1, 0, 1),
+        new Vector4i(1, 1, 1, 1),
+        new Vector4i(1, -1, 1, 0),
+        new Vector4i(-1, -1, 0, 0)//
+    };
 
     public ScreenParticleSet(int lifetime, int maxCount, int activeCapacity, int poolCapacity) {
         PARTICLE_LIFETIME = lifetime;
@@ -41,8 +41,8 @@ public abstract class ScreenParticleSet <T extends ScreenParticleSet.ScreenParti
         while (iterator.hasNext()) {
             T screenParticle = iterator.next();
             screenParticle.time++;
-            if (screenParticle.time < PARTICLE_LIFETIME) {
-                screenParticle.lifetimeRatio = screenParticle.time / PARTICLE_LIFETIME;
+            if (screenParticle.time < screenParticle.getLifetime()) {
+                screenParticle.lifetimeRatio = screenParticle.time / screenParticle.getLifetime();
                 screenParticle.update();
             } else {
                 iterator.remove();
@@ -59,7 +59,7 @@ public abstract class ScreenParticleSet <T extends ScreenParticleSet.ScreenParti
             T p = pool.poll();
             p.reActive();
             active.offer(p);
-        } if (count < MAX_NUMBER) {
+        } else if (count < MAX_NUMBER) {
             active.offer(getParticle());
             ++count;
         }
@@ -71,11 +71,10 @@ public abstract class ScreenParticleSet <T extends ScreenParticleSet.ScreenParti
 
     @OnlyIn(Dist.CLIENT)
     protected abstract class ScreenParticle {
-        protected final Vector2f size;
-
-        protected final Vector4i color = RenderUtil.black();
         protected float time;
         protected float lifetimeRatio;
+        protected final Vector2f size;
+        protected Vector4i color = RenderUtil.black();
 
         protected ScreenParticle(Vector2f size) {
             if (textureInfo.length != 4)
@@ -97,6 +96,10 @@ public abstract class ScreenParticleSet <T extends ScreenParticleSet.ScreenParti
                 consumer.vertex(RenderUtil.TRANSIENT_MATRIX, scale.x * rotate.x, scale.y * rotate.y, -90f)
                     .color(color.x, color.y, color.z, color.w).uv(rotate.z, rotate.w).endVertex();
             }
+        }
+
+        protected int getLifetime() {
+            return PARTICLE_LIFETIME;
         }
 
         //The palette that the energy particle streaks can cycle through.

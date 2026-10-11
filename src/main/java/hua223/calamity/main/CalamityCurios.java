@@ -38,12 +38,14 @@ import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 // I made this mod simply because I love both games
 // I'm not a professional game developer, and this was my first time working with modding
-// I was not good at math, and I was the only one on the development team, so i can only do my best
+// I was not good at math, and I was the only one on the development team, so I can only do my best
 @Mod(CalamityCurios.MODID)
 public class CalamityCurios {
     // Define mod getId in a common place for everything to reference
@@ -108,20 +110,20 @@ public class CalamityCurios {
                 processor.lookup, methodName, factoryType, interfaceType, ctorHandle,
                 MethodType.methodType(clazz, EntityType.class, Level.class)).getTarget().invokeExact();
 
-            EntityType.Builder<?> builder = EntityType.Builder.of(factory, processor.parser("category"));
-            if (processor.parser("noSummon")) builder.noSummon();
-            if (processor.parser("noSave")) builder.noSave();
-            float[] sized = processor.parser("sized");
-            builder.setShouldReceiveVelocityUpdates(processor.parser("velocityUpdates"))
-                .updateInterval(processor.parser("updateInterval"))
-                .clientTrackingRange(processor.parser("trackingRange"))
+            EntityType.Builder<?> builder = EntityType.Builder.of(factory, processor.parse("category"));
+            if (processor.parse("noSummon")) builder.noSummon();
+            if (processor.parse("noSave")) builder.noSave();
+            float[] sized = processor.parse("sized");
+            builder.setShouldReceiveVelocityUpdates(processor.parse("velocityUpdates"))
+                .updateInterval(processor.parse("updateInterval"))
+                .clientTrackingRange(processor.parse("trackingRange"))
                 .sized(sized[0], sized[1]);
 
-            String raw = processor.parser("name");
+            String raw = processor.parse("name");
             final String name = raw.isEmpty() ? CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, clazz.getSimpleName()) : raw;
             final Class<?> renderClass;
             if (renderMap != null) {
-                Class<?> c = processor.parser("renderClass");
+                Class<?> c = processor.parse("renderClass");
                 renderClass = c == AutoEntityRegister.class ? processor.modLoader.loadClass(clazz.getName() + "$Renderer") : c;
             } else renderClass = null;
 
@@ -173,8 +175,9 @@ public class CalamityCurios {
             if (list != null) {
                 list.add(target);
                 list.add(name);
-            } else throw new IllegalStateException(String.format("Invalid player logout function %s was found in class %s", target, name));
+            } else throw new IllegalStateException(String.format("Invalid tracker logout function %s was found in class %s", target, name));
         });
+
         annotationProcessor.addPostProcessor(() -> {
             Object[] objects = s.toArray();
             Consumer<PlayerEvent.PlayerLoggedOutEvent> consumer = event -> handlerLogOut(event.getEntity(), objects);

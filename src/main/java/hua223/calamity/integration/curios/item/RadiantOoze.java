@@ -17,7 +17,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 
 @JeiInfo(zh_cn = "牧师概率交易")
-@ConflictChain(AmbrosialAmpoule.class)
+@CurioRepel(AmbrosialAmpoule.class)
 public class RadiantOoze extends BaseCurio implements ICuriosStorage {
     public RadiantOoze(Properties properties) {
         super(properties);
@@ -35,9 +35,7 @@ public class RadiantOoze extends BaseCurio implements ICuriosStorage {
 
     @Override
     protected void onPlayerTick(Player player) {
-        if (addCount(player, 0) >= 20) {
-            zeroCount(player, 0);
-
+        if (resetOrUpdate(player, 0, 20)) {
             float max = player.getMaxHealth();
             float health = player.getHealth();
             int amplifier =  0;

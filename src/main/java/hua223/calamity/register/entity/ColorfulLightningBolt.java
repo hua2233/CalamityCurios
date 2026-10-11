@@ -2,6 +2,7 @@ package hua223.calamity.register.entity;
 
 import hua223.calamity.render.IllusionBufferSource;
 import hua223.calamity.render.entity.ColorfulLightningBoltRenderer;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
@@ -16,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 @AutoEntityRegister(trackingRange = 16, updateInterval = Integer.MAX_VALUE,
     renderClass = ColorfulLightningBoltRenderer.class, name = "calamity_lightning_bolt")
 public class ColorfulLightningBolt extends LightningBolt {
-    private int[] color = {0, 0, 0, 0};
+    private float[] color = {0, 0, 0, 0};
 
     public ColorfulLightningBolt(EntityType<? extends LightningBolt> type, Level pLevel) {
         super(type, pLevel);
@@ -29,21 +30,14 @@ public class ColorfulLightningBolt extends LightningBolt {
 
     @Override
     public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
-        ClientboundAddEntityPacket packet = new ClientboundAddEntityPacket(this, color[0]);
+        ClientboundAddEntityPacket packet = new ClientboundAddEntityPacket(this, (int) color[0]);
         color = null;
         return packet;
     }
 
-    @Override
     @OnlyIn(Dist.CLIENT)
-    public void onClientRemoval() {
-        super.onClientRemoval();
-        IllusionBufferSource.destroy();
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public void applyColor() {
-        IllusionBufferSource.setColor(color[0], color[1], color[2], color[3]);
+    public MultiBufferSource getColorfulBuffer(MultiBufferSource source) {
+       return IllusionBufferSource.getSource(color[0], color[1], color[2], color[3]);
     }
 
     @Override
@@ -51,10 +45,9 @@ public class ColorfulLightningBolt extends LightningBolt {
     public void recreateFromPacket(@NotNull ClientboundAddEntityPacket packet) {
         super.recreateFromPacket(packet);
         int packColor = packet.getData();
-        color[0] = FastColor.ARGB32.red(packColor);
-        color[1] = FastColor.ARGB32.green(packColor);
-        color[2] = FastColor.ARGB32.blue(packColor);
-        color[3] = FastColor.ARGB32.alpha(packColor);
-        IllusionBufferSource.create();
+        color[0] = FastColor.ARGB32.red(packColor) / 255f;
+        color[1] = FastColor.ARGB32.green(packColor) / 255f;
+        color[2] = FastColor.ARGB32.blue(packColor) / 255f;
+        color[3] = FastColor.ARGB32.alpha(packColor) / 255f;
     }
 }

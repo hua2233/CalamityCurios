@@ -1,11 +1,9 @@
 package hua223.calamity.render.hud;
 
 import hua223.calamity.main.CalamityCurios;
-import hua223.calamity.util.delaytask.DelayRunnable;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.util.FastColor;
-import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -13,7 +11,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class FatigueHud extends EnergyBarHud {
     private static FatigueHud INSTANCE;
     public FatigueHud() {
-        super(30, 100);
+        super(30);
         INSTANCE = this;
     }
 
@@ -27,20 +25,13 @@ public class FatigueHud extends EnergyBarHud {
     }
 
     @Override
-    public void setProgress(float value) {
-        lastProgress = progress;
-        finalProgress = value / maxValue;
-        if (!DelayRunnable.addUniqueLoopTask(() -> {
-            frameProgress = progress;
+    public float getMaxValue() {
+        return 30f;
+    }
 
-            color = FastColor.ARGB32.lerp(progress, 0xFF3D0700, 0xFF002600);
-            progress = Mth.clamp(Mth.lerp(++tickProgress / 20f, lastProgress, finalProgress), 0f, 1f);
-            if (progress == finalProgress) {
-                tickProgress = 0;
-                return true;
-            }
-            return false;
-        }, 1, getClass())) tickProgress = 0;
+    @Override
+    protected void onTickProgress() {
+        color = FastColor.ARGB32.lerp(progress, 0xFF3D0700, 0xFF002600);
     }
 
     public static void afterMainTextureLoad(TextureAtlas atlas) {

@@ -43,7 +43,7 @@ public class EndothermicEnergy extends Item {
     @Override
     public boolean onEntityItemUpdate(ItemStack stack, ItemEntity entity) {
         Level level = entity.level();
-        if (!level.isClientSide && entity.getAge() != 0 &&  entity.getAge() % 20 == 0) {
+        if (!level.isClientSide && entity.getAge() != 0 && entity.getAge() % 20 == 0) {
             CompoundTag tag = updateState(level, entity);
             if (tag.contains("index", 11)) {
                 byte energy;

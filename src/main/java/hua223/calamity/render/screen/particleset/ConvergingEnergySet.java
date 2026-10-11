@@ -1,13 +1,14 @@
 package hua223.calamity.render.screen.particleset;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import hua223.calamity.render.screen.ConvergingEnergyRenderer;
-import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.render.CircleBuffer;
-import hua223.calamity.util.RenderUtil;
-import hua223.calamity.util.Vector2f;
 import hua223.calamity.render.primitive.PrimitiveRenderer;
 import hua223.calamity.render.primitive.PrimitiveSettings;
+import hua223.calamity.render.screen.ConvergingEnergyRenderer;
+import hua223.calamity.render.shaders.CalamityShaders;
+import hua223.calamity.util.CalamityHelp;
+import hua223.calamity.util.RenderUtil;
+import hua223.calamity.util.Vector2f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.util.Mth;
@@ -136,7 +137,7 @@ public class ConvergingEnergySet extends ScreenParticleSet<ConvergingEnergySet.C
         private final MultiBufferSource source = Minecraft.getInstance().renderBuffers().bufferSource();
 
         public EnergySettings() {
-            super(RenderUtil.Shaders.getConvergingGenesisEnergy());
+            super(CalamityShaders.getConvergingGenesisEnergy());
             Vector4i white = RenderUtil.fromColorGet(Color.WHITE);
             palette = new Vector4i[] {
                 white,
@@ -176,11 +177,6 @@ public class ConvergingEnergySet extends ScreenParticleSet<ConvergingEnergySet.C
         @Override
         public int getCapacity() {
             return 3;
-        }
-
-        @Override
-        public float widthCorrectionRatio() {
-            return .2f;
         }
 
         @Override

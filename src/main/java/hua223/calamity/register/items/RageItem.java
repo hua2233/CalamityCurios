@@ -23,10 +23,8 @@ public class RageItem extends AvailableItem {
 
     @Override
     public @NotNull ItemStack finishUsingItem(@NotNull ItemStack stack, Level level, @NotNull LivingEntity entity) {
-        if (!level.isClientSide && entity.calamity$IsPlayer
-            && entity.calamity$Player.Calamity$Player.rage.tryUseRageItem(id)) {
-            stack.shrink(1);
-        }
+        if (!level.isClientSide && entity.calamity$IsPlayer && entity.calamity$Player
+            .Calamity$Player.rage.tryUseRageItem(id)) stack.shrink(1);
         return stack;
     }
 

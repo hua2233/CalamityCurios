@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A" : {
+      "item": "calamity_curios:unholy_core"
+    },
+    "B": {
+      "item": "minecraft:wither_skeleton_skull"
+    },
+    "D": {
+      "item": "calamity_curios:scoria_ingot"
+    }
+  },
+  "pattern": [
+    "DA ",
+    "BA ",
+    "DAD"
+  ],
+  "result": {
+    "item": "calamity_curios:calamity_void"
+  }
+}

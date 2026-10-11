@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "calamity_curios:meld_construct"
+    },
+    "C": {
+      "item": "irons_spellbooks:netherite_spell_book"
+    }
+  },
+  "pattern": [
+    "AAA",
+    "ACA",
+    "AAA"
+  ],
+  "result": {
+    "item": "calamity_curios:apathanull"
+  }
+}

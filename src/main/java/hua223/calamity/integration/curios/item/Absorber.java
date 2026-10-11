@@ -2,8 +2,8 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.HurtListener;
+import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.register.effects.Plague;
 import hua223.calamity.util.CMLangUtil;
@@ -54,17 +54,18 @@ public class Absorber extends BaseCurio {
                 if (!cooldowns.isOnCooldown(this)) {
                     GrandGelatin.removeAllDeBuff(player);
 
-                    List<Player> players = player.level().getNearbyPlayers(TargetingConditions.forNonCombat(), player,
+                    List<Player> players = player.level().getNearbyPlayers(TargetingConditions.DEFAULT, player,
                         player.getBoundingBox().inflate(5));
                     players.add(player);
+
                     for (Player player1 : players)
                         player1.addEffect(new MobEffectInstance(CalamityEffects.RE_GENA.get(), 200, 1));
 
-                    cooldowns.addCooldown(this, 600);
+                    cooldowns.addCooldown(this, 400);
                 }
             }
 
-            listener.entity.hurt(Plague.supplier.get(player), listener.baseAmount);
+            listener.entity.hurt(Plague.supplier.get(), listener.baseAmount);
             CalamityHelp.addIfDoesNotExist(listener.entity, 200, 0, CalamityEffects.NATURE_PAIN.get());
             float value = listener.getCorrectionValue() * 0.05f;
             if (value > 0) listener.floating -= value;

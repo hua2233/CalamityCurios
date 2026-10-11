@@ -1,9 +1,10 @@
 package hua223.calamity.net;
 
+import hua223.calamity.events.listeners.TrackedListener;
 import hua223.calamity.net.packets.ItemResponsePack;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
@@ -21,9 +22,9 @@ public interface IDataPackResponse {
     CompoundTag PACK = new CompoundTag();
 
     /**
-     * Sends a data packet containing NBT tag to the specified client player.
+     * Sends a data packet containing NBT tag to the specified client tracker.
      *
-     * @param player The target server player (receiver).
+     * @param player The target server tracker (receiver).
      */
     default void sendToClient(ServerPlayer player) {
         NetMessages.sendToClient(createNetPack(), player);
@@ -31,6 +32,21 @@ public interface IDataPackResponse {
 
     default void sendToAllClient() {
         NetMessages.sendToAllClient(createNetPack());
+    }
+
+    default void sendToTracking(Entity entity) {
+        NetMessages.sendToTracking(entity, createNetPack());
+    }
+
+    default void sendToTrackingAndSelf(ServerPlayer player) {
+        NetMessages.sendToTrackingAndSelf(player, createNetPack());
+    }
+
+    default void writeFlagAndSendToAllTracking(ServerPlayer player, boolean flag) {
+        CompoundTag tag = getPack();
+        tag.putBoolean("flag", flag);
+        TrackedListener.writeTracker(tag, player);
+        sendToTrackingAndSelf(player);
     }
 
     default DataPack createNetPack() {

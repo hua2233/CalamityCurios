@@ -1,7 +1,7 @@
 package hua223.calamity.register.effects;
 
-import hua223.calamity.register.config.CalamityConfig;
 import hua223.calamity.register.config.AutoConfig;
+import hua223.calamity.register.config.CalamityConfig;
 import hua223.calamity.util.CMLangUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.world.effect.MobEffectCategory;

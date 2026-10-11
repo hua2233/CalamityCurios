@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A" : {
+      "item": "calamity_curios:calamity_core"
+    },
+    "B": {
+      "item": "irons_spellbooks:mithril_scrap"
+    },
+    "C": {
+      "tag": "minecraft:arrows"
+    }
+  },
+  "pattern": [
+    "AAA",
+    "BCB",
+    " B "
+  ],
+  "result": {
+    "item": "calamity_curios:deadshot_brooch"
+  }
+}

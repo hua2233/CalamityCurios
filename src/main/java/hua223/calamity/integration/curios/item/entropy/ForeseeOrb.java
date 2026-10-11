@@ -2,11 +2,13 @@ package hua223.calamity.integration.curios.item.entropy;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
+import hua223.calamity.events.listeners.DamageListener;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.events.listeners.HurtListener;
 import hua223.calamity.register.attribute.CalamityAttributes;
-import hua223.calamity.register.damage.*;
+import hua223.calamity.register.damage.DamageRequester;
+import hua223.calamity.register.damage.DamageSupplier;
 import hua223.calamity.util.CMLangUtil;
+import hua223.calamity.util.GlobalCuriosStorage;
 import hua223.calamity.util.ICuriosStorage;
 import hua223.calamity.util.VariableAttributeModifier;
 import net.minecraft.ChatFormatting;
@@ -48,7 +50,7 @@ public class ForeseeOrb extends BaseCurio implements ICuriosStorage {
 
     @ApplyEvent
     @SuppressWarnings("ConstantConditions")
-    public final void onHurt(HurtListener listener) {
+    public final void onDamage(DamageListener listener) {
         if (listener.baseAmount > 8f) {
             listener.setFinalAmount(8);
             listener.player.getCooldowns().addCooldown(this, 600);
@@ -67,10 +69,11 @@ public class ForeseeOrb extends BaseCurio implements ICuriosStorage {
     @Override
     @SuppressWarnings("ConstantConditions")
     protected void onPlayerTick(Player player) {
-        float[] count = getCount(player);
+        GlobalCuriosStorage.CuriosMemory memory = getMemory(player);
+        float[] count = memory.count;
         if (count[0] == 1 && --count[1] == 0) {
             count[0] = 0;
-            VariableAttributeModifier.updateModifierInInstance(player.getAttribute(CalamityAttributes.DAMAGE_UP.get()), getFirstUUID(player), 0.12);
+            VariableAttributeModifier.updateModifierInInstance(player.getAttribute(CalamityAttributes.DAMAGE_UP.get()), memory.uuids[0], 0.12);
         }
     }
 

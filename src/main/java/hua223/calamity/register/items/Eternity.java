@@ -1,9 +1,9 @@
 package hua223.calamity.register.items;
 
+import hua223.calamity.net.IDataPackResponse;
 import hua223.calamity.register.entity.EternityHex;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.CalamityHelp;
-import hua223.calamity.net.IDataPackResponse;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellDataRegistryHolder;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
@@ -20,6 +20,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
@@ -69,6 +70,11 @@ public class Eternity extends UniqueSpellBook implements IDataPackResponse {
             }
         }
         return InteractionResultHolder.success(player.getItemInHand(hand));
+    }
+
+    @Override
+    public @NotNull Rarity getRarity(@NotNull ItemStack stack) {
+        return Rarity.EPIC;
     }
 
     @Override

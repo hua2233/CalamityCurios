@@ -2,7 +2,7 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.events.listeners.PlayerAttackListener;
+import hua223.calamity.events.listeners.PostAttackListener;
 import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.main.CalamityCurios;
 import hua223.calamity.register.entity.ColorfulLightningBolt;
@@ -52,8 +52,8 @@ public class ArcFlashRing extends BaseCurio implements ICuriosStorage {
 
     @ApplyEvent(100)
     @SuppressWarnings("ConstantConditions")
-    public final void onAttack(PlayerAttackListener listener) {
-        double chance = 0.05f + listener.player.getAttributeValue(Attributes.LUCK);
+    public final void onAttack(PostAttackListener listener) {
+        double chance = Math.min(.1f, 0.05f + listener.player.getAttributeValue(Attributes.LUCK) / 100F);
         var memory = getMemory(listener.player);
         if (listener.player.tickCount == memory.count[1]) {
             //First hit without decay
@@ -76,7 +76,7 @@ public class ArcFlashRing extends BaseCurio implements ICuriosStorage {
             bolt.setDamage(listener.baseAmount * amplifier);
             bolt.setSilent(turnOffRendering);
             bolt.setPos(listener.entity.position());
-            listener.player.level().addFreshEntity(bolt);
+            listener.entity.level().addFreshEntity(bolt);
             listener.entity.thunderHit(listener.player.serverLevel(), bolt);
         }
     }

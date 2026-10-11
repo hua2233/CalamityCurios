@@ -4,6 +4,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 
 import java.util.UUID;
+
 public interface ICuriosStorage {
     static float getReducedValue(float[] count, int index, float reduceNumber) {
 

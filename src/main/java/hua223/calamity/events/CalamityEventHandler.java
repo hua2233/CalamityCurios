@@ -9,7 +9,7 @@ import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.register.effects.IEffectsCallBack;
 import hua223.calamity.register.entity.projectiles.MiniDragonBorn;
-import hua223.calamity.util.*;
+import hua223.calamity.util.CalamityHelp;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.Input;
 import net.minecraft.client.player.LocalPlayer;
@@ -42,95 +42,69 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 import static hua223.calamity.main.CalamityCurios.MODID;
-import static hua223.calamity.register.items.CalamityItems.*;
+import static hua223.calamity.register.items.CalamityItems.STEM_CELLS;
 
 @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class CalamityEventHandler {
     private CalamityEventHandler() {}
 
-    @Nullable
-    private static <T extends BaseListener<?>> T dispatch(Player player, EventTypes<T> type, Object... argsContext) {
-        Map<EventTypes<?>, List<MethodHandlerSorter>> library = player.Calamity$Player.getActiveEvents();
-        if (library != null) {
-            List<MethodHandlerSorter> events = library.get(type);
-            if (events != null) {
-                //延迟按需构造，防止提前构造无用对象
-                try {
-                    T event = type.builderEvent(argsContext);
-                    for (MethodHandlerSorter handler : events) {
-                        if (event.isCanceled()) return null;
-                        handler.invoke().invokeExact(event);
-                    }
-
-                    return event;
-                } catch (Throwable e) {
-                    CalamityCurios.LOGGER.error("Fatal error occurred while handling the event");
-                    throw new RuntimeException(e);
-                }
-            }
-        }
-
-        return null;
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    //在护甲计算之前触发，用作特殊增伤，或其他可行用途
+    public static void onPlayerHurt(LivingHurtEvent event) {
+        HurtListener listener = event.getEntity() instanceof ServerPlayer player ? dispatch(player, EventTypes.HURT, event, player) :
+            event.getSource().getEntity() instanceof ServerPlayer player ? dispatch(player, EventTypes.HURT_ATTACK, player, event) : null;
+        if (listener != null) event.setAmount(listener.settlement());
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void onPlayerHurtOrAttack(final LivingHurtEvent event) {
-        LivingEntity entity = event.getEntity();
-        if (!entity.level().isClientSide && entity.calamity$IsPlayer)
-            onPlayerHurt(event, (ServerPlayer) event.getEntity());
-        else if (event.getSource().getEntity() instanceof ServerPlayer player)
-            onPlayerAttack(event, player);
-    }
+    //绝大部分原先的Hurt逻辑都移动到此处，在护甲后进行增伤计算。防止因伤害膨胀使得护甲失去作用
+    public static void onPlayerDamage(final LivingDamageEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            DamageListener listener = dispatch(player, EventTypes.DAMAGE, event, player);
+            if (listener != null) {
+                Calamity.sunkCurse(listener);
+                DeitiesRampart.rampartGuard(listener);
+                listener.amplifier -= (float) (player.getAttributeValue(CalamityAttributes.INJURY_OFFSET.get()) - 1 - listener.player.calamity$EffectFragile);
+                event.setAmount(listener.settlement());
+            }
+        } else if (event.getSource().getEntity() instanceof ServerPlayer player) {
+            //Calculate universal amplification
+            double common = player.getAttributeValue(CalamityAttributes.CRITICAL_STRIKE_CHANCE.get()) - 1;
+            double amplifier;
+            Boolean isCalamityCriticalHits = Boolean.FALSE;
+            if (event.getSource().is(DamageTypeTags.IS_PROJECTILE)) {
+                double criticalHits = (player.getAttributeValue(CalamityAttributes.FAR_CRITICAL_STRIKE_CHANCE.get()) - 1) + common;
+                amplifier = player.getAttributeValue(CalamityAttributes.FAR_ATTACK.get());
 
-    public static void onPlayerHurt(final LivingHurtEvent event, ServerPlayer player) {
-        HurtListener listener = dispatch(player, EventTypes.HURT, event, player);
-        if (listener != null) {
-            Calamity.sunkCurse(listener);
-            DeitiesRampart.rampartGuard(listener);
-            listener.amplifier -= (float) (player.getAttributeValue(CalamityAttributes.INJURY_OFFSET.get()) - 1 - listener.player.calamity$EffectFragile);
-            event.setAmount(listener.getCorrectionValue());
+                if (ProjectileHitListener.isSpiritOriginCritical()) {
+                    amplifier += (2.5 + criticalHits);
+                    isCalamityCriticalHits = Boolean.TRUE;
+                } else if (criticalHits > 0 && criticalHits >= player.getRandom().nextDouble()) {
+                    amplifier += 2;
+                    isCalamityCriticalHits = Boolean.TRUE;
+                }
+            } else {
+                amplifier = player.getAttributeValue(CalamityAttributes.CLOSE_RANGE.get());
+
+                double value = (player.getAttributeValue(CalamityAttributes.CLOSE_CRITICAL_STRIKE_CHANCE.get()) - 1) + common;
+                if (value > 0 && value >= player.getRandom().nextDouble()) {
+                    isCalamityCriticalHits = Boolean.TRUE;
+                    amplifier += 2f;
+                }
+            }
+
+            amplifier += (float) (player.getAttributeValue(CalamityAttributes.DAMAGE_UP.get()) - 1 + event.getEntity().calamity$EffectFragile);
+            PostAttackListener listener = dispatch(player, EventTypes.DAMAGE_ATTACK, player, event, isCalamityCriticalHits);
+            //No Listener
+            if (listener == null) {
+                if (!event.isCanceled()) event.setAmount((event.getAmount() * (float) amplifier));
+            } else event.setAmount(listener.settlement());
         }
     }
-
-    public static void onPlayerAttack(final LivingHurtEvent event, ServerPlayer player) {
-        //Calculate universal amplification
-        double common = player.getAttributeValue(CalamityAttributes.CRITICAL_STRIKE_CHANCE.get()) - 1;
-        double amplifier;
-        Boolean isCalamityCriticalHits = Boolean.FALSE;
-        if (event.getSource().is(DamageTypeTags.IS_PROJECTILE)) {
-            double criticalHits = (player.getAttributeValue(CalamityAttributes.FAR_CRITICAL_STRIKE_CHANCE.get()) - 1) + common;
-            amplifier = player.getAttributeValue(CalamityAttributes.FAR_ATTACK.get());
-
-            if (ProjectileHitListener.isSpiritOriginCritical()) {
-                amplifier += (2.5 + criticalHits);
-                isCalamityCriticalHits = Boolean.TRUE;
-            } else if (criticalHits > 0 && criticalHits >= player.getRandom().nextDouble()) {
-                amplifier += 2;
-                isCalamityCriticalHits = Boolean.TRUE;
-            }
-        } else {
-            amplifier = player.getAttributeValue(CalamityAttributes.CLOSE_RANGE.get());
-
-            double value = (player.getAttributeValue(CalamityAttributes.CLOSE_CRITICAL_STRIKE_CHANCE.get()) - 1) + common;
-            if (value > 0 && value >= player.getRandom().nextDouble()) {
-                isCalamityCriticalHits = Boolean.TRUE;
-                amplifier += 2f;
-            }
-        }
-
-        amplifier += (float) (player.getAttributeValue(CalamityAttributes.DAMAGE_UP.get()) - 1 +
-            event.getEntity().calamity$EffectFragile);
-        PlayerAttackListener listener = dispatch(player, EventTypes.ATTACK, player, event, isCalamityCriticalHits);
-        //No Listener
-        if (listener == null) {
-            if (!event.isCanceled())
-                event.setAmount((event.getAmount() * (float) amplifier));
-        } else event.setAmount(listener.getCorrectionValue());
-    }
-
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onCriticalHit(CriticalHitEvent event) {
         Entity entity = event.getTarget();
@@ -171,6 +145,12 @@ public class CalamityEventHandler {
         }
     }
 
+//    @SubscribeEvent(priority = EventPriority.LOWEST)
+//    public static void onEntityLeave(EntityLeaveLevelEvent event) {
+//        if (event.getEntity() instanceof ServerPlayer)
+//            CalamityCurios.LOGGER.debug("Test Remove {}", event.getEntity().getRemovalReason());
+//    }
+
     @SubscribeEvent
     public static void onArrowLoose(final ArrowLooseEvent event) {
         Player player = event.getEntity();
@@ -207,10 +187,8 @@ public class CalamityEventHandler {
 
     @SubscribeEvent
     public static void onDimensionChange(final PlayerEvent.PlayerChangedDimensionEvent event) {
-        if (!event.getEntity().isLocalPlayer()) {
-            ServerPlayer player = (ServerPlayer) event.getEntity();
-            dispatch(player, EventTypes.DIMENSION_CHANGE, event, player);
-        }
+        ServerPlayer player = (ServerPlayer) event.getEntity();
+        dispatch(player, EventTypes.DIMENSION_CHANGE, event, player);
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -236,6 +214,16 @@ public class CalamityEventHandler {
         }
     }
 
+    //New Add Sync Event
+    //对于所有具有 “迟到追踪竞态” 的渲染状态均使用事件从服务端进行读取同步，Minecraft服务器不会对未被跟踪的玩家发送数据包
+    //加入该远程玩家在本地因为维度穿越，或远离而被卸载时再次被加载可能不会被即时同步导致的视觉异常甚至崩溃
+    //由于经验不足，加上一直处于单人开发模式，这个问题被我彻底疏忽了
+    @SubscribeEvent
+    public static void onPlayerStartTracked(PlayerEvent.StartTracking event) {
+        if (event.getTarget() instanceof ServerPlayer player)
+            dispatch(player, EventTypes.TRACKED, event);
+    }
+
     @SubscribeEvent
     public static void onChangeTarget(LivingChangeTargetEvent event) {
         LivingEntity target = event.getNewTarget();
@@ -251,7 +239,8 @@ public class CalamityEventHandler {
 
     @SubscribeEvent
     public static void onItemEaten(LivingEntityUseItemEvent.Finish event) {
-        if (event.getItem().is(Items.MUSHROOM_STEW) && FUNGAL_SYMBIOTE.isEquip(event.getEntity()))
+        LivingEntity entity = event.getEntity();
+        if (entity.calamity$IsPlayer && entity.calamity$Player.Calamity$Player.fungalSymbiosis && event.getItem().is(Items.MUSHROOM_STEW))
             event.getEntity().addEffect(new MobEffectInstance(CalamityEffects.MUSHY.get(), 200));
     }
 
@@ -260,9 +249,9 @@ public class CalamityEventHandler {
     @SuppressWarnings("ConstantConditions")
     public static void onMoveInput(MovementInputUpdateEvent event) {
         LocalPlayer player = Minecraft.getInstance().player;
-        if (player.isMovingSlowly() && player.Calamity$Player.sneakingSpeedBonus) {
+        if (player.Calamity$Player.sneakingSpeedBonus > 0 && player.isMovingSlowly()) {
             againCalculateImpulse(event.getInput(), Mth.clamp(.3f + EnchantmentHelper.getSneakingSpeedBonus(player),
-                0f, 1f) + (player.Calamity$Player.cardDeck ? .5f : .3f));
+                0f, 1f) + player.Calamity$Player.sneakingSpeedBonus);
         }
     }
 
@@ -276,5 +265,30 @@ public class CalamityEventHandler {
     public static void setInvisible(LivingEvent.LivingVisibilityEvent event) {
         LivingEntity entity = event.getEntity();
         if (entity.calamity$IsPlayer) entity.calamity$Player.Calamity$Player.canBeSeen(event);
+    }
+
+    @Nullable
+    private static <T extends BaseListener<?>> T dispatch(Player player, EventTypes<T> type, Object... argsContext) {
+        Map<EventTypes<?>, List<MethodHandlerSorter>> library = player.Calamity$Player.getActiveEvents();
+        if (library != null) {
+            List<MethodHandlerSorter> events = library.get(type);
+            if (events != null) {
+                //延迟按需构造，防止提前构造无用对象
+                try {
+                    T event = type.builderEvent(argsContext);
+                    for (MethodHandlerSorter handler : events) {
+                        if (event.isCanceled()) return null;
+                        handler.invoke().invokeExact(event);
+                    }
+
+                    return event;
+                } catch (Throwable e) {
+                    CalamityCurios.LOGGER.error("Fatal error occurred while handling the event");
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
+        return null;
     }
 }

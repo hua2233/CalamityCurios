@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A" : {
+      "item": "calamity_curios:bloodstone_core"
+    },
+    "C": {
+      "item": "calamity_curios:blood_pact"
+    },
+    "D": {
+      "item": "irons_spellbooks:greater_healing_potion"
+    },
+    "B": {
+      "item": "calamity_curios:ascendant_spirit_essence"
+    }
+  },
+  "pattern": [
+    "ADA",
+    "BCB",
+    "ADA"
+  ],
+  "result": {
+    "item": "calamity_curios:blood_god_chalice"
+  }
+}

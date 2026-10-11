@@ -12,8 +12,12 @@ import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraftforge.fml.loading.moddiscovery.ModAnnotation;
 
-import java.lang.invoke.*;
-import java.util.*;
+import java.lang.invoke.LambdaMetafactory;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 //Global loot function, used to manipulate all loot types in the context environment set.
 //If simple modification or triggering of types is required, please use CalamityEventHandler to register curios events
@@ -33,6 +37,15 @@ public enum GlobalLoot {
 //        }
 //    },
 
+    FISHING_LOOTS {
+        @Override
+        public ObjectArrayList<ItemStack> apply(ObjectArrayList<ItemStack> generatedLoot, LootContext context) {
+            Entity hook = context.getParamOrNull(LootContextParams.THIS_ENTITY);
+            //.... Fishing without hooks, are you serious？
+            return hook != null ? onDrops(new FishingLootContext(generatedLoot, context, hook)) : generatedLoot;
+        }
+    },
+
     ENTITY_LOOTS {
         @Override
         public ObjectArrayList<ItemStack> apply(ObjectArrayList<ItemStack> generatedLoot, LootContext context) {
@@ -45,6 +58,7 @@ public enum GlobalLoot {
     public abstract ObjectArrayList<ItemStack> apply(ObjectArrayList<ItemStack> generatedLoot, LootContext context);
 
     public static boolean absoluteOperation;
+
     protected int playerCondition;
     protected final ArrayList<LootCall> globalLootFunctions = new ArrayList<>();
 

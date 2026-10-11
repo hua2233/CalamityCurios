@@ -1,5 +1,6 @@
 package hua223.calamity.register.effects;
 
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
@@ -10,6 +11,7 @@ import java.util.function.BooleanSupplier;
 
 @ApiStatus.Internal
 public class SurvivableEffectInstance extends MobEffectInstance {
+    private int tick;
     private BooleanSupplier survivalConditions;
     private MobEffect[] instances = {getEffect()};
 
@@ -17,6 +19,7 @@ public class SurvivableEffectInstance extends MobEffectInstance {
         super(effect, duration, amplifier);
         if (conditions == null) throw new IllegalArgumentException("Why would I do this?");
         survivalConditions = conditions;
+        tick = duration;
     }
 
     public SurvivableEffectInstance setNoFlicker() {
@@ -40,6 +43,12 @@ public class SurvivableEffectInstance extends MobEffectInstance {
         return result;
     }
 
+    @Override
+    //Not Save
+    public @NotNull CompoundTag save(@NotNull CompoundTag nbt) {
+        return nbt;
+    }
+
     public MobEffectInstance addSubEffects(MobEffect... effects) {
         if (instances.length == 1) {
             MobEffect[] _new = new MobEffect[effects.length + instances.length];
@@ -53,13 +62,13 @@ public class SurvivableEffectInstance extends MobEffectInstance {
 
     @Override
     public boolean tick(@NotNull LivingEntity entity, @NotNull Runnable runnable) {
-        int d = getDuration();
-        if (d > 0 && (survivalConditions == null || survivalConditions.getAsBoolean())) {
+        if (tick != 0 && (survivalConditions == null || survivalConditions.getAsBoolean())) {
+            --tick;
             int a = getAmplifier();
+            int t = isInfiniteDuration() ? -tick : tick;
             for (MobEffect effect : instances)
-                if (effect.isDurationEffectTick(d, a))
-                    effect.applyEffectTick(entity, a);
-            calamity$SetProperties(--d, 0, null);
+                if (effect.isDurationEffectTick(t, a)) effect.applyEffectTick(entity, a);
+            if (!isInfiniteDuration()) calamity$SetProperties(tick, 0, null);
             getFactorData().ifPresent(data -> data.tick(this));
             return true;
         }

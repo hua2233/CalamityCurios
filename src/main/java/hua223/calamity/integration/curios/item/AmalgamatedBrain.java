@@ -2,8 +2,8 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.HurtListener;
+import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.register.entity.projectiles.ShadowsRain;
@@ -26,7 +26,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 import java.util.UUID;
 
-@ConflictChain(value = AmalgamatedBrain.class, isRoot = true)
+@CurioRepel(Amalgam.class)
 public class AmalgamatedBrain extends BaseCurio implements ICuriosStorage {
     public AmalgamatedBrain(Properties properties) {
         super(properties);
@@ -52,9 +52,7 @@ public class AmalgamatedBrain extends BaseCurio implements ICuriosStorage {
                 cooldowns.addCooldown(this, 100);
             }
 
-
-            if (player.getRandom().nextDouble() < 0.2)
-                additionalDebuff(listener.entity);
+            if (player.getRandom().nextFloat() < .2f) additionalDebuff(listener.entity);
         }
 
         if (CalamityHelp.isCanDodge(player, listener.baseAmount, 2, (int) Mth.clamp(listener.baseAmount * 40, 300, 1800))) {
@@ -62,7 +60,9 @@ public class AmalgamatedBrain extends BaseCurio implements ICuriosStorage {
             AttributeInstance instance = player.getAttribute(CalamityAttributes.CRITICAL_STRIKE_CHANCE.get());
             VariableAttributeModifier modifier = (VariableAttributeModifier) instance.getModifier(getFirstUUID(player));
             modifier.setValue(0.1, instance);
-            DelayRunnable.addRunTask(160, () -> modifier.setValue(0, instance));
+            DelayRunnable.addRunTask(160, () -> {
+                if (!player.isRemoved()) modifier.setValue(0, instance);
+            });
         }
     }
 

@@ -1,12 +1,11 @@
 package hua223.calamity.integration.curios.item;
 
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.SprintCurio;
 import hua223.calamity.events.listeners.EffectListener;
+import hua223.calamity.integration.curios.SprintCurio;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.CalamityHelp;
-import hua223.calamity.util.ConflictChain;
+import hua223.calamity.util.CurioRepel;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -19,7 +18,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.List;
 
-@ConflictChain(value = SprintCurio.class)
+@CurioRepel(SprintCurio.class)
 public class ElysianAegis extends SprintCurio {
     public ElysianAegis(Properties properties) {
         super(properties);
@@ -59,7 +58,6 @@ public class ElysianAegis extends SprintCurio {
 
     @Override
     public void onCollision(ServerPlayer player, LivingEntity target) {
-        target.invulnerableTime = 0;
         target.hurt(player.damageSources().playerAttack(player), 15f);
         player.calamity$SetInvulnerableTime(10);
         player.level().explode(player, player.getX(), player.getY(), player.getZ(), 2, Level.ExplosionInteraction.NONE);

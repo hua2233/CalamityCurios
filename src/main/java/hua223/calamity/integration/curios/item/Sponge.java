@@ -2,21 +2,12 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.events.LogoutRelease;
-import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.events.listeners.DeathListener;
-import hua223.calamity.events.listeners.HurtListener;
+import hua223.calamity.events.listeners.DamageListener;
 import hua223.calamity.register.attribute.CalamityAttributes;
-import hua223.calamity.render.hud.SpongeHud;
-import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.ICuriosStorage;
-import hua223.calamity.net.IDataPackResponse;
-import hua223.calamity.util.VariableAttributeModifier;
+import hua223.calamity.render.item.IDraedonCreationBG;
+import hua223.calamity.util.*;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -29,111 +20,35 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 import java.util.UUID;
 
-public class Sponge extends BaseCurio implements ICuriosStorage, IDataPackResponse {
+//Refactoring
+@CurioRepel(RoverDrive.class)
+public class Sponge extends RoverDrive implements IDraedonCreationBG {
     public Sponge(Properties properties) {
         super(properties);
+        absorptionRatio = 1.5f;
     }
 
     @Override
     protected void setAttributeModifiers(UUID uuid, ItemStack stack, Multimap<Attribute, AttributeModifier> modifier, LivingEntity equipped) {
         if (!equipped.level().isClientSide) getUUID(equipped)[0] = uuid;
-        modifier.put(Attributes.ARMOR, new VariableAttributeModifier(uuid, "sponge",
-            15, AttributeModifier.Operation.ADDITION));
+        modifier.put(Attributes.ARMOR, new VariableAttributeModifier(
+            uuid, "sponge", 15, AttributeModifier.Operation.ADDITION));
 
-        modifier.put(CalamityAttributes.INJURY_OFFSET.get(), new VariableAttributeModifier(uuid, "sponge",
-            0.1, AttributeModifier.Operation.MULTIPLY_BASE));
+        modifier.put(CalamityAttributes.INJURY_OFFSET.get(), new VariableAttributeModifier(
+            uuid, "sponge", 0.1, AttributeModifier.Operation.MULTIPLY_BASE));
     }
 
-    @Override
-    protected void equipHandle(ServerPlayer player, ItemStack stack) {
-        addCount(player, 2);
-        getPack().putBoolean("state", true);
-        sendToClient(player);
-    }
-
-    @Override
-    protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
-        getPack().putBoolean("state", false);
-        sendToClient(player);
-    }
-
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public void onClientResponse(CompoundTag tag) {
-        SpongeHud hud = SpongeHud.getInstance();
-        if (tag.contains("state")) {
-            if (tag.getBoolean("state")) hud.start();
-            else hud.close();
-        } else hud.setProgress(tag.getFloat("value"));
-    }
-
-    @LogoutRelease
-    @OnlyIn(Dist.CLIENT)
-    public static void onLogOut(LocalPlayer player) {
-        SpongeHud.getInstance().close();
-    }
-
-    @ApplyEvent(120)
-    @SuppressWarnings("ConstantConditions")
-    public final void onHurt(HurtListener listener) {
-        var memory = getMemory(listener.player);
-        float[] count = memory.count;
-
-        count[2] = 1;
-        count[1] = 180;
-        if (count[3] == 0) {
-            float hurt = listener.baseAmount;
-            float absorbed = ICuriosStorage.getReducedValue(count, 0, hurt);
-
-            if (absorbed == hurt) listener.canceledEvent();
-            else if (absorbed > 0) listener.floating -= absorbed;
-
-            if (count[0] <= 0) {
-                count[0] = 0;
-                count[3] = 1;
-                VariableAttributeModifier.updateModifierInInstance(
-                    listener.player.getAttribute(CalamityAttributes.INJURY_OFFSET.get()), memory.uuids[0], 0);
-                VariableAttributeModifier.updateModifierInInstance(
-                    listener.player.getAttribute(Attributes.ARMOR), memory.uuids[0], 0);
-            }
-            getPack().putFloat("value", count[0]);
-            sendToClient(listener.player);
-        }
-    }
-
-    @ApplyEvent
-    public final void onDeath(DeathListener listener) {
-        if (listener.isPlayerDeath)
-            unEquipHandle(listener.player, null);
+    @ApplyEvent(20)
+    public final void damage(DamageListener listener) {
+        super.onDamage(listener);
     }
 
     @Override
     @SuppressWarnings("ConstantConditions")
-    protected void onPlayerTick(Player player) {
-        var memory = getMemory(player);
-        if (memory.count[2] == 1 && --memory.count[1] <= 0) {
-            memory.count[0] += 5;
-            if (memory.count[0] >= 30) {
-                memory.count[0] = 30;
-                memory.count[2] = 0;
-                if (memory.count[3] == 1) {
-                    memory.count[3] = 0;
-                    UUID uuid = memory.uuids[0];
-                    VariableAttributeModifier.updateModifierInInstance(
-                        player.getAttribute(Attributes.ARMOR), uuid, 15);
-                    VariableAttributeModifier.updateModifierInInstance(
-                        player.getAttribute(CalamityAttributes.INJURY_OFFSET.get()), uuid, 0.1);
-                }
-            } else memory.count[1] = 20;
-
-            getPack().putFloat("value", memory.count[0]);
-            sendToClient((ServerPlayer) player);
-        }
-    }
-
-    @Override
-    public int getCountSize() {
-        return 4;
+    protected void onChangeBarrierAttribute(Player player, GlobalCuriosStorage.CuriosMemory memory, boolean chargingCompleted) {
+        UUID uuid = memory.uuids[0];
+        VariableAttributeModifier.updateModifierInInstance(player.getAttribute(Attributes.ARMOR), uuid, chargingCompleted ? 15 : 0);
+        VariableAttributeModifier.updateModifierInInstance(player.getAttribute(CalamityAttributes.INJURY_OFFSET.get()), uuid, chargingCompleted ? .1 : 0);
     }
 
     @Override
@@ -144,7 +59,8 @@ public class Sponge extends BaseCurio implements ICuriosStorage, IDataPackRespon
     @Override
     @OnlyIn(Dist.CLIENT)
     public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
-        CMLangUtil.batchColorTexts(tooltips, ChatFormatting.YELLOW, "sponge", 1, 2, 3, 4);
+        super.getSlotsTooltip(tooltips, stack);
+        tooltips.add(1, CMLangUtil.getTranslatable("sponge").withStyle(ChatFormatting.YELLOW));
         return tooltips;
     }
 }

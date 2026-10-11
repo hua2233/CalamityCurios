@@ -2,17 +2,16 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.events.listeners.HurtListener;
+import hua223.calamity.events.listeners.DamageListener;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.util.CurioRepel;
+import hua223.calamity.util.GlobalCuriosStorage;
 import hua223.calamity.util.VariableAttributeModifier;
-import hua223.calamity.util.delaytask.DelayRunnable;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.UUID;
@@ -24,25 +23,17 @@ public class GiantTortoiseShell extends GiantShell {
     }
 
     @ApplyEvent
-    public final void hurt(HurtListener listener) {
-        super.onHurt(listener);
+    public final void damage(DamageListener listener) {
+        super.onDamage(listener);
     }
 
     @Override
-    protected void handleAttributes(AttributeInstance speed, VariableAttributeModifier modifier, ServerPlayer player, UUID uuid) {
-        modifier.setValue(0, speed);
-        AttributeInstance armor = player.getAttribute(Attributes.ARMOR);
-        VariableAttributeModifier armorMod = (VariableAttributeModifier) armor.getModifier(uuid);
-        armorMod.setValue(5, armor);
-        AttributeInstance offset = player.getAttribute(CalamityAttributes.INJURY_OFFSET.get());
-        VariableAttributeModifier offsetMod = (VariableAttributeModifier) offset.getModifier(uuid);
-        offsetMod.setValue(0, offset);
-
-        DelayRunnable.addRunTask(60, () -> {
-            modifier.setValue(-0.1, speed);
-            armorMod.setValue(15, armor);
-            offsetMod.setValue(0.05, offset);
-        });
+    @SuppressWarnings("ConstantConditions")
+    protected void handleAttributes(Player player, GlobalCuriosStorage.CuriosMemory memory, boolean remove) {
+        if (remove) memory.count[0] = 60;
+        VariableAttributeModifier.updateModifierInInstance(player.getAttribute(Attributes.ARMOR), memory.uuids[0], remove ? 5 : 15);
+        VariableAttributeModifier.updateModifierInInstance(player.getAttribute(Attributes.MOVEMENT_SPEED), memory.uuids[0], remove ? 0 : -.1);
+        VariableAttributeModifier.updateModifierInInstance(player.getAttribute(CalamityAttributes.INJURY_OFFSET.get()), memory.uuids[0], remove ? 0 : .05);
     }
 
     @Override

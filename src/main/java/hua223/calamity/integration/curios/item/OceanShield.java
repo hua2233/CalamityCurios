@@ -32,6 +32,7 @@ public class OceanShield extends BaseCurio implements ICuriosStorage {
     }
 
     @Override
+    @SuppressWarnings("ConstantConditions")
     protected void onPlayerTick(Player player) {
         if (addCount(player, 0) > 20) {
             var p = getMemory(player);

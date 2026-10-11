@@ -2,12 +2,11 @@ package hua223.calamity.integration.curios;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.register.RegisterList;
-import hua223.calamity.util.CalamityHelp;
+import hua223.calamity.register.items.CalamityItems;
+import hua223.calamity.util.CurioRepel;
 import hua223.calamity.util.ICuriosStorage;
-import hua223.calamity.net.IDataPackResponse;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.ChatFormatting;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
@@ -26,11 +25,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-public abstract class Decks extends BaseCurio implements IDataPackResponse {
+@CurioRepel(isRoot = true)
+public abstract class Decks extends BaseCurio {
     private final Set<Card> subCards = new ObjectOpenHashSet<>(9);
 
     protected Decks() {
-        super(RegisterList.CURIOS_CALAMITY);
+        super(RegisterList.CALAMITY_ONE);
     }
 
     @Override
@@ -38,11 +38,7 @@ public abstract class Decks extends BaseCurio implements IDataPackResponse {
         super.onEquip(slotContext, prevStack, stack);
         if(slotContext.entity() instanceof ServerPlayer player) {
             boolean unsealing = isUnsealing(stack);
-            if (unsealing) {
-                player.Calamity$Player.cardDeck = true;
-                getPack().putBoolean("flag", true);
-                sendToClient(player);
-            }
+            if (unsealing)  player.Calamity$Player.cardDeck = true;
 
             for (Card subCard : getCards()) {
                 if (unsealing) subCard.onEquip(slotContext, prevStack, stack);
@@ -57,23 +53,15 @@ public abstract class Decks extends BaseCurio implements IDataPackResponse {
         super.onUnequip(slotContext, newStack, stack);
         if (slotContext.entity() instanceof ServerPlayer player) {
             boolean unsealing = isUnsealing(stack);
-            if (unsealing) {
-                player.Calamity$Player.cardDeck = false;
-                getPack().putBoolean("flag", false);
-                sendToClient(player);
-            }
 
             for (Card subCard : getCards()) {
                 if (unsealing) subCard.onUnequip(slotContext, newStack, stack);
                 if (subCard instanceof ICuriosStorage storage)
                     storage.removeStorage(player);
             }
-        }
-    }
 
-    @Override
-    public void onClientResponse(CompoundTag tag) {
-        CalamityHelp.getClientCalamity().cardDeck = tag.getBoolean("flag");
+            if (unsealing) player.Calamity$Player.cardDeck = false;
+        }
     }
 
     @Override
@@ -128,11 +116,12 @@ public abstract class Decks extends BaseCurio implements IDataPackResponse {
         return component;
     }
 
-    public void fillItemCategory(CreativeModeTab.Output output) {
-        output.accept(getDefaultInstance());
-        ItemStack stack = new ItemStack(this);
-        stack.getOrCreateTag().putBoolean("unsealing", true);
-        output.accept(stack);
+    public static void fillItemCategory(CreativeModeTab.Output output) {
+        for (Item item : new Item[]{CalamityItems.ORACLE_DECK.get(), CalamityItems.TAINTED_DECK.get()}) {
+            ItemStack stack = new ItemStack(item);
+            stack.getOrCreateTag().putBoolean("unsealing", true);
+            output.accept(stack);
+        }
     }
 
     public final Set<Card> getCards() {

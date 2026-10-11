@@ -10,10 +10,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.phys.Vec3;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -30,7 +28,15 @@ public abstract class BossRushBossWave implements ILevelWave {
         return 0.35f;
     }
 
-    public void tick() {}
+    public void tick() {
+        if (boss != null && !boss.isAlive()) {
+            Entity.RemovalReason removalReason = boss.getRemovalReason();
+            if (removalReason == Entity.RemovalReason.DISCARDED){
+                event.attemptToGenerateTheNextWave();
+                onKillDrop(null);
+            } else if (removalReason != null && removalReason != Entity.RemovalReason.KILLED) event.failureEvent();
+        }
+    }
 
     public Mob getBoss() {
         return boss;
@@ -86,63 +92,23 @@ public abstract class BossRushBossWave implements ILevelWave {
 
     @SuppressWarnings("ConstantConditions")
     public final void bossChange(BossRushBossWave previousWave) {
-        ServerLevel currentLevel = event.level;
-        List<ServerPlayer> challengers = null;
-        if (previousWave.getVenueWorld() != getVenueWorld()) {
-            event.allowChangedDimension = true;
-            challengers = event.getAllPlayer();
-            event.restoreDefaultVenue();
-            currentLevel = currentLevel.getServer().getLevel(getVenueWorld());
-            for (ServerPlayer p : challengers)
-                p.changeDimension(currentLevel);
-
-            event.rePlayBGMusik();
-            event.allowChangedDimension = false;
-        }
-
-        if (previousWave.getVenueSize() != getVenueSize() || challengers != null) {
-            dimensionOrigin = getNewWorldVenueCenter(currentLevel);
-            if (challengers == null) {
-                challengers = event.getAllPlayer();
-                //仅在维度未触发修正时更改，在获取所有当前世界挑战场玩家之后恢复事件视界
-                event.restoreDefaultVenue();
-            }
-            for (ServerPlayer player : challengers) {
-                player.moveTo(dimensionOrigin);
-                player.connection.teleport(dimensionOrigin.x, dimensionOrigin.y, dimensionOrigin.z, player.getYRot(), player.getXRot());
-            }
-
-            event.setTerminusBoundingBox(currentLevel, dimensionOrigin.x, dimensionOrigin.z, getVenueSize());
-            clearOtherPlayers(challengers, currentLevel);
-        }
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    public final void setFirstVenue() {
         ServerLevel level = event.level;
-        Vec3 position = event.original;
-        if (getVenueWorld() != level.dimension()) {
-            event.restoreDefaultVenue();
-            level = level.getServer().getLevel(getVenueWorld());
+        boolean changeDimension = getVenueWorld() != level.dimension();
+        if (changeDimension) event.restoreDefaultVenue();
+
+        level = changeDimension ? level.getServer().getLevel(getVenueWorld()) : event.level;
+        Vec3 position = changeDimension ? dimensionOrigin = getNewWorldVenueCenter(level) : event.original;
+        //在维度场地发生变化时，我们才应该去传送所有玩家到新的世界原点
+        if (changeDimension) {
+            event.allowChangedDimension = true;
             for (ServerPlayer p : event.getAllPlayer()) {
-                p.changeDimension(level);
-                if (position == event.original)
-                    position = dimensionOrigin = getNewWorldVenueCenter(level);
-                p.teleportTo(position.x, position.y, position.z);
+                p.teleportTo(level, position.x, position.y, position.z, 0, 0);
+                event.rePlayBGMusik(p);
             }
+            event.allowChangedDimension = false;
 
-            event.rePlayBGMusik();
         }
 
-        if (level.getWorldBorder().getSize() != getVenueSize() || position != event.original)
-            event.setTerminusBoundingBox(level, position.x, position.z, getVenueSize());
-    }
-
-    protected void clearOtherPlayers(List<ServerPlayer> challengers, ServerLevel currentLevel) {
-        WorldBorder border = currentLevel.getWorldBorder();
-        for (ServerPlayer player : event.getAllPlayer()) {
-            if (!challengers.contains(player) && border.isWithinBounds(player.getBoundingBox()))
-                player.teleportTo(border.getMinX() - 5, player.getY(), border.getMinZ() - 5);
-        }
+        event.setTerminusBoundingBox(level, position.x, position.z, getVenueSize());
     }
 }

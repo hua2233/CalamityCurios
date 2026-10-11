@@ -1,9 +1,10 @@
 package hua223.calamity.integration.curios;
 
+import hua223.calamity.net.IDataPackResponse;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.CalamityHelp;
+import hua223.calamity.util.CurioRepel;
 import hua223.calamity.util.ICuriosStorage;
-import hua223.calamity.net.IDataPackResponse;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -17,6 +18,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.List;
 
+@CurioRepel(isRoot = true)
 public abstract class Wings extends BaseCurio implements ICuriosStorage, IDataPackResponse  {
     public Wings(Properties properties) {
         super(properties);
@@ -30,25 +32,23 @@ public abstract class Wings extends BaseCurio implements ICuriosStorage, IDataPa
 
     @Override
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
-        if (player.isCreative() || player.isSpectator()) return;
-        Abilities abilities = player.getAbilities();
         player.Calamity$Player.flySpeedAmplifier = getFlySpeedAmplifier();
         getPack().putFloat("amplifier", getFlySpeedAmplifier());
         sendToClient(player);
-        abilities.mayfly = true;
+        Abilities abilities = player.getAbilities();
+        if (!player.isCreative() && !player.isSpectator()) abilities.mayfly = true;
         abilities.setFlyingSpeed(0.05f * getVerticalSpeed());
         player.onUpdateAbilities();
     }
 
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
-        if (player.isCreative() || player.isSpectator()) return;
-        Abilities abilities = player.getAbilities();
         player.Calamity$Player.flySpeedAmplifier = 0;
         getPack().putFloat("amplifier", 0);
         sendToClient(player);
-        abilities.mayfly = false;
-        abilities.flying = false;
+        Abilities abilities = player.getAbilities();
+        if (!player.isCreative() && !player.isSpectator())
+            abilities.flying = abilities.mayfly = false;
         abilities.setFlyingSpeed(0.05f);
         player.onUpdateAbilities();
     }
@@ -66,21 +66,18 @@ public abstract class Wings extends BaseCurio implements ICuriosStorage, IDataPa
         float[] count = getCount(player);
 
         if (player.onGround()) {
-            float time = getFlyTime(player);
-            if (count[0] != time) {
-                count[0] = time;
-                if (count[1] == 1) {
-                    count[1] = 0;
-                    abilities.mayfly = true;
-                    abilities.setFlyingSpeed(0.05f * getVerticalSpeed());
-                    player.onUpdateAbilities();
-                }
+            //demand charging
+            if (count[1] == 1) {
+                count[1] = 0;
+                count[0] = getFlyTime(player);
+                abilities.mayfly = true;
+                abilities.setFlyingSpeed(0.05f * getVerticalSpeed());
+                player.onUpdateAbilities();
             }
         } else if (cancelFlight(abilities, count)) {
             count[1] = 1;
             abilities.setFlyingSpeed(0.05f);
-            abilities.mayfly = false;
-            abilities.flying = false;
+            abilities.flying = abilities.mayfly = false;
             player.onUpdateAbilities();
         }
     }

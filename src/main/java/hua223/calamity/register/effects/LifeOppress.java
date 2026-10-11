@@ -17,8 +17,7 @@ import java.util.List;
 public class LifeOppress extends FragileEffect {
     public LifeOppress(MobEffectCategory category, int color) {
         super(category, color);
-        addAttributeModifier(Attributes.MAX_HEALTH, "123e4567-e89b-12d3-a456-426614174030",
-            -0.2, AttributeModifier.Operation.MULTIPLY_TOTAL);
+        addAttributeModifier(Attributes.MAX_HEALTH, getSelfUUID(), -0.2, AttributeModifier.Operation.MULTIPLY_TOTAL);
     }
 
     @Override
@@ -27,9 +26,8 @@ public class LifeOppress extends FragileEffect {
     }
 
     @Override
-    public void applyEffectTick(@NotNull LivingEntity target, int amplifier) {
-        if (!target.level().isClientSide)
-            target.hurt(target.damageSources().magic(), target.getPersistentData().getFloat("LifeOppress") );
+    public void applyServerTick(@NotNull LivingEntity target, int amplifier) {
+        target.hurt(target.damageSources().magic(), target.getPersistentData().getFloat("LifeOppress") );
     }
 
     @Override

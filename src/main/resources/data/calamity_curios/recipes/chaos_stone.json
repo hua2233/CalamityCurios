@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A" : {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "B": {
+      "item": "calamity_curios:calamity_core"
+    },
+    "D": {
+      "item": "irons_spellbooks:cinder_essence"
+    }
+  },
+  "pattern": [
+    "DAD",
+    "ABA",
+    "DAD"
+  ],
+  "result": {
+    "item": "calamity_curios:chaos_stone"
+  }
+}

@@ -1,9 +1,9 @@
 package hua223.calamity.integration.curios.item;
 
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.CriticalHitTriggerListener;
-import hua223.calamity.events.listeners.PlayerAttackListener;
+import hua223.calamity.events.listeners.PreAttackListener;
+import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.loots.ApplyGlobalLoot;
 import hua223.calamity.loots.EntitiesLootContext;
 import hua223.calamity.register.effects.CalamityEffects;
@@ -48,7 +48,7 @@ public class VeneratedLocket extends BaseCurio implements ICuriosStorage {
 
     @ApplyEvent
     @SuppressWarnings("unchecked")
-    public final void onAttack(PlayerAttackListener listener) {
+    public final void onAttack(PreAttackListener listener) {
         if (listener.isFarAttack()) {
             ServerLevel level = listener.player.serverLevel();
             Projectile projectile = (Projectile) listener.getProjectile().getType().create(level);
@@ -60,7 +60,6 @@ public class VeneratedLocket extends BaseCurio implements ICuriosStorage {
                 projectile.setPos(spawnPos);
                 spawnPos = endPos.subtract(spawnPos);
                 projectile.shoot(spawnPos.x, spawnPos.y, spawnPos.z, 1f, 0.9f + source.nextFloat() * 0.2f);
-                listener.entity.invulnerableTime = 0;
                 level.addFreshEntity(projectile);
                 getMemory(listener.player).getTypeStorage(ArrayList.class).add(projectile.getUUID());
             }
@@ -103,7 +102,7 @@ public class VeneratedLocket extends BaseCurio implements ICuriosStorage {
     public void onGlobalEntityLoot(EntitiesLootContext context) {
         if (context.onlyVerification(EntityType.WANDERING_TRADER) && context.chance(0.1f) &&
             context.player.getServer().getLevel(Level.END).getDragonFight().hasPreviouslyKilledDragon())
-            context.addLoot(this, 1);
+            context.addLoot(this);
     }
 
     @Override

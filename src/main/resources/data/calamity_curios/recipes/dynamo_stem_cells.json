@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "X": {
+      "item": "irons_spellbooks:lightning_bottle"
+    },
+    "B": {
+      "item": "irons_spellbooks:magic_cloth"
+    },
+    "A": {
+      "item": "irons_spellbooks:bloody_vellum"
+    },
+    "C": {
+      "item": "minecraft:dragon_head"
+    }
+  },
+  "pattern": [
+    "A A",
+    "BCB",
+    "XXX"
+  ],
+  "result": {
+    "item": "calamity_curios:dynamo_stem_cells"
+  }
+}

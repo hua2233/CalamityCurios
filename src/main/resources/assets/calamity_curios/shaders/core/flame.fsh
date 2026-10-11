@@ -4,21 +4,18 @@ uniform sampler2D Sampler0;
 uniform float GameTime;
 
 in vec4 vertexColor;
-in vec3 texCoord0;
+in vec2 texCoord0;
 
 out vec4 fragColor;
 
 void main() {
     vec4 color = vertexColor;
-    vec2 coords = texCoord0.xy;
-
-    coords.y = (coords.y - 0.5) / texCoord0.z + 0.5;
-    vec4 fadeMapColor = texture(Sampler0, vec2(fract(coords.y), fract(coords.x - GameTime * 600)));
-    fadeMapColor.r *= pow(coords.x, 0.04);
+    vec4 fadeMapColor = texture(Sampler0, vec2(fract(texCoord0.y), fract(texCoord0.x - GameTime * 600)));
+    fadeMapColor.r *= pow(texCoord0.x, 0.04);
 
     float opacity = mix(1.45, 1.95, fadeMapColor.r) * color.a;
-    opacity *= pow(sin(coords.y * 3.141), mix(1, 6, pow(coords.x, 2)));
-    opacity *= pow(sin(coords.x * 3.141), 0.4);
+    opacity *= pow(sin(texCoord0.y * 3.141), mix(1, 6, pow(texCoord0.x, 2)));
+    opacity *= pow(sin(texCoord0.x * 3.141), 0.4);
     opacity *= fadeMapColor.r * 1.5 + 1;
     opacity *= mix(0.4, 0.9, fadeMapColor.r);
 

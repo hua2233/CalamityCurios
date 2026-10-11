@@ -58,6 +58,13 @@ public enum CalamitySounds implements EnumRegister<SoundEvent> {
     DARK_LIGHT("dark_light"),
     MIRROR_TELEPORT("mirror_teleport"),
     LIGHTNING_STRIKE("lightning_strike"),
+    EMPTINESS_SPRAYER_LOOP("emptiness_sprayer_loop"),
+    RIFT_OPEN("rift_open"),
+    HYPERPLANE_MATRIX_OPEN("hyperplane_matrix_open"),
+    HYPERPLANE_MATRIX_OPTIONS("hyperplane_matrix_options"),
+    DRAEDON_BARRIER_ACTIVE("draedon_barrier_active"),
+    DRAEDON_BARRIER_BREAK("draedon_barrier_break"),
+    DRAEDON_BARRIER_HIT("draedon_barrier_hit"),
     DEMON_SHADE_ENRAGE("demon_shade_enrage");
 
     private final RegistryObject<SoundEvent> sound;

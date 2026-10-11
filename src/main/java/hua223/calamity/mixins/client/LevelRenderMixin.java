@@ -3,6 +3,7 @@ package hua223.calamity.mixins.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexBuffer;
 import hua223.calamity.events.levelevent.client.ClientLevelEvent;
+import hua223.calamity.events.levelevent.client.ClientRushEvent;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
@@ -41,6 +42,6 @@ public class LevelRenderMixin {
 
     @Redirect(method = "renderWorldBorder", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Options;getEffectiveRenderDistance()I"))
     private int setDistance(Options instance) {
-        return ClientLevelEvent.borderRenderDistance > 0 ? ClientLevelEvent.borderRenderDistance : instance.getEffectiveRenderDistance();
+        return ClientRushEvent.borderRenderDistance > 0 ? ClientRushEvent.borderRenderDistance : instance.getEffectiveRenderDistance();
     }
 }

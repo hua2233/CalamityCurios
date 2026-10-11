@@ -234,6 +234,8 @@ public class DreamCatcherHook extends FishingHook implements IEntityAdditionalSp
                         ItemStack loot = hook.getTypeItem(lootContext);
                         if (loot != ItemStack.EMPTY) {
                             ItemEntity itementity = new ItemEntity(level, hook.getX(), hook.getY(), hook.getZ(), loot);
+                            //确保不会被液体的副作用销毁，例如熔岩
+                            itementity.setInvulnerable(true);
                             double d0 = player.getX() - hook.getX();
                             double d1 = player.getY() - hook.getY();
                             double d2 = player.getZ() - hook.getZ();

@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "B": {
+      "item": "calamity_curios:necroplasm"
+    },
+    "A": {
+      "item": "minecraft:prismarine"
+    },
+    "C": {
+      "item": "calamity_curios:exodium_cluster"
+    }
+  },
+  "pattern": [
+    "AAA",
+    "BBB",
+    "CCC"
+  ],
+  "result": {
+    "item": "calamity_curios:eldritch_soul_artifact"
+  }
+}

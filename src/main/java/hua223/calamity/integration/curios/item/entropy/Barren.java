@@ -1,8 +1,11 @@
 package hua223.calamity.integration.curios.item.entropy;
 
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.Card;
 import hua223.calamity.events.listeners.ProjectileSpawnListener;
+import hua223.calamity.integration.curios.Card;
+import hua223.calamity.integration.jei.JeiInfo;
+import hua223.calamity.loots.ApplyGlobalLoot;
+import hua223.calamity.loots.EntitiesLootContext;
 import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.util.CMLangUtil;
 import net.minecraft.ChatFormatting;
@@ -14,6 +17,7 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
 
+@JeiInfo(zh_cn = "击杀凋零骷髅时小概率掉落，受抢夺影响")
 public class Barren extends Card {
     public Barren(Properties properties) {
         super(properties);
@@ -29,9 +33,15 @@ public class Barren extends Card {
                 skull.shootFromRotation(listener.player, listener.player.getXRot(), listener.player.getYRot(),
                     0.0F, 2.0F, 1.0F);
                 if (listener.player.level().addFreshEntity(skull)) listener.player.getCooldowns().addCooldown(
-                    this, listener.player.Calamity$Player.cardDeck ? 120 : 200);
+                    this, listener.player.Calamity$Player.cardDeck ? 80 : 160);
             }
         }
+    }
+
+    @ApplyGlobalLoot
+    public void onEntityLoot(EntitiesLootContext context) {
+        if (context.onlyVerification(EntityType.WITHER_SKELETON)
+            && context.lootingChance(.025f)) context.addLoot(this);
     }
 
     @Override

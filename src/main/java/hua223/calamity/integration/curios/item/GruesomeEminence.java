@@ -1,27 +1,22 @@
 package hua223.calamity.integration.curios.item;
 
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.events.listeners.PlayerAttackListener;
+import hua223.calamity.events.listeners.PreAttackListener;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.register.effects.CalamityEffects;
+import hua223.calamity.register.keys.IKeyDataPackResponse;
 import hua223.calamity.register.sounds.CalamitySounds;
-import hua223.calamity.render.screen.ConvergingEnergyRenderer;
 import hua223.calamity.render.screen.ErosionScreenRenderer;
 import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.register.keys.IKeyDataPackResponse;
 import hua223.calamity.util.ICuriosStorage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
-import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemCooldowns;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.glfw.GLFW;
@@ -54,7 +49,7 @@ public class GruesomeEminence extends BaseCurio implements ICuriosStorage, IKeyD
     }
 
     @ApplyEvent
-    public final void onAttack(PlayerAttackListener listener) {
+    public final void onAttack(PreAttackListener listener) {
         float[] count = getCount(listener.player);
         if (count[0] > 0) listener.amplifier += count[1];
     }
@@ -74,7 +69,6 @@ public class GruesomeEminence extends BaseCurio implements ICuriosStorage, IKeyD
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
     public int getKeyCode() {
         return GLFW.GLFW_KEY_G;
     }

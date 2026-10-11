@@ -1,7 +1,6 @@
 package hua223.calamity.mixins;
 
 import hua223.calamity.capability.CalamityCap;
-import hua223.calamity.util.CalamityPlayer;
 import net.minecraft.util.Unit;
 import net.minecraft.util.valueproviders.IntProvider;
 import net.minecraft.world.entity.LivingEntity;

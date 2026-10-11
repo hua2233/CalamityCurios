@@ -2,12 +2,9 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.EffectListener;
-import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.CalamityHelp;
-import hua223.calamity.util.ConflictChain;
-import hua223.calamity.util.ICuriosStorage;
+import hua223.calamity.integration.curios.BaseCurio;
+import hua223.calamity.util.*;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -23,7 +20,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 import java.util.UUID;
 
-@ConflictChain(value = Radiance.class, node = AmbrosialAmpoule.class)
+@CurioRepel(value = Radiance.class)
 public class AmbrosialAmpoule extends BaseCurio implements ICuriosStorage {
     public AmbrosialAmpoule(Properties properties) {
         super(properties);
@@ -31,8 +28,7 @@ public class AmbrosialAmpoule extends BaseCurio implements ICuriosStorage {
 
     @ApplyEvent
     public final void onGetEffect(EffectListener listener) {
-        if (!listener.effect.isBeneficial())
-            listener.setEffectDuration(listener.instance.getDuration() / 2);
+        if (!listener.effect.isBeneficial()) listener.setEffectDuration(listener.instance.getDuration() / 2);
     }
 
     @Override

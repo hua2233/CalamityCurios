@@ -13,8 +13,7 @@ import java.util.List;
 public class MagicPower extends CalamityEffect {
     public MagicPower(MobEffectCategory category, int color) {
         super(category, color);
-        addAttributeModifier(AttributeRegistry.SPELL_POWER.get(),
-            "50cd184c-6dc0-486d-b52b-bb73cb5cc413", 0.1, AttributeModifier.Operation.MULTIPLY_BASE);
+        addAttributeModifier(AttributeRegistry.SPELL_POWER.get(), getSelfUUID(), 0.1, AttributeModifier.Operation.MULTIPLY_BASE);
     }
 
     @Override

@@ -29,7 +29,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
-import static hua223.calamity.generators.DamageMapping.*;
+import static hua223.calamity.generators.DamageMapping.SPUTTERING;
 
 @CurioRepel(isRoot = true)
 public class EclipseMirror extends BaseCurio implements ICuriosStorage {
@@ -37,7 +37,7 @@ public class EclipseMirror extends BaseCurio implements ICuriosStorage {
     public static DamageSupplier supplier;
 
     public EclipseMirror() {
-        super(RegisterList.CURIOS_EPIC);
+        super(RegisterList.EPIC_ONE);
     }
 
     @Override

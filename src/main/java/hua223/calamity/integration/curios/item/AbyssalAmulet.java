@@ -2,10 +2,10 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.ChangedDimensionListener;
 import hua223.calamity.events.listeners.EffectListener;
-import hua223.calamity.events.listeners.PlayerAttackListener;
+import hua223.calamity.events.listeners.PostAttackListener;
+import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.ICuriosStorage;
@@ -29,18 +29,19 @@ import java.util.List;
 import java.util.UUID;
 
 public class AbyssalAmulet extends BaseCurio implements ICuriosStorage {
-    public AbyssalAmulet(Properties pProperties) {
-        super(pProperties);
+    public AbyssalAmulet(Properties properties) {
+        super(properties);
     }
 
     @ApplyEvent
-    public final void onAttack(PlayerAttackListener listener) {
+    public final void onAttack(PostAttackListener listener) {
         LivingEntity attacker = listener.entity;
         if (attacker.hasEffect(CalamityEffects.RIPTIDE.get())) return;
         attacker.addEffect(new MobEffectInstance(CalamityEffects.RIPTIDE.get(), 200));
     }
 
     @ApplyEvent
+    @SuppressWarnings("ConstantConditions")
     public final void onDimensionChange(ChangedDimensionListener listener) {
         AttributeInstance instance = listener.player.getAttribute(Attributes.MAX_HEALTH);
         if (listener.from == Level.NETHER) {
@@ -52,12 +53,9 @@ public class AbyssalAmulet extends BaseCurio implements ICuriosStorage {
 
     @Override
     protected void setAttributeModifiers(UUID uuid, ItemStack stack, Multimap<Attribute, AttributeModifier> modifier, LivingEntity equipped) {
-        if (equipped.level().isClientSide) return;
-
-        double value = 0;
-        if (equipped.level().dimension() == Level.NETHER) value = 0.1;
-        modifier.put(Attributes.MAX_HEALTH, new VariableAttributeModifier(
-            getUUID(equipped)[0] = uuid, "abyssal", value, AttributeModifier.Operation.MULTIPLY_TOTAL));
+        if (!equipped.level().isClientSide) getUUID(equipped)[0] = uuid;
+        modifier.put(Attributes.MAX_HEALTH, new VariableAttributeModifier(uuid, "abyssal",
+            equipped.level().dimension() == Level.NETHER ? .1 : 0, AttributeModifier.Operation.MULTIPLY_TOTAL));
     }
 
     @Override

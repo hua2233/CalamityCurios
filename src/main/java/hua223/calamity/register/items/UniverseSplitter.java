@@ -1,9 +1,9 @@
 package hua223.calamity.register.items;
 
+import hua223.calamity.net.IDataPackResponse;
 import hua223.calamity.register.entity.UniverseSplitterField;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.CalamityHelp;
-import hua223.calamity.net.IDataPackResponse;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;

@@ -31,10 +31,10 @@ public class BossRushSoundManager {
 
     private void prepareMusicResources() {
         backgroundMusicSet = new ArrayList<>();
-        backgroundMusicSet.add(new Tuple<>(CalamitySounds.TRIAL_OF_THE_INSANE, 4480));
-        backgroundMusicSet.add(new Tuple<>(CalamitySounds.REIGN_OF_LORDS, 3480));
-        backgroundMusicSet.add(new Tuple<>(CalamitySounds.ONSLAUGHT_OF_BEASTS, 3480));
         backgroundMusicSet.add(new Tuple<>(CalamitySounds.ENSEMBLE_OF_FOOLS, 4480));
+        backgroundMusicSet.add(new Tuple<>(CalamitySounds.ONSLAUGHT_OF_BEASTS, 3480));
+        backgroundMusicSet.add(new Tuple<>(CalamitySounds.REIGN_OF_LORDS, 3480));
+        backgroundMusicSet.add(new Tuple<>(CalamitySounds.TRIAL_OF_THE_INSANE, 4480));
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -58,11 +58,14 @@ public class BossRushSoundManager {
     }
 
     void startPlayBackgroundMusic() {
-        if (backgroundMusicSet == null) prepareMusicResources();
-        if (!backgroundMusicSet.isEmpty()) {
-            Tuple<CalamitySounds, Integer> tuple = backgroundMusicSet.remove(backgroundMusicSet.size() - 1);
-            backgroundMusic = new BossRushSound(tuple.getA().get(), tuple.getB());
-            manager.play(backgroundMusic);
+        int tire = event.getTier();
+        if (tire >= 0 && tire <= 3) {
+            if (backgroundMusicSet == null) prepareMusicResources();
+            if (!backgroundMusicSet.isEmpty()) {
+                Tuple<CalamitySounds, Integer> tuple = backgroundMusicSet.get(tire);
+                backgroundMusic = new BossRushSound(tuple.getA().get(), tuple.getB());
+                manager.play(backgroundMusic);
+            }
         }
     }
 

@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "tag": "forge:nether_stars"
+    },
+    "U": {
+      "item": "minecraft:sculk_catalyst"
+    },
+    "H": {
+      "item": "calamity_curios:stardust_fragment"
+    },
+    "C": {
+      "item": "irons_spellbooks:bloody_vellum"
+    },
+    "D": {
+      "item": "calamity_curios:bloodstone_core"
+    }
+  },
+  "pattern": [
+    "CHC",
+    "DAD",
+    "CUC"
+  ],
+  "result": {
+    "item": "calamity_curios:infernal_blood"
+  }
+}

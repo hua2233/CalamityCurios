@@ -28,13 +28,13 @@ public abstract class ProjectileMixin extends Entity {
     @Inject(method = "setOwner", at = @At(value = "INVOKE", target =
         "Lnet/minecraft/world/entity/Entity;getUUID()Ljava/util/UUID;", shift = At.Shift.AFTER))
     private void setData(Entity owner, CallbackInfo ci) {
-        NetMessages.sendToAllClient(new OutlineDetected(this));
+        NetMessages.sendToTracking(this, new OutlineDetected(this));
     }
 
     @Inject(method = "readAdditionalSaveData", at = @At(value = "INVOKE", target =
         "Lnet/minecraft/nbt/CompoundTag;getUUID(Ljava/lang/String;)Ljava/util/UUID;", shift = At.Shift.AFTER))
     private void loadSetData(CompoundTag compound, CallbackInfo ci) {
-        NetMessages.sendToAllClient(new OutlineDetected(this));
+        NetMessages.sendToTracking(this, new OutlineDetected(this));
     }
 
     @Unique

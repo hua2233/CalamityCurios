@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "calamity_curios:ascendant_spirit_essence"
+    },
+    "B": {
+      "item": "irons_spellbooks:energized_core"
+    },
+    "C": {
+      "item": "irons_spellbooks:dragonskin"
+    },
+    "D": {
+      "item": "minecraft:netherite_ingot"
+    }
+  },
+  "pattern": [
+    "BCB",
+    "DAD",
+    "BCB"
+  ],
+  "result": {
+    "item": "calamity_curios:sacrifice"
+  }
+}

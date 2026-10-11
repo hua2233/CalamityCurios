@@ -1,9 +1,8 @@
 package hua223.calamity.register.items;
 
 import hua223.calamity.events.levelevent.BossRushEvent;
-import hua223.calamity.events.levelevent.LevelEvent;
-import hua223.calamity.events.levelevent.client.ClientRushEvent;
 import hua223.calamity.events.levelevent.LevelEventActiveItem;
+import hua223.calamity.events.levelevent.client.ClientRushEvent;
 import hua223.calamity.register.RegisterList;
 import hua223.calamity.util.CMLangUtil;
 import net.minecraft.ChatFormatting;
@@ -24,7 +23,7 @@ import java.util.List;
 //This End Position Of You Journey
 public class Terminus extends LevelEventActiveItem<BossRushEvent> {
     public Terminus() {
-        super(RegisterList.ITEM_CALAMITY);
+        super(RegisterList.CALAMITY_ONE);
     }
 
     @Override

@@ -13,7 +13,7 @@ import java.util.List;
 public class Deceive extends CalamityEffect {
     public Deceive(MobEffectCategory category, int color) {
         super(category, color);
-        addAttributeModifier(Attributes.MOVEMENT_SPEED, "50cd184c-6dc0-486d-b52b-bb73cb5cc416", 0.1, AttributeModifier.Operation.MULTIPLY_TOTAL);
+        addAttributeModifier(Attributes.MOVEMENT_SPEED, getSelfUUID(), 0.1, AttributeModifier.Operation.MULTIPLY_TOTAL);
     }
 
     @Override

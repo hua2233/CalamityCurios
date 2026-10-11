@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "minecraft:spore_blossom"
+    },
+    "B": {
+      "item": "minecraft:mushroom_stem"
+    },
+    "C": {
+      "item": "minecraft:cornflower"
+    }
+  },
+  "pattern": [
+    "CCA",
+    "  B",
+    "  B"
+  ],
+  "result": {
+    "item": "calamity_curios:fungal_symbiote"
+  }
+}

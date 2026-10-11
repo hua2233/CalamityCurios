@@ -2,9 +2,9 @@ package hua223.calamity.integration.curios.item.entropy;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.HurtListener;
-import hua223.calamity.events.listeners.PlayerAttackListener;
+import hua223.calamity.events.listeners.PreAttackListener;
+import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.register.effects.SurvivableEffectInstance;
 import hua223.calamity.util.CMLangUtil;
@@ -71,7 +71,7 @@ public class HolyMoonlight extends BaseCurio implements ICuriosStorage {
     }
 
     @ApplyEvent
-    public final void onAttack(PlayerAttackListener listener) {
+    public final void onAttack(PreAttackListener listener) {
         if (getCount(listener.player)[1] <= 0 && listener.player.getHealth() < listener.player.getMaxHealth())
             listener.player.heal((float) Mth.lerp(MagicData.getPlayerMagicData(listener.player).getMana() /
                 listener.player.getAttributeValue(AttributeRegistry.MAX_MANA.get()), 0, Math.sqrt(listener.baseAmount) * 2f));

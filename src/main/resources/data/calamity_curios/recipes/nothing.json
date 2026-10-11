@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:ruined_book"
+    },
+    "C": {
+      "item": "irons_spellbooks:timeless_slurry"
+    },
+    "B": {
+      "item": "irons_spellbooks:legendary_ink"
+    }
+  },
+  "pattern": [
+    "BCB",
+    "CAC",
+    "BCB"
+  ],
+  "result": {
+    "item": "calamity_curios:nothing"
+  }
+}

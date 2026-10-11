@@ -21,7 +21,7 @@ import org.joml.Matrix4f;
 public abstract class ClientLevelEvent {
     private static ClientLevelEvent activeWorldEvent;
     protected static EventSkyRender render;
-    public static int borderRenderDistance;
+
     protected static float skyDarkenValue;
     protected static float oldDarkenValue;
     private static float screenShakePower;
@@ -64,7 +64,6 @@ public abstract class ClientLevelEvent {
         stop = true;
         activeWorldEvent = null;
         render = null;
-        borderRenderDistance = 0;
         skyDarkenValue = 0;
         oldDarkenValue = 0;
         MinecraftForge.EVENT_BUS.unregister(this);

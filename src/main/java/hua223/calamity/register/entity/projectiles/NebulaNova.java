@@ -4,7 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import hua223.calamity.main.CalamityCurios;
 import hua223.calamity.register.RegisterList;
-import hua223.calamity.register.damage.DamageSupplier;
 import hua223.calamity.register.entity.AutoEntityRegister;
 import hua223.calamity.register.sounds.CalamitySounds;
 import hua223.calamity.util.CalamityHelp;

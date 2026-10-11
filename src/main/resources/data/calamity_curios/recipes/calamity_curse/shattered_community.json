@@ -5,18 +5,11 @@
   },
   "ingredients": [
     {
-      "item": "minecraft:diamond",
-      "count": 10
+      "item": "calamity_curios:shadow_spec_bar",
+      "count": 4
     }
   ],
   "result": {
     "item": "calamity_curios:shattered_community"
-  },
-  "renderer": {
-    "isDefault": false,
-    "gradual": true,
-    "startColor": "0x803E80",
-    "endColor": "0xF569F5",
-    "semiCycle": 40
   }
 }

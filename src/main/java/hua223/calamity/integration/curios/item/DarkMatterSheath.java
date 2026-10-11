@@ -1,9 +1,9 @@
 package hua223.calamity.integration.curios.item;
 
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.CriticalHitCheckListener;
-import hua223.calamity.events.listeners.PlayerAttackListener;
+import hua223.calamity.events.listeners.PreAttackListener;
+import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.CurioRepel;
 import net.minecraft.ChatFormatting;
@@ -30,7 +30,7 @@ public class DarkMatterSheath extends BaseCurio {
     }
 
     @ApplyEvent
-    public final void onAttack(PlayerAttackListener listener) {
+    public final void onAttack(PreAttackListener listener) {
         if (!listener.player.getCooldowns().isOnCooldown(this)) {
             listener.amplifier += 1f;
             listener.player.getCooldowns().addCooldown(this, 200);

@@ -1,6 +1,8 @@
 {
   "replace": false,
   "values": [
-    "calamity_curios:lumenyl_druse"
+    "calamity_curios:lumenyl_druse",
+    "calamity_curios:infernal_suevite_ore",
+    "calamity_curios:exodium_cluster_ore"
   ]
 }

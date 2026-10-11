@@ -16,13 +16,13 @@ import java.util.List;
 public class StarStrikinglySatiated extends CalamityEffect {
     public StarStrikinglySatiated(MobEffectCategory category, int color) {
         super(category, color);
-        addAttributeModifier(Attributes.ARMOR, "50cd184c-6dc0-486d-b52b-bb73cb5cc413", 6, AttributeModifier.Operation.ADDITION);
-        addAttributeModifier(Attributes.ATTACK_SPEED, "50cd184c-6dc0-486d-b52b-bb73cb5cc413", 0.15, AttributeModifier.Operation.MULTIPLY_BASE);
-        addAttributeModifier(Attributes.ATTACK_DAMAGE, "50cd184c-6dc0-486d-b52b-bb73cb5cc413", 0.125, AttributeModifier.Operation.MULTIPLY_BASE);
-        addAttributeModifier(Attributes.ATTACK_KNOCKBACK, "50cd184c-6dc0-486d-b52b-bb73cb5cc413", 0.3, AttributeModifier.Operation.MULTIPLY_BASE);
-        addAttributeModifier(Attributes.MOVEMENT_SPEED, "50cd184c-6dc0-486d-b52b-bb73cb5cc413", 0.5, AttributeModifier.Operation.MULTIPLY_BASE);
-        addAttributeModifier(CalamityAttributes.CRITICAL_STRIKE_CHANCE.get(),
-            "50cd184c-6dc0-486d-b52b-bb73cb5cc413", 0.06, AttributeModifier.Operation.ADDITION);
+        String id = getSelfUUID();
+        addAttributeModifier(Attributes.ARMOR, id, 6, AttributeModifier.Operation.ADDITION);
+        addAttributeModifier(Attributes.ATTACK_SPEED, id, 0.15, AttributeModifier.Operation.MULTIPLY_BASE);
+        addAttributeModifier(Attributes.ATTACK_DAMAGE, id, 0.125, AttributeModifier.Operation.MULTIPLY_BASE);
+        addAttributeModifier(Attributes.ATTACK_KNOCKBACK, id, 0.3, AttributeModifier.Operation.MULTIPLY_BASE);
+        addAttributeModifier(Attributes.MOVEMENT_SPEED, id, 0.5, AttributeModifier.Operation.MULTIPLY_BASE);
+        addAttributeModifier(CalamityAttributes.CRITICAL_STRIKE_CHANCE.get(), id, 0.06, AttributeModifier.Operation.ADDITION);
     }
 
     @Override
@@ -31,7 +31,7 @@ public class StarStrikinglySatiated extends CalamityEffect {
     }
 
     @Override
-    public void applyEffectTick(@NotNull LivingEntity target, int amplifier) {
+    public void applyServerTick(@NotNull LivingEntity target, int amplifier) {
         if (target.getHealth() < target.getMaxHealth())
             target.heal(2f + target.getMaxHealth() * 0.08f);
     }

@@ -107,7 +107,6 @@ public class SeafoamBomb extends Item implements IThrowableItem {
     protected void explodeAndApplyEffect(ItemPro pro) {
         Entity owner = pro.getOwner();
         for (LivingEntity hurt : CalamityHelp.blastingTheEnemy(owner == null ? pro : owner, pro.position(), 3)) {
-            hurt.invulnerableTime = 0;
             hurt.hurt(pro.level().damageSources().drown(), 3);
             CalamityHelp.addIfDoesNotExist(hurt, 100, 0, CalamityEffects.CRUSH_DEPTH.get());
         }

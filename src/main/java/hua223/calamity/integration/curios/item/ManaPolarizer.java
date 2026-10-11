@@ -2,9 +2,9 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
+import hua223.calamity.events.listeners.PostAttackListener;
 import hua223.calamity.generators.DamageMapping;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.register.damage.DamageRequester;
 import hua223.calamity.register.damage.DamageSupplier;
 import hua223.calamity.util.CMLangUtil;
@@ -34,13 +34,13 @@ public class ManaPolarizer extends BaseCurio implements ICuriosStorage {
         super(properties);
     }
 
-    @ApplyEvent
-    public final void onAttack(PlayerAttackListener listener) {
+    @ApplyEvent(210)
+    public final void onAttack(PostAttackListener listener) {
         if (!listener.isSpell()) return;
 
         float[] count = getCount(listener.player);
         if (count[1] > 0) {
-            listener.player.heal((listener.baseAmount / 0.2f) * count[1]);
+            listener.player.heal((listener.baseAmount * 0.2f) * count[1]);
             count[1] -= 0.1f;
         }
     }
@@ -56,7 +56,7 @@ public class ManaPolarizer extends BaseCurio implements ICuriosStorage {
 
     @Override
     public int getCountSize() {
-        return 2;
+        return 3;
     }
 
     @Override
@@ -65,8 +65,10 @@ public class ManaPolarizer extends BaseCurio implements ICuriosStorage {
     }
 
     @Override
+    @SuppressWarnings("ConstantConditions")
     protected void onPlayerTick(Player player) {
-        float[] count = getCount(player);
+        var m = getMemory(player);
+        float[] count = m.count;
         if (count[0] % 30 == 0 && count[1] < 1f)
             count[1] += 0.1f;
 
@@ -79,8 +81,11 @@ public class ManaPolarizer extends BaseCurio implements ICuriosStorage {
             if (heal > 0) player.heal(heal);
             else player.hurt(supplier.get(), Math.abs(heal));
 
-            VariableAttributeModifier.updateModifierInInstance(player.getAttribute(AttributeRegistry.SPELL_POWER.get()),
-                getFirstUUID(player), 0.15 - (0.10 * manaRatio));
+            if (Math.abs(count[2] - manaRatio) > 0.005f) {
+                count[2] = (float) manaRatio;
+                VariableAttributeModifier.updateModifierInInstance(player.getAttribute(AttributeRegistry.SPELL_POWER.get()),
+                    m.uuids[0], 0.15 - (0.10 * manaRatio));
+            }
         }
     }
 

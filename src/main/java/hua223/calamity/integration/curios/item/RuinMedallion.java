@@ -1,12 +1,12 @@
 package hua223.calamity.integration.curios.item;
 
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.CriticalHitCheckListener;
+import hua223.calamity.integration.curios.BaseCurio;
+import hua223.calamity.net.IDataPackResponse;
 import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.CalamityHelp;
-import hua223.calamity.net.IDataPackResponse;
 import hua223.calamity.util.CalamityPlayer;
 import hua223.calamity.util.CurioRepel;
 import net.minecraft.nbt.CompoundTag;

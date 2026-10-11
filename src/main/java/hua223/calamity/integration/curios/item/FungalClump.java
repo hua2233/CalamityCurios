@@ -2,8 +2,8 @@ package hua223.calamity.integration.curios.item;
 
 import hua223.calamity.events.ApplyEvent;
 import hua223.calamity.events.LogoutRelease;
+import hua223.calamity.events.listeners.PreAttackListener;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.util.CMLangUtil;
@@ -28,7 +28,7 @@ public class FungalClump extends BaseCurio implements ICuriosStorage {
     }
 
     @ApplyEvent
-    public final void onAttack(PlayerAttackListener listener) {
+    public final void onAttack(PreAttackListener listener) {
         UUID[] id = getUUID(listener.player);
         if (id[0] == null && listener.player != listener.entity) {
             listener.entity.addEffect(new MobEffectInstance(CalamityEffects.FUNGAL_CLUMP.get(), 600), listener.player);

@@ -26,6 +26,7 @@ import net.minecraftforge.common.ForgeMod;
 import java.util.List;
 import java.util.UUID;
 
+@CurioRepel(isRoot = true)
 public class AzureAbyssTalisman extends BaseCurio implements ICuriosStorage, IDataPackResponse {
     public AzureAbyssTalisman(Properties properties) {
         super(properties);

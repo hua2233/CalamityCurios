@@ -10,7 +10,6 @@ import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.fml.loading.moddiscovery.ModAnnotation;
 import net.minecraftforge.forgespi.language.ModFileScanData;
@@ -58,10 +57,10 @@ public class CalamityConfig {
             ModFileScanData.AnnotationData data = processor.getAnnotationData();
             ForgeConfigSpec.Builder builder = CalamityConfig.getBuilderOfSide(clazz);
             Field field = clazz.getField(data.memberName());
-            Object value = field.get(null);
             ForgeConfigSpec.ConfigValue<?> v = null;
+
             if (data.annotationData().containsKey("template"))
-                v = ConfigTemplate.valueOf(((ModAnnotation.EnumHolder) data.annotationData().get("template")).getValue()).handler(clazz, builder, value, processor);
+                v = ConfigTemplate.valueOf(((ModAnnotation.EnumHolder) data.annotationData().get("template")).getValue()).handler(clazz, builder, field.get(null), processor);
             else if (data.annotationData().containsKey("functional") && (boolean) data.annotationData().get("functional")) {
                 field.get(null);//Initialize fields for JVM to trigger registration logic
                 ForgeConfigSpec.ConfigValue<?> values = getTrace(clazz, (String) data.annotationData().get("value"), trace);
@@ -69,24 +68,19 @@ public class CalamityConfig {
                 else CalamityCurios.LOGGER.error("在类 {} 中发现无效的函数配置字段 {}，找不到对应的注册的路径配置值对象", clazz.getSimpleName(), field.getName());
             } else {
                 processor.analyzeDefaultData(AutoConfig.class);
-                Class<?> type = field.getType();
-                builder.comment(processor.parserArr("comment", String.class));
+                builder.comment(processor.parseArr("comment", String.class));
 
-                String path = processor.parser("path");
-                double[] defaultValue = processor.parser("defaultValue");
+                String path = processor.parse("path");
+                double[] defaultValue = processor.parse("defaultValue");
                 boolean isRage = defaultValue.length == 2;
                 if (!Modifier.isPublic(field.getModifiers()))
                     field.setAccessible(true);
 
+                Object value = field.get(null);
                 if (isRage) {
-                    if (type == int.class)
-                        v = builder.defineInRange(path, (Integer) value, defaultValue[0], defaultValue[1]);
-                    else if (type == double.class)
-                        v = builder.defineInRange(path, (Double) value, defaultValue[0], defaultValue[1]);
-                    else if (type == float.class)
-                        v = builder.defineInRange(path,  (Float) value, defaultValue[0], defaultValue[1]);
-                    else if (type == boolean.class)
-                        v = builder.define(path, (Boolean) value);
+                    if (value instanceof Number number)
+                        builder.defineInRange(path, number.doubleValue(), defaultValue[0], defaultValue[1]);
+                    else if (field.getType() == boolean.class) v = builder.define(path, (Boolean) value);
                 } else v = builder.define(path, value);
             }
 
@@ -107,17 +101,16 @@ public class CalamityConfig {
                     if (paths.get(paths.size() - 1).equals(path)) return value;
                 }
         } else {
-            Field field = ForgeConfigSpec.Builder.class.getDeclaredField("values");;
+            Field field = ForgeConfigSpec.Builder.class.getDeclaredField("values");
             //Be sure to rebuild from the copied copy，
-            //Otherwise, modifying the source fields held by Spec will cause the configuration files of various environments to be completely disordered
+            //Otherwise, modifying the random fields held by Spec will cause the configuration files of various environments to be completely disordered
             List<ForgeConfigSpec.ConfigValue<?>> configs = new ArrayList<>((List<ForgeConfigSpec.ConfigValue<?>>) ReflectionUtil.getFieldValue(field, server));
             if (FMLEnvironment.dist.isClient()) configs.addAll((List<ForgeConfigSpec.ConfigValue<?>>) ReflectionUtil.getFieldValue(field, client));
 
             configs.removeIf(config ->
                 config.calamity$According[0] == null || config.calamity$According.length < 2 || config.calamity$According[0] != targetClass);
-            if (configs.isEmpty()) return null;
-            else if (configs.size() == 1) return configs.get(0);
-            else {
+            if (configs.size() == 1) return configs.get(0);
+            else if (!configs.isEmpty()) {
                 trace.put(targetClass, configs);
                 for (ForgeConfigSpec.ConfigValue<?> value : configs) {
                     List<String> paths = value.getPath();
@@ -169,10 +162,11 @@ public class CalamityConfig {
                     Field field = configClass.getDeclaredField((String) configValue.calamity$According[1]);
                     Class<?> valueType = field.getType();
                     long offset = unsafe.staticFieldOffset(field);
-                    if (valueType == double.class) unsafe.putDouble(configClass, offset, (Double) value);
-                    else if (valueType == float.class)  unsafe.putFloat(configClass, offset, ((Double) value).floatValue());
-                    else if (valueType == int.class) unsafe.putInt(configClass, offset, ((Double) value).intValue());
-                    else if (valueType == boolean.class) unsafe.putBoolean(configClass, offset, (Boolean) value);
+                    if (value instanceof Number number) {
+                        if (valueType == double.class) unsafe.putDouble(configClass, offset, number.doubleValue());
+                        else if (valueType == float.class)  unsafe.putFloat(configClass, offset, number.floatValue());
+                        else if (valueType == int.class) unsafe.putInt(configClass, offset, number.intValue());
+                    } else if (valueType == boolean.class) unsafe.putBoolean(configClass, offset, (Boolean) value);
                     else unsafe.putObject(configClass, offset, configValue.calamity$According.length == 3 &&
                             configValue.calamity$According[2] != null ? ((Function) configValue.calamity$According[2]).apply(value) : value);
                 } else {
@@ -220,7 +214,7 @@ public class CalamityConfig {
         DROP {
             @Override
             protected ForgeConfigSpec.ConfigValue<?> handler(Class<?> dataClass, ForgeConfigSpec.Builder builder, Object value, AnnotationProcessor processor) {
-                double probability = value instanceof Float ? (Float) value : (Double) value;
+                double probability = ((Number) value).doubleValue();
                 return builder.defineInRange("drop." + dataClass.getSimpleName(), probability, 0, 1);
             }
         };

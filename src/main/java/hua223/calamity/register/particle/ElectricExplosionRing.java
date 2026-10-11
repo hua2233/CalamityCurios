@@ -1,16 +1,13 @@
 package hua223.calamity.register.particle;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import hua223.calamity.render.shaders.CalamityShaders;
 import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.RenderUtil;
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.particle.Particle;
-import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.particle.SpriteSet;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
@@ -18,8 +15,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 
 public class ElectricExplosionRing extends SingleTexturedParticle {
@@ -79,16 +74,16 @@ public class ElectricExplosionRing extends SingleTexturedParticle {
 
             int color = CalamityHelp.multicolorLerp((i / (ringCount - 1f) + RenderUtil.getLocalTick() * 0.03f) % 1f, palette);
             byVertexDataBuild(buffer,
-                (int) (FastColor.ARGB32.red(color) * opacityFadeout * 0.15f),
-                (int) (FastColor.ARGB32.green(color) * opacityFadeout * 0.15f),
-                (int) (FastColor.ARGB32.blue(color) * opacityFadeout * 0.15f),
-                (int) (FastColor.ARGB32.alpha(color) * opacityFadeout * 0.4f));
+                (int) (FastColor.ARGB32.red(color) * opacityFadeout * 0.45f),
+                (int) (FastColor.ARGB32.green(color) * opacityFadeout * 0.45f),
+                (int) (FastColor.ARGB32.blue(color) * opacityFadeout * 0.45f),
+                (int) (FastColor.ARGB32.alpha(color) * opacityFadeout * 0.45f));
         }
     }
 
     @Override
     public @NotNull ParticleRenderType getRenderType() {
-        return RenderUtil.Shaders.GENERIC_BLOOM;
+        return CalamityShaders.GENERIC_BLOOM;
     }
 
     @OnlyIn(Dist.CLIENT)

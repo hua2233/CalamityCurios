@@ -1,8 +1,11 @@
 package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
+import hua223.calamity.events.ApplyEvent;
+import hua223.calamity.events.listeners.ProjectileSpawnListener;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.util.CMLangUtil;
+import hua223.calamity.util.CurioRepel;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
@@ -15,9 +18,15 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 import java.util.UUID;
 
+@CurioRepel(DeadshotBrooch.class)
 public class PlanebreakersPouch extends DeadshotBrooch {
     public PlanebreakersPouch(Properties properties) {
         super(properties);
+    }
+
+    @ApplyEvent
+    public final void arrow(ProjectileSpawnListener listener) {
+        super.arrowSpawn(listener);
     }
 
     @Override

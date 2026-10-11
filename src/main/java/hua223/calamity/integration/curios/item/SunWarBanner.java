@@ -2,19 +2,24 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.integration.curios.BaseCurio;
+import hua223.calamity.integration.jei.JeiInfo;
+import hua223.calamity.loots.ApplyGlobalLoot;
+import hua223.calamity.loots.EntitiesLootContext;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.util.CMLangUtil;
+import hua223.calamity.util.CalamityHelp;
 import hua223.calamity.util.ICuriosStorage;
 import hua223.calamity.util.VariableAttributeModifier;
+import io.redspace.ironsspellbooks.registries.EntityRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
@@ -24,7 +29,13 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 import java.util.UUID;
 
+import static hua223.calamity.register.items.CalamityItems.WARBANNER_SUN;
+
+@JeiInfo(item = WARBANNER_SUN, zh_cn = "小概率从远古骑士掉落，受抢夺影响")
 public class SunWarBanner extends BaseCurio implements ICuriosStorage {
+//    @AutoConfig(template = CalamityConfig.ConfigTemplate.DROP)
+//    public static final float DROP_PROBABILITY = CalamityConfig.value();
+
     public SunWarBanner(Properties properties) {
         super(properties);
     }
@@ -49,6 +60,7 @@ public class SunWarBanner extends BaseCurio implements ICuriosStorage {
         modifier.put(CalamityAttributes.CLOSE_RANGE.get(), var);
     }
 
+    @SuppressWarnings("ConstantConditions")
     private void updateAttribute(Player player, double amplifier) {
         AttributeInstance instance = player.getAttribute(Attributes.ATTACK_DAMAGE);
         ((VariableAttributeModifier) instance.getModifier(getFirstUUID(player)))
@@ -56,13 +68,16 @@ public class SunWarBanner extends BaseCurio implements ICuriosStorage {
                 player.getAttribute(CalamityAttributes.CLOSE_RANGE.get()));
     }
 
-    private static List<LivingEntity> getNearbyEnemies(Player player) {
+    private static List<Mob> getNearbyEnemies(Player player) {
         double x = player.getX(), y = player.getY(), z = player.getZ();
-        AABB scope = new AABB(x - 10, y - 5, z - 10,
-            x + 10, y + 5, z + 10);
+        return CalamityHelp.getAttackableEntity(Mob.class, player, new AABB(x - 10, y - 5, z - 10,
+            x + 10, y + 5, z + 10));
+    }
 
-        return player.level().getEntitiesOfClass(LivingEntity.class, scope,
-            entity -> entity instanceof Enemy && entity.isAlive() && !entity.isAlliedTo(player));
+    @ApplyGlobalLoot(item = WARBANNER_SUN)
+    public void onEntityLoot(EntitiesLootContext context) {
+        if (context.onlyVerification(EntityRegistry.KEEPER.get())
+            && context.lootingChance(.02f)) context.addLoot(this);
     }
 
     @Override
@@ -85,7 +100,7 @@ public class SunWarBanner extends BaseCurio implements ICuriosStorage {
         if (addCount(player, 0) >= 10) {
             float[] count = getCount(player);
             count[0] = 0;
-            List<LivingEntity> mobs = getNearbyEnemies(player);
+            List<Mob> mobs = getNearbyEnemies(player);
 
             float lastAmplifier = count[1];
 
@@ -112,12 +127,7 @@ public class SunWarBanner extends BaseCurio implements ICuriosStorage {
                 return;
             }
 
-            if (amplifier == 5) {
-                updateAttribute(player, 0.2);
-            } else {
-                updateAttribute(player, amplifier * 0.04);
-            }
-
+            updateAttribute(player, amplifier * 0.04);
             count[1] = amplifier;
         }
     }

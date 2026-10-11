@@ -14,9 +14,9 @@ import java.util.List;
 public class GlacialState extends CalamityEffect {
     protected GlacialState(MobEffectCategory pCategory, int pColor) {
         super(pCategory, pColor);
-        addAttributeModifier(Attributes.MOVEMENT_SPEED, "123e4567-e89b-12d3-a456-426614174029", -0.2, AttributeModifier.Operation.MULTIPLY_TOTAL);
-        addAttributeModifier(AttributeRegistry.ICE_MAGIC_RESIST.get(),
-            "123e4567-e89b-12d3-a456-426614174029", -0.2, AttributeModifier.Operation.MULTIPLY_TOTAL);
+        String id = getSelfUUID();
+        addAttributeModifier(Attributes.MOVEMENT_SPEED, id, -0.2, AttributeModifier.Operation.MULTIPLY_TOTAL);
+        addAttributeModifier(AttributeRegistry.ICE_MAGIC_RESIST.get(), id, -0.2, AttributeModifier.Operation.MULTIPLY_TOTAL);
     }
 
     @Override

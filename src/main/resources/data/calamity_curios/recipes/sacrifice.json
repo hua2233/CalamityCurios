@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "minecraft:netherite_sword"
+    },
+    "B": {
+      "tag": "forge:ingots/iron"
+    },
+    "C": {
+      "item": "irons_spellbooks:mithril_weave"
+    }
+  },
+  "pattern": [
+    "BBB",
+    "BAB",
+    "BCB"
+  ],
+  "result": {
+    "item": "calamity_curios:sacrifice"
+  }
+}

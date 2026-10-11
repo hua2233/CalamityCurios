@@ -17,7 +17,7 @@ import java.util.List;
 public class CursedInferno extends CalamityEffect implements IEffectsCallBack {
     public CursedInferno(MobEffectCategory category, int color) {
         super(category, color);
-        addAttributeModifier(Attributes.KNOCKBACK_RESISTANCE, "123e4567-e89b-12d3-a456-426614174002", -0.1, AttributeModifier.Operation.ADDITION);
+        addAttributeModifier(Attributes.KNOCKBACK_RESISTANCE, getSelfUUID(), -0.1, AttributeModifier.Operation.ADDITION);
     }
 
     @Override
@@ -25,10 +25,8 @@ public class CursedInferno extends CalamityEffect implements IEffectsCallBack {
         return pDuration % 40 == 0;
     }
 
-    public void applyEffectTick(@NotNull LivingEntity pLivingEntity, int pAmplifier) {
-        if (!pLivingEntity.level().isClientSide) {
-            pLivingEntity.hurt(pLivingEntity.damageSources().magic(), 3f);
-        }
+    public void applyServerTick(@NotNull LivingEntity pLivingEntity, int pAmplifier) {
+        pLivingEntity.hurt(pLivingEntity.damageSources().magic(), 3f);
     }
 
     @Override

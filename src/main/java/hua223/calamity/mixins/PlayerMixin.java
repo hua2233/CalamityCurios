@@ -14,27 +14,29 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Abilities;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.ForgeMod;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.*;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import java.util.Optional;
 
 @Mixin(Player.class)
 public abstract class PlayerMixin extends LivingEntity {
     @Shadow public abstract boolean isSpectator();
 
     @Shadow @Final private Abilities abilities;
+
     @Unique
     public CalamityPlayer Calamity$Player;
 
@@ -82,10 +84,8 @@ public abstract class PlayerMixin extends LivingEntity {
     @Redirect(method = "attack", at = @At(value = "INVOKE",
         target = "Lnet/minecraft/world/entity/Entity;hurt(Lnet/minecraft/world/damagesource/DamageSource;F)Z"))
     private boolean setSource(Entity instance, DamageSource source, float amount) {
-        if (Calamity$Player.noAttackCooling) {
+        if (Calamity$Player.noAttackCooling)
             amount *= (float) (Mth.clamp(calamity$Player.getAttributeValue(Attributes.ATTACK_SPEED), 1, 100));
-            instance.invulnerableTime = 0;
-        }
         return instance.hurt(source, amount);
     }
 

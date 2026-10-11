@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A" : {
+      "item": "irons_spellbooks:nature_rune"
+    },
+    "B" : {
+      "item": "calamity_curios:lumenyl"
+    },
+    "C": {
+      "item": "calamity_curios:craw_carapace"
+    },
+    "D": {
+      "item": "minecraft:echo_shard"
+    }
+  },
+  "pattern": [
+    "BBB",
+    "ACA",
+    "DDD"
+  ],
+  "result": {
+    "item": "calamity_curios:baroclaw"
+  }
+}

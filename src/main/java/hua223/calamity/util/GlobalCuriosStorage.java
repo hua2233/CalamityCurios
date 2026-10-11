@@ -8,16 +8,21 @@ import net.minecraft.world.item.ItemStack;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 
-import java.util.*;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.UUID;
 
+//@NotThreadSafe
+//Anyway, please return to the server side main thread to operate it
 public class GlobalCuriosStorage {
     private GlobalCuriosStorage() {}
 
     /**
-     * Retrieves the Curios memory object for the specified player
+     * Retrieves the Curios memory object for the specified tracker
      * 
      * @param storage The Curios storage interface instance to query
-     * @param player The target player entity
+     * @param player The target tracker entity
      * @return CuriosMemory object if the corresponding storage memory exists, otherwise null
      */
     public static CuriosMemory getStorage(ICuriosStorage storage, LivingEntity player) {
@@ -26,9 +31,9 @@ public class GlobalCuriosStorage {
     }
 
     /**
-     * Safely removes Curios storage from the player
+     * Safely removes Curios storage from the tracker
      * When the storage is successfully removed and the mapping set becomes empty,
-     * the player's curiosStorage reference is set to null
+     * the tracker's curiosStorage reference is set to null
      * 
      * @param entity The target living entity
      * @param storage The Curios storage interface instance to remove
@@ -42,7 +47,7 @@ public class GlobalCuriosStorage {
 
     public static void addPlayerStorage(Player player) {
         //The Curios author defaults to not processing the first frame, possibly to prevent excessive noise, so manual registration is required here
-        //If FirstTick is set to true when a player instance is created, it should be manually reset, such low frequency events are acceptable
+        //If FirstTick is set to true when a tracker instance is created, it should be manually reset, such low frequency events are acceptable
         CuriosApi.getCuriosInventory(player).ifPresent(handler -> {
             for (int i = 0; i < handler.getSlots(); i++) {
                 ItemStack stack = handler.getEquippedCurios().getStackInSlot(i);
@@ -71,24 +76,26 @@ public class GlobalCuriosStorage {
     }
 
     /**
-     * Gets the count array from the player's Curios storage
+     * Gets the count array from the tracker's Curios storage
      * 
-     * @param player The target player entity
+     * @param player The target tracker entity
      * @param storage The storage object to query
      * @return The count array if storage exists, otherwise null
      */
     @SuppressWarnings("ALL")
     public static float[] getCountStorages(LivingEntity player, Object storage) {
         ObjectOpenHashSet<CuriosMemory> map = player.calamity$Player.Calamity$Player.curiosStorage;
-        return map == null ? null : map.contains(storage) ? map.get(storage).count : null;
+        if (map == null) return null;
+        CuriosMemory memory = map.get(storage);
+        return memory == null ? null : memory.count;
     }
 
     /**
-     * Adds Curios storage to the player
+     * Adds Curios storage to the tracker
      * In the vast majority of cases, each storage will only be placed once.
      * To prevent accidental overwriting, addOrGet is used to avoid duplicate placement
      * 
-     * @param player The target player
+     * @param player The target tracker
      * @param storage The Curios storage interface instance to add
      */
     public static void addCurioStorage(Player player, ICuriosStorage storage) {
@@ -133,10 +140,9 @@ public class GlobalCuriosStorage {
             ownerCurio = storage;
             int countSize = storage.getCountSize();
             Class<?>[] multipleStorageTypes = storage.defineStorageType();
-            if (storage.storageCount()) count = new float[countSize];
-            else count = null;
-            if (storage.storageID()) uuids = new UUID[countSize];
-            else uuids = null;
+
+            count = storage.storageCount() ? new float[countSize] : null;
+            uuids = storage.storageID() ? new UUID[countSize] : null;
 
             if (multipleStorageTypes == null) {
                 map = null;

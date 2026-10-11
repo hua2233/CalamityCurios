@@ -2,10 +2,11 @@ package hua223.calamity.integration.curios.item.entropy;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.integration.curios.Card;
+import hua223.calamity.integration.jei.JeiInfo;
 import hua223.calamity.loots.ApplyGlobalLoot;
-import hua223.calamity.loots.ChestLootContext;;
-import hua223.calamity.register.items.CalamityItems;
+import hua223.calamity.loots.ChestLootContext;
 import hua223.calamity.register.attribute.CalamityAttributes;
+import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.util.CMLangUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -20,6 +21,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 import java.util.UUID;
 
+@JeiInfo(zh_cn = "在废弃矿井中可以找到")
 public class Aura extends Card {
     public Aura(Properties properties) {
         super(properties);
@@ -27,7 +29,7 @@ public class Aura extends Card {
 
     @Override
     protected void setAttributeModifiers(UUID uuid, ItemStack stack, Multimap<Attribute, AttributeModifier> modifier, LivingEntity equipped) {
-        boolean deck = equipFromDeck(stack);
+        boolean deck = equipped.calamity$Player.Calamity$Player.cardDeck;
         modifier.put(CalamityAttributes.CRITICAL_STRIKE_CHANCE.get(),
             new AttributeModifier(uuid, "aura",  deck ? 0.1 : 0.05, AttributeModifier.Operation.MULTIPLY_BASE));
     }
@@ -35,8 +37,8 @@ public class Aura extends Card {
 
     @ApplyGlobalLoot
     public void onGlobalChestLoot(ChestLootContext context) {
-        if (context.fromSpecificName("abandoned_mineshaft") && context.chance(0.2f))
-            context.addLoot(this, 1);
+        if (context.fromSpecificName("abandoned_mineshaft") && context.chance(0.12f))
+            context.addLoot(this);
     }
 
     @Override

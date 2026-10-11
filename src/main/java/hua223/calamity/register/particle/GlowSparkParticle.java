@@ -1,7 +1,6 @@
 package hua223.calamity.register.particle;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import org.joml.Quaternionf;
 import hua223.calamity.util.Vector2f;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.SpriteSet;
@@ -10,6 +9,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.joml.Quaternionf;
 import org.joml.Vector4i;
 
 import java.util.ArrayList;

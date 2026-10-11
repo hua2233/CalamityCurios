@@ -37,7 +37,8 @@ public class CuriosTag extends JsonCodecProvider<CuriosTag.CuriosTagData> {
             URSA_SERGEANT, AMALGAMATED_BRAIN, AMALGAM, BLOOD_PACT,
             BLOODFLARE_CORE, ASCENDANT_INSIGNIA, FEATHER_CROWN,
             RUIN_MEDALLION, ETHEREAL_EXTORTER, MOONSTONE_CROWN,
-            SACRIFICES_MASK, FUNGAL_CLUMP, SILVAS_CROWN));
+            SACRIFICES_MASK, FUNGAL_CLUMP, SILVAS_CROWN, DEITY_MASK,
+            AVATAR_MASK, OCEAN_FLOWER));
 
         factory.accept("necklace", List.of(
             YHARIM_GIFT, COUNTER_SCARF, BLOODY_WORM_SCARF,
@@ -49,13 +50,13 @@ public class CuriosTag extends JsonCodecProvider<CuriosTag.CuriosTagData> {
             FORESEE_ORB, HOLY_MOONLIGHT, AZURE_ABYSS_TALISMAN));
 
         factory.accept("charm", List.of(
-            HIDE_OF_ASTRUM_DEUS, RADIANCE, BADGE_BRAVERY,
-            DAAWNLIGHT, CONCOCTION, CALAMITY_SIGIL,
+            HIDE_OF_ASTRUM_DEUS, RADIANCE, BRAVERY_BADGE,
+            DAAWNLIGHT, CONCOCTION, CALAMITY_SIGIL, PURITY,
             ABYSSAL_AMULET, ETHEREAL_TALISMAN, SHATTERED_COMMUNITY,
             COMMUNITY, DIMENSIONAL, CLEANSING_JELLY, FROST_BARRIER,
             BLOOM_STONE, INFECTED_JEWEL, DEIFIC_AMULET, GRAVISTAR_SABATON,
             AERO_STONE, ANGEL_TREADS, VAMPIRIC_TALISMAN, STAR_CHARM,
-            MOON_WALKERS, VOID_STRIDERS, SERAPH_TRACERS));
+            MOON_WALKERS, VOID_STRIDERS, SERAPH_TRACERS, HYPERPLANE_MATRIX));
 
         factory.accept("back", List.of(
             WARBANNER_SUN, NIHILITY_QUIVER, PLANEBREAKERS_POUCH,
@@ -67,7 +68,7 @@ public class CuriosTag extends JsonCodecProvider<CuriosTag.CuriosTagData> {
 
         factory.accept("hands", List.of(
             BLOODY_WORM_TOOTH, ELEMENTAL_GAUNTLET, CRAW_CARAPACE,
-            DESTINY_BOOK, BAROCLAW, OCEAN_SHIELD, DARK_MATTER_SHEATH,
+            APATHANULL, BAROCLAW, OCEAN_SHIELD, DARK_MATTER_SHEATH,
             ARCHAIC_POWDER, RADIANT_OOZE, ANGELIC_ALLIANCE,
             FLESH_TOTEM, VITAL_JELLY, GRAND_GELATIN,
             ABSORBER, BLOOD_GOD_CHALICE, DEITIES_RAMPART,
@@ -82,13 +83,13 @@ public class CuriosTag extends JsonCodecProvider<CuriosTag.CuriosTagData> {
         factory.accept("body", List.of(
             STEM_CELLS, MANA_POLARIZER, DARKNESS_HEART,
             AFFLICTION, NEBULOUS_CORE, DRAEDON_HEART,
-            SPONGE, DEUS_CORE));
+            SPONGE, DEUS_CORE, ROVER_DRIVE));
 
         factory.accept("belt", List.of(
-            STATIS_NINJA_BELT, STATIS_VOID_SASH));
+            STATIS_NINJA_BELT, STATIS_VOID_SASH, PORTAL_SKIRT));
 
         factory.accept("ring", List.of(
-            EXTINCTION_VOID, CROWN_JEWEL, GIANT_PEARL,
+            APOLLYON, CROWN_JEWEL, GIANT_PEARL,
             HONEY_DEW, LIVING_DEW, DARK_SUN_RING,
             CORRUPT_FLASK, CRIMSON_FLASK, HARPY_RING,
             ARC_FLASH_RING));

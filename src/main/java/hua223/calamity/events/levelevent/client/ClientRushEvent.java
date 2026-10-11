@@ -1,14 +1,14 @@
 package hua223.calamity.events.levelevent.client;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
 import hua223.calamity.main.CalamityCurios;
+import hua223.calamity.net.IDataPackResponse;
 import hua223.calamity.render.screen.FlashScreenRenderer;
 import hua223.calamity.render.screen.ScreenMaskRenderer;
+import hua223.calamity.render.shaders.CalamityShaders;
 import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.net.IDataPackResponse;
 import hua223.calamity.util.RenderUtil;
 import hua223.calamity.util.Vector2f;
 import hua223.calamity.util.delaytask.DelayRunnable;
@@ -38,7 +38,9 @@ import java.util.function.BooleanSupplier;
 
 @OnlyIn(Dist.CLIENT)
 public class ClientRushEvent extends ClientLevelEvent {
+    public static int borderRenderDistance;
     private final BossRushSoundManager manager = new BossRushSoundManager(this);
+    //进一步压暗整个屏幕，让世界看起来非常的惨白昏暗
     private final ScreenMaskRenderer mask = new ScreenMaskRenderer(CalamityCurios.ModResource("textures/misc/black.png"));
 
     private int tier = -1;
@@ -46,8 +48,19 @@ public class ClientRushEvent extends ClientLevelEvent {
     protected boolean pre = true;
 
     public ClientRushEvent(CompoundTag tag, IDataPackResponse parser) {
+        boolean logIn = tag.contains("login");
+        //仅在事件被终末石完全启动之后设置，跳过过度阶段，否则应该被终末石自身进行同步
+        //在开始后同步时它应该携带progress和当前世界的border信息来设置屏幕昏暗效果以及适配当前挑战层级
+        if (logIn) {
+            pre = false;
+            tier = 0;
+            render = sky = new BossRushSky();
+            setSkyDarkenGradient(4f);
+        } else mask.setSingleChannel(3, .125f);
         handlerDataPack(tag, parser);
-        mask.setSingleChannel(3, .125f);
+
+        //如果事件音乐仍然处于第一阶段，未被progress跨阶段同步的话则应该手动播放它
+        if (logIn && tier == 0) manager.startPlayBackgroundMusic();
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -59,7 +72,8 @@ public class ClientRushEvent extends ClientLevelEvent {
         } else if (tag.contains("progress")) {
             float progress = tag.getFloat("progress");
             mask.setSingleChannel(3, Mth.lerp(progress, .1f, .3f));
-            setTier(1 + (int) (progress / .25f));
+            // 0 ~ .25 = 0 Tire | .25 ~ .5 = 1 Tire | .5 ~ .75 = 2 Tire | .75 ~ 1 = 3 Tire
+            setTier((int) (progress / .25f));
             sky.setCurrentInterest(Math.min(1f, sky.currentInterest + tag.getFloat("interest")));
         }
 
@@ -116,7 +130,8 @@ public class ClientRushEvent extends ClientLevelEvent {
 
     @Override
     protected void victoryEvent() {
-        playPhaseDialogue(5, false);
+        tier = 5;
+        playPhaseDialogue();
     }
 
     @Override
@@ -144,7 +159,7 @@ public class ClientRushEvent extends ClientLevelEvent {
             sky.incrementalInterest = sky.currentInterest;
             sky.currentInterest -= 0.02f;
             if (++tick[0] > 20) {
-                mask.setSingleChannel(3, Mth.lerp((tick[0] - 20) / 20f, .3f, .1f));
+                mask.setSingleChannel(3, Mth.lerp((tick[0] - 20) / 20f, .15f, .05f));
                 if (tick[0] == 40) {
                     setTier(0);
                     return true;
@@ -158,13 +173,17 @@ public class ClientRushEvent extends ClientLevelEvent {
     protected void setTier(int tier) {
         if (tier > this.tier) {
             this.tier = tier;
-            playPhaseDialogue(tier, true);
+            playPhaseDialogue();
         }
     }
 
+    public int getTier() {
+        return tier;
+    }
+
     @SuppressWarnings("ConstantConditions")
-    private void playPhaseDialogue(int state, final boolean nextMusic) {
-        List<Component> texts = switch (state) {
+    private void playPhaseDialogue() {
+        List<Component> texts = switch (tier) {
             case 0 -> batchColorTexts(1, 15);
             case 1 -> batchColorTexts(16, 17);
             case 2 -> batchColorTexts(28, 29);
@@ -180,7 +199,7 @@ public class ClientRushEvent extends ClientLevelEvent {
             Minecraft.getInstance().player.displayClientMessage(texts.get(last), true);
             texts.remove(last);
             if (texts.isEmpty()) {
-                if (nextMusic) manager.startPlayBackgroundMusic();
+                manager.startPlayBackgroundMusic();
                 return true;
             }
             return false;
@@ -212,8 +231,11 @@ public class ClientRushEvent extends ClientLevelEvent {
         private final ResourceLocation XEROC_EYE = CalamityCurios.ModResource("textures/misc/xeroc_eye.png");
         private final Vector4i baseColorDraw = new Vector4i();
         private final Vector4i coral = new Vector4i(255, 128, 79, 255);
-        private final Vector4i red = RenderUtil.fromColorGet(Color.RED);
+        private final Vector4i red = new Vector4i(255, 0, 0, 255);
         private final Vector4i white = RenderUtil.fromColorGet(Color.WHITE);
+
+        private BossRushSky() {
+        }
 
         private void setCurrentInterest(float value) {
             incrementalInterest = currentInterest;
@@ -228,9 +250,9 @@ public class ClientRushEvent extends ClientLevelEvent {
         @Override
         public void setSkyFogColor(ViewportEvent.ComputeFogColor event) {
             event.setRed(Mth.lerp((float) Mth.lerp(event.getPartialTick(),
-                incrementalInterest, currentInterest), 0.85f, 0.96f));
-            event.setBlue(0.8275f);
-            event.setGreen(0.8275f);
+                incrementalInterest, currentInterest), 0.5475f, 0.96f));
+            event.setBlue(0.5475f);
+            event.setGreen(0.5475f);
         }
 
         @SuppressWarnings("ConstantConditions")
@@ -238,9 +260,10 @@ public class ClientRushEvent extends ClientLevelEvent {
         public void renderSky(PoseStack poseStack, Minecraft minecraft, Matrix4f projectionMatrix,
                                      float partialTick, VertexBuffer skyBuffer, VertexBuffer darkBuffer, ClientLevel level) {
             float interest = Mth.lerp(partialTick, incrementalInterest, currentInterest);
-            float skyColor = Mth.lerp(interest, 0.8275f, 0.96F);
+            //压暗世界，让眼睛显现出来
+            float skyColor = Mth.lerp(interest, 0.4f, 0.2F);
             RenderSystem.depthMask(false);
-            RenderSystem.setShaderColor(skyColor, skyColor, skyColor, 0.75f);
+            RenderSystem.setShaderColor(skyColor, skyColor, skyColor, 0.9f);
             ShaderInstance shaderinstance = RenderSystem.getShader();
             skyBuffer.bind();
             skyBuffer.drawWithShader(poseStack.last().pose(), projectionMatrix, shaderinstance);
@@ -248,7 +271,8 @@ public class ClientRushEvent extends ClientLevelEvent {
             RenderSystem.enableBlend();
             poseStack.pushPose();
             poseStack.mulPose(Axis.YP.rotationDegrees(-90.0F));
-            poseStack.mulPose(Axis.XP.rotationDegrees(60f));
+            poseStack.mulPose(Axis.XP.rotationDegrees(90f));
+            poseStack.translate(0.0F, 0.0F, minecraft.player.getY() - 12.0F);
             renderXerocEye(poseStack.last().pose(), interest);
             poseStack.popPose();
             RenderSystem.defaultBlendFunc();
@@ -272,53 +296,49 @@ public class ClientRushEvent extends ClientLevelEvent {
         //渲染克希洛克之眼
         private void renderXerocEye(Matrix4f matrix4f, float interest) {
             BufferBuilder bufferBuilder = Tesselator.getInstance().getBuilder();
-            float size = Mth.lerp(interest, 25f, 30f) +
+            float width = Mth.lerp(interest, 32f, 42f) +
                 (float) Math.sin(Mth.lerp(interest, 0.04f, 0.1f)) * 0.01f;
+
+            float height = width * 1.3359f;
             RenderUtil.interpolateColor(white, red, interest, baseColorDraw);
             //Base
-            RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA,
-                GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
+            CalamityShaders.XNA_ALPHA_BLEND.setupRenderState();
             //不要被Mojang的着色器剔除，这会导致非常混乱的杂边
-            RenderUtil.Shaders.BASE_SHARD.setupRenderState();
+            RenderSystem.setShader(CalamityShaders.getBaseShader());
             RenderSystem.setShaderTexture(0, XEROC_EYE);
 
             bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_TEX);
-            float zSize = size * 1.2f;
-            bufferBuilder.vertex(matrix4f, -size, 100.0F, -zSize).color(baseColorDraw.x, baseColorDraw.y,
-                baseColorDraw.z, 84).uv(0.0F, 0.0F).endVertex();
-            bufferBuilder.vertex(matrix4f, size, 100.0F, -zSize).color(baseColorDraw.x, baseColorDraw.y,
-                baseColorDraw.z, 84).uv(1.0F, 0.0F).endVertex();
-            bufferBuilder.vertex(matrix4f, size, 100.0F, zSize).color(baseColorDraw.x, baseColorDraw.y,
-                baseColorDraw.z, 84).uv(1.0F, 1.0F).endVertex();
-            bufferBuilder.vertex(matrix4f, -size, 100.0F, zSize).color(baseColorDraw.x, baseColorDraw.y,
-                baseColorDraw.z, 84).uv(0.0F, 1.0F).endVertex();
-            BufferUploader.drawWithShader(bufferBuilder.end());
+            bufferBuilder.vertex(matrix4f, -width, 100.0F, -height).color(baseColorDraw.x, baseColorDraw.y,
+                baseColorDraw.z, baseColorDraw.w).uv(0.0F, 0.0F).endVertex();
+            bufferBuilder.vertex(matrix4f, width, 100.0F, -height).color(baseColorDraw.x, baseColorDraw.y,
+                baseColorDraw.z, baseColorDraw.w).uv(1.0F, 0.0F).endVertex();
+            bufferBuilder.vertex(matrix4f, width, 100.0F, height).color(baseColorDraw.x, baseColorDraw.y,
+                baseColorDraw.z, baseColorDraw.w).uv(1.0F, 1.0F).endVertex();
+            bufferBuilder.vertex(matrix4f, -width, 100.0F, height).color(baseColorDraw.x, baseColorDraw.y,
+                baseColorDraw.z, baseColorDraw.w).uv(0.0F, 1.0F).endVertex();
 
-
-            RenderUtil.multiplyColor(RenderUtil.interpolateColor(baseColorDraw, coral, 0.35f, baseColorDraw),
-                Mth.lerp(interest, 0.12f, 0.24f), baseColorDraw);
-            float backEyeOutwardness = Mth.lerp(interest, 0.6f, 0.32f);
-            int backInstances = Mth.lerpInt(interest, 6, 14);
             float fourPi = Mth.TWO_PI * 2f;
-            float time = RenderUtil.getLocalTick() * 0.1f;
+            float time = RenderUtil.getLocalTick() * .1f;
+            int backInstances = Mth.lerpInt(interest, 6, 24);
+            float backEyeOutwardness = width * Mth.lerp(interest, 0.04f, 0.02f);
+            RenderUtil.multiplyColor(RenderUtil.interpolateColor(baseColorDraw, coral, 0.3f, baseColorDraw),
+                Mth.lerp(interest, 0.18f, 0.3f), baseColorDraw);
             //Glow
-            RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ONE,
-                GlStateManager.DestFactor.ONE, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
             for (int i = 0; i < backInstances; i++) {
-                bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_TEX);
                 Vector2f vector2F = Vector2f.toRotationVector2(fourPi * i / backInstances + time).mul(backEyeOutwardness);
                 matrix4f.translate(vector2F.x, 0, vector2F.y);
-                bufferBuilder.vertex(matrix4f, -size, 100.0F, -zSize).color(baseColorDraw.x, baseColorDraw.y,
+                bufferBuilder.vertex(matrix4f, -width, 100.0F, -height).color(baseColorDraw.x, baseColorDraw.y,
                     baseColorDraw.z, 0).uv(0.0F, 0.0F).endVertex();
-                bufferBuilder.vertex(matrix4f, size, 100.0F, -zSize).color(baseColorDraw.x, baseColorDraw.y,
+                bufferBuilder.vertex(matrix4f, width, 100.0F, -height).color(baseColorDraw.x, baseColorDraw.y,
                     baseColorDraw.z, 0).uv(1.0F, 0.0F).endVertex();
-                bufferBuilder.vertex(matrix4f, size, 100.0F, zSize).color(baseColorDraw.x, baseColorDraw.y,
+                bufferBuilder.vertex(matrix4f, width, 100.0F, height).color(baseColorDraw.x, baseColorDraw.y,
                     baseColorDraw.z, 0).uv(1.0F, 1.0F).endVertex();
-                bufferBuilder.vertex(matrix4f, -size, 100.0F, zSize).color(baseColorDraw.x, baseColorDraw.y,
+                bufferBuilder.vertex(matrix4f, -width, 100.0F, height).color(baseColorDraw.x, baseColorDraw.y,
                     baseColorDraw.z, 0).uv(0.0F, 1.0F).endVertex();
-                BufferUploader.drawWithShader(bufferBuilder.end());
                 matrix4f.translate(-vector2F.x, 0, -vector2F.y);
             }
+
+            BufferUploader.drawWithShader(bufferBuilder.end());
         }
     }
 }

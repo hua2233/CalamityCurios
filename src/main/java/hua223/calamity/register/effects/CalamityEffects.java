@@ -181,8 +181,13 @@ public class CalamityEffects {
 
     public static final RegistryObject<MobEffect> BRIMSTONE_BARRIER = EFFECTS.register("brimstone_barrier", BrimstoneBarrier::new);
 
+    public static final RegistryObject<MobEffect> BANE = EFFECTS.register("bane", Bane::new);
+
+    public static final RegistryObject<MobEffect> AFFLICTED = EFFECTS.register("afflicted", Afflicted::new);
+
+    public static final RegistryObject<MobEffect> HEAT_DEATH = EFFECTS.register("heat_death", HeatDeath::new);
+
     public static void register(IEventBus bus) {
         EFFECTS.register(bus);
-
     }
 }

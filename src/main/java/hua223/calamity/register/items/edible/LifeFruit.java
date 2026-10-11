@@ -1,9 +1,14 @@
 package hua223.calamity.register.items.edible;
 
 import hua223.calamity.net.IDataPackResponse;
+import hua223.calamity.register.config.AutoConfig;
+import hua223.calamity.register.config.CalamityConfig;
 import hua223.calamity.register.items.AvailableItem;
 import hua223.calamity.register.items.CalamityItems;
-import hua223.calamity.util.*;
+import hua223.calamity.render.heart.CalamityHeartManage;
+import hua223.calamity.util.CMLangUtil;
+import hua223.calamity.util.CalamityHelp;
+import hua223.calamity.util.VariableAttributeModifier;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -26,13 +31,9 @@ import java.util.List;
 import java.util.UUID;
 
 public class LifeFruit extends AvailableItem implements IDataPackResponse {
-    private static final float LIFE_ENHANCE_RATIO;
-
-    static {
-        LIFE_ENHANCE_RATIO = 0;
-//        CalamityConfig.addAutoLoadEntry(AutoConfig.Type.SERVER,
-//            builder -> CalamityConfig.setCalamityEntry());
-    }
+    @AutoConfig(path = "LifeFruitEnhancement", defaultValue = {.05, 1},
+        comment = "How much maximum health should be increased when consuming new life fruits")
+    public static final float LIFE_ENHANCE_RATIO = CalamityConfig.value(.25f);
 
     public LifeFruit(Rarity rarity, int level) {
         super(new Item.Properties()
@@ -95,7 +96,7 @@ public class LifeFruit extends AvailableItem implements IDataPackResponse {
     @Override
     @OnlyIn(Dist.CLIENT)
     public void onClientResponse(CompoundTag tag) {
-        CalamityHelp.getClientCalamity().setFromLifeFruitLevel(tag.getByte("level"));
+        CalamityHeartManage.setFromLifeFruitLevel(tag.getByte("level"));
     }
 
     @Override

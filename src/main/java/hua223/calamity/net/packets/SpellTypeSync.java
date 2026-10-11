@@ -3,7 +3,7 @@ package hua223.calamity.net.packets;
 import hua223.calamity.net.CommunicationDirection;
 import hua223.calamity.net.DataPack;
 import hua223.calamity.register.gui.CalamityCurseMenu;
-import hua223.calamity.register.gui.SpellType;
+import hua223.calamity.register.rune.SpellType;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkDirection;

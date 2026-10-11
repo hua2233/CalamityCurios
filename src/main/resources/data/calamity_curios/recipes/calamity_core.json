@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A" : {
+      "item": "calamity_curios:sunlight_essence"
+    },
+    "B": {
+      "item": "calamity_curios:havoc_essence"
+    },
+    "C": {
+      "item": "calamity_curios:eleum_essence"
+    },
+    "D": {
+      "item": "irons_spellbooks:cinder_essence"
+    },
+    "E": {
+      "item": "irons_spellbooks:timeless_slurry"
+    }
+  },
+  "pattern": [
+    "   ",
+    "ABC",
+    "DED"
+  ],
+  "result": {
+    "item": "calamity_curios:calamity_core"
+  }
+}

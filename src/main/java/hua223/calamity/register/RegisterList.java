@@ -3,12 +3,12 @@ package hua223.calamity.register;
 import hua223.calamity.integration.curios.Decks;
 import hua223.calamity.main.CalamityCurios;
 import hua223.calamity.main.CalamityLightBlock;
-import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.register.enchantments.DemonShadeBless;
 import hua223.calamity.register.enchantments.SharedPain;
 import hua223.calamity.register.gui.CalamityCurseMenu;
+import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.register.recipe.CalamityCurseRecipe;
 import hua223.calamity.register.recipe.CalamityCurseSerializer;
 import hua223.calamity.register.sounds.CalamitySounds;
@@ -32,7 +32,6 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraftforge.common.ForgeTier;
-import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.TierSortingRegistry;
 import net.minecraftforge.common.extensions.IForgeMenuType;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -40,7 +39,6 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -57,68 +55,49 @@ public class RegisterList {
 
     //Register
     public static DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
-    public static DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, MODID);
-//    public static DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, MODID);
     public static DeferredRegister<MobEffect> EFFECTS = DeferredRegister.create(ForgeRegistries.MOB_EFFECTS, MODID);
     public static DeferredRegister<Attribute> ATTRIBUTES = DeferredRegister.create(ForgeRegistries.ATTRIBUTES, MODID);
-    public static RegistryObject<MenuType<CalamityCurseMenu>> CALAMITY_CURES;
+    public static DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, MODID);
 
     public static RegistryObject<Enchantment> SHARED_PAIN;
     public static RegistryObject<Enchantment> DEMON_SHADE_BLESS;
 
-    public static RegistryObject<AbstractSpell> CRESCENT_STANCE;
     public static RegistryObject<AbstractSpell> NEBULOUS;
+    public static RegistryObject<AbstractSpell> CRESCENT_STANCE;
+
+    public static RegistryObject<MenuType<CalamityCurseMenu>> CALAMITY_CURES;
 
     //Properties
-    public static Item.Properties CURIOS_COMMON = new Item.Properties().stacksTo(1);
-    public static final Rarity CALAMITY = Rarity.create("CALAMITY", ChatFormatting.DARK_RED);
-    public static Item.Properties CURIOS_UNCOMMON = new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON);
-    public static Item.Properties CURIOS_RARE = new Item.Properties().stacksTo(1).rarity(Rarity.RARE);
-    public static Item.Properties CURIOS_EPIC = new Item.Properties().stacksTo(1).rarity(Rarity.EPIC);
-    public static Item.Properties CURIOS_CALAMITY = new Item.Properties().stacksTo(1).rarity(CALAMITY);
-    public static Item.Properties ITEM_COMMON = new Item.Properties();
-    public static Item.Properties ITEM_UNCOMMON = new Item.Properties().rarity(Rarity.UNCOMMON);
-    public static Item.Properties UNCOMMON_ONE = new Item.Properties().rarity(Rarity.UNCOMMON).stacksTo(1);
-    public static Item.Properties ITEM_RARE = new Item.Properties().rarity(Rarity.RARE);
-    public static Item.Properties RARE_ONE = new Item.Properties().rarity(Rarity.RARE).stacksTo(1);
-    public static Item.Properties ITEM_EPIC = new Item.Properties().rarity(Rarity.EPIC);
-    public static Item.Properties EPIC_ONE = new Item.Properties().rarity(Rarity.EPIC).stacksTo(1);
-    public static Item.Properties ITEM_CALAMITY = new Item.Properties().stacksTo(1).rarity(CALAMITY);
+    public static final Rarity CALAMITY_RARITY = Rarity.create("CALAMITY", ChatFormatting.DARK_RED);
+
+    public static final Item.Properties ITEM_COMMON = new Item.Properties();
+    public static final Item.Properties COMMON_ONE = new Item.Properties().stacksTo(1);
+
+    public static final Item.Properties ITEM_UNCOMMON = new Item.Properties().rarity(Rarity.UNCOMMON);
+    public static final Item.Properties FIRE_RESISTANT_ORE = new Item.Properties().fireResistant().rarity(Rarity.UNCOMMON);
+    public static final Item.Properties UNCOMMON_ONE = new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON);
+
+    public static final Item.Properties ITEM_RARE = new Item.Properties().rarity(Rarity.RARE);
+    public static final Item.Properties RARE_ONE = new Item.Properties().stacksTo(1).rarity(Rarity.RARE);
+
+    public static final Item.Properties ITEM_EPIC = new Item.Properties().rarity(Rarity.EPIC);
+    public static final Item.Properties EPIC_ONE = new Item.Properties().stacksTo(1).rarity(Rarity.EPIC);
+
+    public static final Item.Properties CALAMITY_ONE = new Item.Properties().stacksTo(1).rarity(CALAMITY_RARITY);
 
     public static int curiosIndex;
-//    public static boolean fillCurios = true;
-    private static Item.Properties properties;
-
-    public static void setUniqueProperties(@NotNull Item.Properties properties) {
-        RegisterList.properties = properties;
-    }
-
-    public static Item.Properties getFoodProperties(Rarity rarity, int count, FoodProperties properties) {
-        return new Item.Properties().rarity(rarity).stacksTo(count).food(properties);
-    }
-    
-    public static Item.Properties getPotionProperties(Rarity rarity) {
-        return new Item.Properties().rarity(rarity).stacksTo(16);
-    }
-
-    @Nullable
-    public static Item.Properties getUniqueSettings() {
-        Item.Properties p = properties;
-        properties = null;
-        return p;
-    }
 
     public static final ForgeTier MOON = new ForgeTier(5, 3092, 10f, 7f,
-        50, Tags.Blocks.NEEDS_NETHERITE_TOOL, () -> Ingredient.EMPTY);
+        50, null, () -> Ingredient.EMPTY);
 
     public static final ForgeTier GOD_EATER = new ForgeTier(6, 5174, 11f, 10f,
-        80, Tags.Blocks.NEEDS_NETHERITE_TOOL, () -> Ingredient.EMPTY);
+        80, null, () -> Ingredient.EMPTY);
 
     public static final ForgeTier DRAGON = new ForgeTier(7, 7212, 12f, 15f,
-        100, Tags.Blocks.NEEDS_NETHERITE_TOOL, () -> Ingredient.EMPTY);
+        100, null, () -> Ingredient.EMPTY);
 
     public static final ForgeTier SUPREME = new ForgeTier(9999, -1, 9999f, 20f,
-        9999, Tags.Blocks.NEEDS_NETHERITE_TOOL, () -> Ingredient.EMPTY);
+        9999, null, () -> Ingredient.EMPTY);
 
     public static final ArmorMaterial DEMON_SHADE = new ArmorMaterial() {
         @Override
@@ -171,6 +150,14 @@ public class RegisterList {
         }
     };
 
+    public static Item.Properties getFoodProperties(Rarity rarity, int count, FoodProperties properties) {
+        return new Item.Properties().rarity(rarity).stacksTo(count).food(properties);
+    }
+
+    public static Item.Properties getPotionProperties(Rarity rarity) {
+        return new Item.Properties().rarity(rarity).stacksTo(16);
+    }
+
     public static void build(IEventBus bus) {
         CalamityItems.register(bus);
         CalamitySounds.register(bus);
@@ -216,11 +203,10 @@ public class RegisterList {
             .title(Component.translatable("itemGroup.calamity_curios").withStyle(ChatFormatting.DARK_RED))
             .displayItems((parameters, output) -> {
                 CalamityItems[] items = CalamityItems.values();
-                for (int i = 0; i < curiosIndex; i++) {
-                    Item item = items[i].get();
-                    if (item instanceof Decks decks) decks.fillItemCategory(output);
-                    else output.accept(items[i].get().getDefaultInstance());
-                }
+                for (int i = 0; i < curiosIndex; i++)
+                    output.accept(items[i].get().getDefaultInstance());
+
+                Decks.fillItemCategory(output);
             }).build());
 
         TABS.register(bus);
@@ -235,20 +221,5 @@ public class RegisterList {
         TierSortingRegistry.registerTier(GOD_EATER, godEater, List.of(moon), List.of(dragon));
         TierSortingRegistry.registerTier(DRAGON, dragon, List.of(godEater), List.of(supreme));
         TierSortingRegistry.registerTier(SUPREME, supreme, Arrays.asList(TierSortingRegistry.getSortedTiers().toArray()), List.of());
-
-        ITEMS = null;
-        SOUND_EVENTS = null;
-        EFFECTS = null;
-        ATTRIBUTES = null;
-        CURIOS_COMMON = null;
-        CURIOS_UNCOMMON = null;
-        CURIOS_RARE = null;
-        CURIOS_EPIC = null;
-        CURIOS_CALAMITY = null;
-        ITEM_COMMON = null;
-        ITEM_UNCOMMON = null;
-        ITEM_RARE = null;
-        ITEM_EPIC = null;
-        ITEM_CALAMITY = null;
     }
 }

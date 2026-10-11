@@ -1,6 +1,5 @@
 package hua223.calamity.integration.jei;
 
-
 import com.google.common.base.CaseFormat;
 import hua223.calamity.generators.ModLangGen;
 import hua223.calamity.main.AnnotationProcessor;
@@ -8,11 +7,18 @@ import hua223.calamity.main.CalamityCurios;
 import hua223.calamity.register.items.CalamityItems;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
+import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.registration.IRecipeRegistration;
+import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Tuple;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.ShapelessRecipe;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -21,7 +27,8 @@ import java.util.Map;
 
 @JeiPlugin
 public class CalamityJEIPlugin implements IModPlugin {
-    public static List<Tuple<CalamityItems, MutableComponent[]>> infos = new ArrayList<>();
+    private static final List<Tuple<CalamityItems, MutableComponent[]>> INFOS = new ArrayList<>();
+
     @Override
     public @NotNull ResourceLocation getPluginUid() {
         return CalamityCurios.ModResource("calamity_jei_plugin");
@@ -29,14 +36,25 @@ public class CalamityJEIPlugin implements IModPlugin {
 
     @Override
     public void registerRecipes(@NotNull IRecipeRegistration registration) {
-        for (Tuple<CalamityItems, MutableComponent[]> info : infos)
+        for (Tuple<CalamityItems, MutableComponent[]> info : INFOS)
             registration.addItemStackInfo(info.getA().get().getDefaultInstance(), info.getB());
-        infos = null;
+
+        registration.addItemStackInfo(CalamityItems.INFERNAL_SUEVITE_ORE.get().getDefaultInstance(),
+            Component.translatable("jei.calamity_curios.infernal_suevite_ore.desc"));
+
+        registration.addItemStackInfo(CalamityItems.EXODIUM_CLUSTER_ORE.get().getDefaultInstance(),
+            Component.translatable("jei.calamity_curios.exodium_cluster_ore.desc"));
+        //This is just a visual omen. even if you really collect so much iron, you cannot craft it
+        //This is the result of the cosmic heat death， After an extremely long period of time,
+        //all baryonic matter in the universe will transform into iron-56, a tightly bound isotope of iron.
+        registration.addRecipes(RecipeTypes.CRAFTING, List.of(new ShapelessRecipe(
+            CalamityCurios.ModResource("metallic_chunk"), "", CraftingBookCategory.MISC,
+            new ItemStack(CalamityItems.METALLIC_CHUNK.get()), NonNullList.withSize(1, Ingredient.of(new ItemStack(Items.RAW_IRON_BLOCK, Integer.MAX_VALUE))))));
     }
 
     @SuppressWarnings("unchecked")
     public static void findJeiInfo(AnnotationProcessor annotationProcessor) {
-        final String template = "jei.calamity_curios.$.desc.%";
+        final String template = "jei.calamity_curios.$.desc%";
         annotationProcessor.addStartProcessingEntries(JeiInfo.class, processor -> {
             Map<String, Object> data = processor.getAnnotationData().annotationData();
             Class<?> clazz = processor.getDataClass();
@@ -49,6 +67,7 @@ public class CalamityJEIPlugin implements IModPlugin {
 
             int lines = data.containsKey("line") ? (Integer) data.get("line") : 1;
             String[] translationKey = new String[lines];
+
             for (int i = 0; i < lines; i++)
                 translationKey[i] = base.replace("%", String.valueOf(i)); ;
 
@@ -64,7 +83,7 @@ public class CalamityJEIPlugin implements IModPlugin {
             for (int i = 0; i < components.length; i++)
                 components[i] = Component.translatable(translationKey[i]);
 
-            infos.add(new Tuple<>(items, components));
+            INFOS.add(new Tuple<>(items, components));
         });
     }
 }

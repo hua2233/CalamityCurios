@@ -1,6 +1,6 @@
 package hua223.calamity.register.damage;
 
-import  hua223.calamity.generators.CalamityGen;
+import hua223.calamity.generators.CalamityGen;
 import hua223.calamity.main.AnnotationProcessor;
 import hua223.calamity.main.CalamityCurios;
 import net.minecraft.ChatFormatting;
@@ -75,7 +75,7 @@ public class DamageSupplier {
 
     public static void onServerStart(RegistryAccess access) {
         Registry<DamageType> registry = access.registryOrThrow(Registries.DAMAGE_TYPE);
-        Holder.Reference<DamageType> kill = registry.getHolderOrThrow(DamageTypes.GENERIC_KILL);
+        Holder.Reference<DamageType> kill = registry.getHolderOrThrow(DamageTypes.GENERIC);
         for (DamageSupplier supplier : SUPPLIERS) supplier.holder = registry.getHolder(ResourceKey.create(
             Registries.DAMAGE_TYPE, CalamityCurios.resource(supplier.key))).orElse(kill);
     }

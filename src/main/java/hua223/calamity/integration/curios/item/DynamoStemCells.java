@@ -2,11 +2,12 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.EffectListener;
+import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.util.CMLangUtil;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -22,8 +23,8 @@ import java.util.List;
 import java.util.UUID;
 
 public class DynamoStemCells extends BaseCurio {
-    public DynamoStemCells(Properties pProperties) {
-        super(pProperties);
+    public DynamoStemCells(Properties properties) {
+        super(properties);
     }
 
     @ApplyEvent
@@ -38,7 +39,8 @@ public class DynamoStemCells extends BaseCurio {
             new AttributeModifier(uuid, "stem_cells", 0.1, AttributeModifier.Operation.MULTIPLY_BASE));
         modifier.put(CalamityAttributes.FAR_ATTACK.get(),
             new AttributeModifier(uuid, "stem_cells", 0.1, AttributeModifier.Operation.MULTIPLY_BASE));
-        
+        modifier.put(AttributeRegistry.LIGHTNING_SPELL_POWER.get(),
+            new AttributeModifier(uuid, "stem_cells", 0.1, AttributeModifier.Operation.MULTIPLY_BASE));
     }
 
     @Override

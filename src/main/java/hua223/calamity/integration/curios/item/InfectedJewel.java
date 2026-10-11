@@ -20,7 +20,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 import java.util.UUID;
 
-@ConflictChain(value = Radiance.class, node = InfectedJewel.class)
+@CurioRepel(value = Radiance.class)
 public class InfectedJewel extends BaseCurio implements ICuriosStorage {
     public InfectedJewel(Properties properties) {
         super(properties);
@@ -70,6 +70,8 @@ public class InfectedJewel extends BaseCurio implements ICuriosStorage {
                 count[2] = 1f;
 
                 DelayRunnable.conditionsLoop(() -> {
+                    if (player.isRemoved()) return true;
+
                     if (modifier.getAmount() - 2 > 4) {
                         modifier.addValue(-2, instance);
                         return false;

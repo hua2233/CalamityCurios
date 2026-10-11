@@ -15,7 +15,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.List;
 
-import static hua223.calamity.register.effects.Zerg.*;
+import static hua223.calamity.register.effects.Zerg.ZERG_NUMBER_AMPLIFIER;
 
 public class Zen extends CalamityEffect implements IEffectsCallBack {
     static final int[] MOB_COUNT_AND_SPAWN_RATE_MODIFY = {0, 0};

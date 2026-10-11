@@ -1,22 +1,31 @@
 package hua223.calamity.events;
 
-import com.google.gson.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import hua223.calamity.capability.EnchantmentProvider;
+import hua223.calamity.capability.RuneEnchantment;
 import hua223.calamity.events.levelevent.client.ClientLevelEvent;
 import hua223.calamity.main.CalamityCurios;
+import hua223.calamity.mixed.ICalamityFontSetting;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.damage.DamageSupplier;
 import hua223.calamity.register.effects.IEffectsCallBack;
 import hua223.calamity.register.keys.ClientInteraction;
+import hua223.calamity.register.rune.IRuneReinforcement;
 import hua223.calamity.render.CalamityOutlineRenderer;
 import hua223.calamity.render.CalamityPsychedelicRenderer;
 import hua223.calamity.render.IPlayerPostRenderer;
-import hua223.calamity.render.Item.ExhumedDecoratorSystem;
+import hua223.calamity.render.font.CalamityFont;
+import hua223.calamity.render.item.ExhumedDecoratorSystem;
 import hua223.calamity.render.entity.PurpleFlames;
 import hua223.calamity.util.*;
 import hua223.calamity.util.delaytask.DelayRunnable;
 import io.redspace.ironsspellbooks.api.events.ChangeManaEvent;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
@@ -29,8 +38,10 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.*;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.material.FogType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -64,7 +75,6 @@ public class ForgeEvents {
     public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
         ServerPlayer player = (ServerPlayer) event.getEntity();
         player.Calamity$Player.logInServerInitialization();
-        EnchantmentProvider.syncRenderData(player);
 
         for (MobEffectInstance instance : player.getActiveEffectsMap().values())
             if (instance.getEffect() instanceof IEffectsCallBack callBack)
@@ -106,7 +116,7 @@ public class ForgeEvents {
                     }
                 }
             } catch (Exception e) {
-                CalamityCurios.LOGGER.info("Loaded recipe nbt failure");
+                CalamityCurios.LOGGER.error("Loaded recipe nbt failure");
             }
         }
     }
@@ -159,17 +169,19 @@ public class ForgeEvents {
             else if (event.getFrom().getItem() instanceof IEquipmentInspection inspection
                 && inspection.isEffectiveSlot(slot)) inspection.onUnEquip(player);
 
-
             //SpellEnchant
-            triggerEnchant(event.getFrom(), player, false);
-            triggerEnchant(event.getTo(), player, true);
+            triggerEnchant(event.getFrom(), player, slot,false);
+            triggerEnchant(event.getTo(), player, slot, true);
         }
     }
 
-    private static void triggerEnchant(ItemStack stack, ServerPlayer player, final boolean to) {
-        stack.getCapability(EnchantmentProvider.CURSE_ENCHANTMENT).ifPresent(enchantment -> {
-            if (enchantment.isEffective()) enchantment.getRunes().onMainHandChange(to, stack, player);
-        });
+    private static void triggerEnchant(ItemStack stack, ServerPlayer player, EquipmentSlot slot, final boolean to) {
+        Optional<RuneEnchantment> lazyOptional = stack.getCapability(EnchantmentProvider.CURSE_ENCHANTMENT).resolve();
+        if (lazyOptional.isEmpty()) return;
+
+        RuneEnchantment enchantment = lazyOptional.get();
+        IRuneReinforcement rune = enchantment.getRunes();
+        if (rune != null && rune.isEffectiveSlot(slot)) rune.onSlotChange(to, stack, player);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -184,11 +196,24 @@ public class ForgeEvents {
         }
 
         @SubscribeEvent
+        public static void renderCalamityTooltip(RenderTooltipEvent.Pre event) {
+            ItemStack stack = event.getItemStack();
+            CompoundTag tag = stack.getTag();
+
+            if (tag != null) {
+                int type = tag.getInt(CalamityHelp.FONT_FLAG);
+                if (type != 0) {
+                    ((ICalamityFontSetting) (event)).calamity$SetFont(CalamityFont.fromTypeSetting(event.getComponents(), tag, type));
+                }
+            }
+        }
+
+        @SubscribeEvent
         public static void onClientClone(ClientPlayerNetworkEvent.Clone event) {
             event.getNewPlayer().Calamity$Player.onClone(event.getOldPlayer(), true);
         }
 
-        @SubscribeEvent
+        @SubscribeEvent(priority = EventPriority.LOWEST)
         public static void computeBossRushFog(ViewportEvent.ComputeFogColor event) {
             if (ClientLevelEvent.getRender() != null)
                 ClientLevelEvent.getRender().setSkyFogColor(event);
@@ -226,12 +251,20 @@ public class ForgeEvents {
         }
 
         @SubscribeEvent
+        @SuppressWarnings("unchecked")
         public static void beforeLivingRender(RenderLivingEvent.Pre<? extends LivingEntity, EntityModel<? extends LivingEntity>> event) {
+            if (event.getEntity().calamity$IsPlayer && event.getEntity().calamity$Player.Calamity$Player.disableLegRendering) {
+                Minecraft.getInstance().getEntityRenderDispatcher().setRenderShadow(false);
+                HumanoidModel<Player> model = (HumanoidModel<Player>) event.getRenderer().getModel();
+                model.leftLeg.visible = false;
+                model.rightLeg.visible = false;
+            }
+
             CalamityPsychedelicRenderer.psychedelic(event);
         }
 
         @SubscribeEvent
-        public static void afterLivingRender(RenderLivingEvent.Post<? extends LivingEntity, ? extends EntityModel<? extends LivingEntity>> event) {
+        public static void afterLivingRender(RenderLivingEvent.Post<? extends LivingEntity, EntityModel<? extends LivingEntity>> event) {
             PurpleFlames.renderFlame(event);
         }
 

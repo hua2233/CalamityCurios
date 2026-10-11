@@ -2,8 +2,8 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
+import hua223.calamity.events.listeners.DamageListener;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.events.listeners.HurtListener;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.util.CMLangUtil;
@@ -26,11 +26,11 @@ public class CalamityVoid extends BaseCurio {
     }
 
     @ApplyEvent
-    public final void onHurt(HurtListener listener) {
+    public final void onDamage(DamageListener listener) {
         if (listener.isTriggerByLiving) {
             MobEffect effect = CalamityEffects.BRIMSTONE_FLAMES.get();
-            if (listener.entity.hasEffect(effect)) return;
-            listener.entity.addEffect(new MobEffectInstance(effect, 200));
+            if (!listener.entity.hasEffect(effect))
+                listener.entity.addEffect(new MobEffectInstance(effect, 200));
         }
     }
 

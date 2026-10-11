@@ -3,7 +3,7 @@ package hua223.calamity.register.items.edible;
 import com.mojang.datafixers.util.Pair;
 import hua223.calamity.loots.ApplyGlobalLoot;
 import hua223.calamity.loots.ChestLootContext;
-import hua223.calamity.util.RenderUtil;
+import hua223.calamity.render.font.CalamityFont;
 import hua223.calamity.util.VariableAttributeModifier;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
@@ -25,6 +25,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.UUID;
@@ -37,7 +38,7 @@ public class GoodApple extends Item {
 
     @Override
     @SuppressWarnings("ConstantConditions")
-    public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity entity) {
+    public @NotNull ItemStack finishUsingItem(@NotNull ItemStack stack, Level level, @NotNull LivingEntity entity) {
         if (!level.isClientSide && entity.calamity$IsPlayer) {
             if (!entity.calamity$Player.getAbilities().instabuild)
                 stack.shrink(1);
@@ -56,8 +57,8 @@ public class GoodApple extends Item {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public Component getName(ItemStack stack) {
-        return RenderUtil.getRainbow(Component.literal("Good Apple"));
+    public @NotNull Component getName(@NotNull ItemStack stack) {
+        return CalamityFont.getRainbow(Component.literal("Good Apple"));
     }
 
     @SuppressWarnings({"ConstantConditions", "deprecation"})
@@ -141,7 +142,7 @@ public class GoodApple extends Item {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void appendHoverText(ItemStack stack, Level level, List<Component> tooltips, TooltipFlag advanced) {
+    public void appendHoverText(@NotNull ItemStack stack, Level level, List<Component> tooltips, @NotNull TooltipFlag advanced) {
         tooltips.add(Component.literal("Hey, this apple isn't bad. It's quite good actually... 流れてく時の中ででも 気だるさが ほらグルグル廻って")
             .withStyle(ChatFormatting.GOLD));
     }

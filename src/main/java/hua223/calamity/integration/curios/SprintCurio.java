@@ -1,8 +1,9 @@
 package hua223.calamity.integration.curios;
 
+import hua223.calamity.net.IDataPackResponse;
 import hua223.calamity.net.NetMessages;
 import hua223.calamity.net.packets.ApplyKeyEvent;
-import hua223.calamity.net.IDataPackResponse;
+import hua223.calamity.util.CurioRepel;
 import hua223.calamity.util.delaytask.DelayRunnable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -24,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@CurioRepel(isRoot = true)
 public abstract class SprintCurio extends BaseCurio implements IDataPackResponse {
     public SprintCurio(Properties properties) {
         super(properties);
@@ -139,7 +141,8 @@ public abstract class SprintCurio extends BaseCurio implements IDataPackResponse
             DelayRunnable.addUniqueLoopTask(() -> {
                 if (player.isAlive() && sprintTime[0]-- > 0) {
                     float f = player.getYRot() * Mth.DEG_TO_RAD;
-                    double factor = player.onGround() ? sprintSpeed : sprintSpeed * 0.6;
+                    double factor = player.onGround() ? sprintSpeed :
+                        sprintSpeed * player.Calamity$Player.flySpeedAmplifier > 0 ? .4f : 0.6f;
                     player.setDeltaMovement(player.getDeltaMovement().add(-Mth.sin(f) * factor, 0.0D, Mth.cos(f) * factor));
                     return false;
                 }

@@ -2,8 +2,8 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.HurtListener;
+import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.util.CMLangUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -25,18 +25,16 @@ public class MarniteRepulsionShield extends BaseCurio {
 
     @ApplyEvent
     public final void onHurt(HurtListener listener) {
-        DamageSource source = listener.source;
-        Vec3 sourcePos = source.getSourcePosition();
-        if (sourcePos == null) return;
         if (listener.isTriggerByLiving) {
+            DamageSource source = listener.source;
+            Vec3 sourcePos = source.getSourcePosition();
+            if (sourcePos == null) return;
             Vec3 look = listener.player.getLookAngle();
             Vec3 playerPos = listener.player.position();
             Vec3 relativePos = sourcePos.subtract(playerPos).normalize();
 
             double d = look.dot(relativePos);
-            if (d < 0) {
-                listener.entity.hurt(listener.player.damageSources().magic(), 3);
-            }
+            if (d < 0) listener.entity.hurt(listener.player.damageSources().magic(), 3);
         }
     }
 

@@ -2,17 +2,25 @@ package hua223.calamity.register.items;
 
 import hua223.calamity.integration.curios.item.*;
 import hua223.calamity.integration.curios.item.entropy.*;
-import hua223.calamity.register.items.edible.*;
+import hua223.calamity.main.CalamityLightBlock;
 import hua223.calamity.register.RegisterList;
 import hua223.calamity.register.effects.CalamityEffects;
+import hua223.calamity.register.items.edible.*;
+import hua223.calamity.register.rune.blessing.*;
+import hua223.calamity.register.rune.blessing.Void;
+import hua223.calamity.register.rune.fragments.Body;
+import hua223.calamity.register.rune.fragments.Echo;
+import hua223.calamity.register.rune.fragments.Mind;
+import hua223.calamity.register.rune.fragments.Soul;
+import hua223.calamity.register.rune.gem.*;
+import hua223.calamity.register.rune.scroll.*;
+import hua223.calamity.register.rune.stone.*;
 import hua223.calamity.util.CalamityHelp;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ArmorItem;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.RegistryObject;
@@ -23,166 +31,173 @@ import static hua223.calamity.register.RegisterList.*;
 
 public enum CalamityItems implements EnumRegister<Item>/*, IExtensibleEnum */ {
     //Curios
-    YHARIM_GIFT("yharim_gift", () -> new YharimGift(CURIOS_UNCOMMON)),
-    RADIANCE("radiance", () -> new Radiance(CURIOS_EPIC)),
-    BLOODY_WORM_TOOTH("bloody_worm_tooth", () -> new BloodyWormTooth(CURIOS_COMMON)), //血蠕虫之牙
-    BLOODY_WORM_SCARF("bloody_worm_scarf", () -> new BloodyWormScarf(CURIOS_UNCOMMON)),
-    COUNTER_SCARF("counter_scarf", () -> new CounterScarf(CURIOS_COMMON)),
-    EVASION_SCARF("evasion_scarf", () -> new EvasionScarf(CURIOS_UNCOMMON)),
-    HIDE_OF_ASTRUM_DEUS("hide_of_astrum_deus", () -> new AstrumDeusHide(CURIOS_UNCOMMON)),
-    WARBANNER_SUN("warbanner_of_the_sun", () -> new SunWarBanner(CURIOS_UNCOMMON)),
-    BADGE_BRAVERY("badge_of_bravery", () -> new BraveryBadge(CURIOS_COMMON)),
-    ELEMENTAL_GAUNTLET("elemental_gauntlet", () -> new ElementalGauntlet(CURIOS_EPIC)),
-    NIHILITY_QUIVER("nihility_quiver", () -> new NihilityQuiver(CURIOS_EPIC)),
-    SCIONS_CURIO("scions_curio", () -> new ScionsCurio(CURIOS_COMMON)),
-    DEADSHOT_BROOCH("deadshot_brooch", () -> new DeadshotBrooch(CURIOS_UNCOMMON)),
-    DAAWNLIGHT("daawnlight_spirit_origin", () -> new DaawnlightSpiritOrigin(CURIOS_RARE)),
-    STEM_CELLS("dynamo_stem_cells", () -> new DynamoStemCells(CURIOS_UNCOMMON)),
-    PLANEBREAKERS_POUCH("planebreakers_pouch", () -> new PlanebreakersPouch(CURIOS_EPIC)),
-    CONCOCTION("permafrost_concoction", () -> new PermafrostConcoction(CURIOS_RARE)),
-    MANA_POLARIZER("mana_polarizer", () -> new ManaPolarizer(CURIOS_COMMON)),
-    CHAOS_STONE("chaos_stone", () -> new ChaosStone(CURIOS_UNCOMMON)),
-    CALAMITY_SIGIL("calamity_sigil", () -> new CalamitySigil(CURIOS_UNCOMMON)),
-    ETHEREAL_TALISMAN("ethereal_talisman", () -> new EtherealTalisman(CURIOS_RARE)),
-    CRAW_CARAPACE("craw_carapace", () -> new CrawCarapace(CURIOS_COMMON)),
-    ABYSSAL_AMULET("abyssal_amulet", () -> new AbyssalAmulet(CURIOS_UNCOMMON)),
-    ROTTEN_BRAIN("rotten_brain", () -> new RottenBrain(CURIOS_UNCOMMON)),
-    SHATTERED_COMMUNITY("shattered_community", () -> new ShatteredCommunity(CURIOS_EPIC)),
-    DARKNESS_HEART("darkness_heart", () -> new DarknessHeart(CURIOS_EPIC)),
-    ABADDON("abaddon", () -> new Abaddon(CURIOS_COMMON, 0.08)),
-    EXTINCTION_VOID("extinction_void", () -> new ExtinctionVoid(CURIOS_UNCOMMON, 0.12)),
-    CALAMITY_VOID("calamity_void", () -> new CalamityVoid(CURIOS_UNCOMMON)),
-    VEXATION_NECKLACE("vexation_necklace", () -> new VexationNecklace(CURIOS_COMMON)),
-    DESTINY_BOOK("destiny_book", () -> new DestinyBook(CURIOS_EPIC)),
-    SAND_SHARK("sand_shark_tooth_necklace", () -> new ToothNecklace(CURIOS_UNCOMMON, 10, 0.06f)),
-    REAPER("reaper_tooth_necklace", () -> new ToothNecklace(CURIOS_RARE, 15, 0.15f)),
-    BAROCLAW("baroclaw", () -> new Baroclaw(CURIOS_UNCOMMON)),
-    ELDRITCH("eldritch_soul_artifact", () -> new EldritchSoulArtifact(CURIOS_EPIC)),
-    AFFLICTION("affliction", () -> new Affliction(CURIOS_UNCOMMON)),
-    DIMENSIONAL("dimensional_soul_artifact", () -> new DimensionalSoulArtifact(CURIOS_EPIC)),
-    CALAMITY("calamity", () -> new Calamity(CURIOS_CALAMITY)),
-    GIANT_SHELL("giant_shell", () -> new GiantShell(CURIOS_COMMON)),
-    LIFE_JELLY("life_jelly", () -> new LifeJelly(CURIOS_COMMON)),
-    CLEANSING_JELLY("cleansing_jelly", () -> new CleansingJelly(CURIOS_COMMON)),
-    MARNITE("marnite_repulsion_shield", () -> new MarniteRepulsionShield(CURIOS_COMMON)),
-    FUNGAL_SYMBIOTE("fungal_symbiote", () -> new FungalSymbiote(CURIOS_COMMON)),
-    CROWN_JEWEL("crown_jewel", () -> new CrownJewel(CURIOS_COMMON)),
-    OCEAN_SHIELD("ocean_shield", () -> new OceanShield(CURIOS_COMMON)),
-    GIANT_PEARL("giant_pearl", () -> new GiantPearl(CURIOS_COMMON)),
-    BEE("bee", () -> new TheBee(CURIOS_COMMON)),
-    HONEY_DEW("honey_dew", () -> new HoneyDew(CURIOS_COMMON)),
-    ARCHAIC_POWDER("archaic_powder", () -> new ArchaicPowder(CURIOS_COMMON)),
-    RADIANT_OOZE("radiant_ooze", () -> new RadiantOoze(CURIOS_COMMON)),
-    FROST_BARRIER("frost_barrier", () -> new FrostBarrier(CURIOS_COMMON)),
-    URSA_SERGEANT("ursa_sergeant", () -> new UrsaSergeant(CURIOS_COMMON)),
-    GIANT_TORTOISE_SHELL("giant_tortoise_shell", () -> new GiantTortoiseShell(CURIOS_UNCOMMON)),
-    AMALGAMATED_BRAIN("amalgamated_brain", () -> new AmalgamatedBrain(CURIOS_UNCOMMON)),
-    REGENATOR("regenator", () -> new Regenator(CURIOS_UNCOMMON)),
-    BLOOM_STONE("bloom_stone", () -> new BloomStone(CURIOS_UNCOMMON)),
-    LIVING_DEW("living_dew", () -> new LivingDew(CURIOS_UNCOMMON)),
-    ANGELIC_ALLIANCE("angelic_alliance", () -> new AngelicAlliance(CURIOS_UNCOMMON)),
-    INFECTED_JEWEL("infected_jewel", () -> new InfectedJewel(CURIOS_UNCOMMON)),
-    BLOOD_PACT("blood_pact", () -> new BloodPact(CURIOS_UNCOMMON)),
-    FLESH_TOTEM("flesh_totem", () -> new FleshTotem(CURIOS_UNCOMMON)),
-    AMBROSIAL_AMPOULE("ambrosial_ampoule", () -> new AmbrosialAmpoule(CURIOS_RARE)),
-    VITAL_JELLY("vital_jelly", () -> new VitalJelly(CURIOS_COMMON)),
-    GRAND_GELATIN("grand_gelatin", () -> new GrandGelatin(CURIOS_UNCOMMON)),
-    ABSORBER("absorber", () -> new Absorber(CURIOS_RARE)),
-    DEIFIC_AMULET("deific_amulet", () -> new DeificAmulet(CURIOS_UNCOMMON)),
-    BLAZING_CORE("blazing_core", () -> new BlazingCore(CURIOS_UNCOMMON)),
-    BLOODFLARE_CORE("bloodflare_core", () -> new BloodflareCore(CURIOS_UNCOMMON)),
-    EVOLUTION("evolution", () -> new Evolution(CURIOS_EPIC)),
-    NEBULOUS_CORE("nebulous_core", () -> new NebulousCore(CURIOS_RARE)),
-    SPONGE("sponge", () -> new Sponge(CURIOS_RARE)),
-    BLOOD_GOD_CHALICE("blood_god_chalice", () -> new BloodGodChalice(CURIOS_EPIC)),
-    DEITIES_RAMPART("deities_rampart", () -> new DeitiesRampart(CURIOS_EPIC)),
-    DRAEDON_HEART("draedon_heart", () -> new DraedonHeart(CURIOS_EPIC)),
-    HARPY_RING("harpy_ring", () -> new HarpyRing(CURIOS_COMMON)),
-    AERO_STONE("aero_stone", () -> new AeroStone(CURIOS_COMMON)),
-    DEEP_DIVER("deep_diver", () -> new DeepDiver(CURIOS_RARE)),
-    ORNATE_SHIELD("ornate_shield", () -> new OrnateShield(CURIOS_UNCOMMON)),
-    ANGEL_TREADS("angel_treads", () -> new AngelTreads(CURIOS_UNCOMMON)),
-    MOON_WALKERS("moon_walkers", () -> new MoonWalkers(CURIOS_RARE)),
-    VOID_STRIDERS("void_striders", () -> new VoidStriders(CURIOS_EPIC)),
-    SERAPH_TRACERS("seraph_tracers", () -> new SeraphTracers(ITEM_CALAMITY)),
-    ASGARD_VALOR("asgard_valor", () -> new AsgardValor(CURIOS_RARE)),
-    LEVIATHAN_AMBERGRIS("leviathan_ambergris", () -> new LeviathanAmbergris(CURIOS_RARE)),
-    GRAVISTAR_SABATON("gravistar_sabaton", () -> new GravistarSabaton(CURIOS_UNCOMMON)),
-    GRUESOME_EMINENCE("gruesome_eminence", () -> new GruesomeEminence(CURIOS_CALAMITY)),
-    SHIELD_OF_THE_HIGH_RULER("shield_of_the_high_ruler", () -> new ShieldOfTheHighRuler(CURIOS_UNCOMMON)),
-    STATIS_NINJA_BELT("statis_ninja_belt", () -> new StatisNinjaBelt(CURIOS_RARE, false)),
-    STATIS_VOID_SASH("statis_void_sash", () -> new StatisNinjaBelt(CURIOS_EPIC, true)),
-    ELYSIAN_AEGIS("elysian_aegis", () -> new ElysianAegis(CURIOS_UNCOMMON)),
-    ASCENDANT_INSIGNIA("ascendant_insignia", () -> new AscendantInsignia(CURIOS_UNCOMMON)),
-    OLD_DUKE_SCALES("old_duke_scales", () -> new OldDukeScales(CURIOS_UNCOMMON)),
-    CRIMSON_FLASK("crimson_flask", () -> new Flask(CURIOS_UNCOMMON, Level.NETHER, "crimson_flask", MobEffects.MOVEMENT_SLOWDOWN)),
-    CORRUPT_FLASK("corrupt_flask", () -> new Flask(CURIOS_UNCOMMON, Level.OVERWORLD, "corrupt_flask", MobEffects.BLINDNESS)),
-    ASGARDIAN_AEGIS("asgardian_aegis", () -> new AsgardianAegis(CURIOS_EPIC)),
-    GLADIATOR_LOCKET("gladiator_locket", () -> new GladiatorLocket(CURIOS_UNCOMMON)),
-    FROST_FLARE("frost_flare", () -> new FrostFlare(CURIOS_RARE)),
-    COMMUNITY("community", () -> new Community(CURIOS_EPIC)),
-    CAMPER("camper", () -> new Camper(CURIOS_UNCOMMON)),
-    DARK_SUN_RING("dark_sun_ring", () -> new DarkSunRing(CURIOS_EPIC)),
-    AMALGAM("amalgam", () -> new Amalgam(CURIOS_EPIC)),
-    COIN_OF_DECEIT("coin_of_deceit", () -> new CoinOfDeceit(CURIOS_COMMON)),
-    SCUTTLERS_JEWEL("scuttlers_jewel", () -> new ScuttlersJewel(CURIOS_COMMON)),
-    RAIDERS_TALISMAN("raiders_talisman", () -> new RaidersTalisman(CURIOS_COMMON)),
-    ROTTEN_DOG_TOOTH("rotten_dog_tooth", () -> new RottenDogTooth(CURIOS_COMMON)),
-    INK_BOMB("ink_bomb", () -> new InkBomb(CURIOS_UNCOMMON)),
-    SILENCING_SHEATH("silencing_sheath", () -> new SilencingSheath(CURIOS_COMMON)),
-    BLOODSTAINED_GLOVE("bloodstained_glove", () -> new BloodstainedGlove(CURIOS_COMMON)),
-    FILTHY_GLOVE("filthy_glove", () -> new FilthyGlove(CURIOS_COMMON)),
-    FEATHER_CROWN("feather_crown", () -> new FeatherCrown(CURIOS_COMMON)),
-    MIRAGE_MIRROR("mirage_mirror", () -> new MirageMirror(CURIOS_COMMON)),
-    CORROSIVE_SPINE("corrosive_spine", () -> new CorrosiveSpine(CURIOS_COMMON)),
-    ELECTRICIANS_GLOVE("electricians_glove", () -> new ElectriciansGlove(CURIOS_UNCOMMON)),
-    RUIN_MEDALLION("ruin_medallion", () -> new RuinMedallion(CURIOS_UNCOMMON)),
-    VAMPIRIC_TALISMAN("vampiric_talisman", () -> new VampiricTalisman(CURIOS_UNCOMMON)),
-    PRECISION_GLOVE("precision_glove", () -> new PrecisionGlove(CURIOS_COMMON)),
-    RECKLESSNESS_GLOVE("recklessness_glove", () -> new RecklessnessGlove(CURIOS_COMMON)),
-    ABYSSAL_MIRROR("abyssal_mirror", () -> new AbyssalMirror(CURIOS_RARE)),
-    ETHEREAL_EXTORTER("ethereal_extorter", () -> new EtherealExtorter(CURIOS_UNCOMMON)),
-    PLAGUE_FUEL_PACK("plagued_fuel_pack", () -> new PlagueFuelPack(CURIOS_RARE)),
-    DARK_MATTER_SHEATH("dark_matter_sheath", () -> new DarkMatterSheath(CURIOS_RARE)),
-    MOONSTONE_CROWN("moonstone_crown", () -> new MoonstoneCrown(CURIOS_RARE)),
-    BLUNDER_BOOSTER("blunder_booster", () -> new BlunderBooster(CURIOS_EPIC)),
-    SPECTRAL_VEIL("spectral_veil", () -> new SpectralVeil(CURIOS_RARE)),
-    VENERATED_LOCKET("venerated_locket", () -> new VeneratedLocket(CURIOS_EPIC)),
+    YHARIM_GIFT("yharim_gift", () -> new YharimGift(UNCOMMON_ONE)),
+    RADIANCE("radiance", () -> new Radiance(EPIC_ONE)),
+    BLOODY_WORM_TOOTH("bloody_worm_tooth", () -> new BloodyWormTooth(COMMON_ONE)), //血蠕虫之牙
+    BLOODY_WORM_SCARF("bloody_worm_scarf", () -> new BloodyWormScarf(UNCOMMON_ONE)),
+    COUNTER_SCARF("counter_scarf", () -> new CounterScarf(COMMON_ONE)),
+    EVASION_SCARF("evasion_scarf", () -> new EvasionScarf(UNCOMMON_ONE)),
+    HIDE_OF_ASTRUM_DEUS("hide_of_astrum_deus", () -> new AstrumDeusHide(UNCOMMON_ONE)),
+    WARBANNER_SUN("warbanner_of_the_sun", () -> new SunWarBanner(UNCOMMON_ONE)),
+    BRAVERY_BADGE("badge_of_bravery", () -> new BraveryBadge(COMMON_ONE)),
+    ELEMENTAL_GAUNTLET("elemental_gauntlet", () -> new ElementalGauntlet(EPIC_ONE)),
+    NIHILITY_QUIVER("nihility_quiver", () -> new NihilityQuiver(EPIC_ONE)),
+    SCIONS_CURIO("scions_curio", () -> new ScionsCurio(COMMON_ONE)),
+    DEADSHOT_BROOCH("deadshot_brooch", () -> new DeadshotBrooch(UNCOMMON_ONE)),
+    DAAWNLIGHT("daawnlight_spirit_origin", () -> new DaawnlightSpiritOrigin(RARE_ONE)),
+    STEM_CELLS("dynamo_stem_cells", () -> new DynamoStemCells(UNCOMMON_ONE)),
+    PLANEBREAKERS_POUCH("planebreakers_pouch", () -> new PlanebreakersPouch(EPIC_ONE)),
+    CONCOCTION("permafrost_concoction", () -> new PermafrostConcoction(RARE_ONE)),
+    MANA_POLARIZER("mana_polarizer", () -> new ManaPolarizer(COMMON_ONE)),
+    CHAOS_STONE("chaos_stone", () -> new ChaosStone(UNCOMMON_ONE)),
+    CALAMITY_SIGIL("calamity_sigil", () -> new CalamitySigil(UNCOMMON_ONE)),
+    ETHEREAL_TALISMAN("ethereal_talisman", () -> new EtherealTalisman(RARE_ONE)),
+    CRAW_CARAPACE("craw_carapace", () -> new CrawCarapace(COMMON_ONE)),
+    ABYSSAL_AMULET("abyssal_amulet", () -> new AbyssalAmulet(UNCOMMON_ONE)),
+    ROTTEN_BRAIN("rotten_brain", () -> new RottenBrain(UNCOMMON_ONE)),
+    SHATTERED_COMMUNITY("shattered_community", () -> new ShatteredCommunity(EPIC_ONE)),
+    DARKNESS_HEART("darkness_heart", () -> new DarknessHeart(EPIC_ONE)),
+    ABADDON("abaddon", () -> new Abaddon(COMMON_ONE)),
+    APOLLYON("apollyon", () -> new Apollyon(UNCOMMON_ONE)),
+    CALAMITY_VOID("calamity_void", () -> new CalamityVoid(UNCOMMON_ONE)),
+    VEXATION_NECKLACE("vexation_necklace", () -> new VexationNecklace(COMMON_ONE)),
+    APATHANULL("apathanull", () -> new Apathanull(EPIC_ONE)),
+    SAND_SHARK("sand_shark_tooth_necklace", () -> new ToothNecklace(UNCOMMON_ONE, 10, 0.06f)),
+    REAPER("reaper_tooth_necklace", () -> new ToothNecklace(RARE_ONE, 15, 0.15f)),
+    BAROCLAW("baroclaw", () -> new Baroclaw(UNCOMMON_ONE)),
+    ELDRITCH("eldritch_soul_artifact", () -> new EldritchSoulArtifact(EPIC_ONE)),
+    AFFLICTION("affliction", () -> new Affliction(UNCOMMON_ONE)),
+    DIMENSIONAL("dimensional_soul_artifact", () -> new DimensionalSoulArtifact(EPIC_ONE)),
+    CALAMITY("calamity", () -> new Calamity(CALAMITY_ONE)),
+    GIANT_SHELL("giant_shell", () -> new GiantShell(COMMON_ONE)),
+    LIFE_JELLY("life_jelly", () -> new LifeJelly(COMMON_ONE)),
+    CLEANSING_JELLY("cleansing_jelly", () -> new CleansingJelly(COMMON_ONE)),
+    MARNITE("marnite_repulsion_shield", () -> new MarniteRepulsionShield(COMMON_ONE)),
+    FUNGAL_SYMBIOTE("fungal_symbiote", () -> new FungalSymbiote(COMMON_ONE)),
+    CROWN_JEWEL("crown_jewel", () -> new CrownJewel(COMMON_ONE)),
+    OCEAN_SHIELD("ocean_shield", () -> new OceanShield(COMMON_ONE)),
+    GIANT_PEARL("giant_pearl", () -> new GiantPearl(COMMON_ONE)),
+    BEE("bee", () -> new TheBee(COMMON_ONE)),
+    HONEY_DEW("honey_dew", () -> new HoneyDew(COMMON_ONE)),
+    ARCHAIC_POWDER("archaic_powder", () -> new ArchaicPowder(COMMON_ONE)),
+    RADIANT_OOZE("radiant_ooze", () -> new RadiantOoze(COMMON_ONE)),
+    FROST_BARRIER("frost_barrier", () -> new FrostBarrier(COMMON_ONE)),
+    URSA_SERGEANT("ursa_sergeant", () -> new UrsaSergeant(COMMON_ONE)),
+    GIANT_TORTOISE_SHELL("giant_tortoise_shell", () -> new GiantTortoiseShell(UNCOMMON_ONE)),
+    AMALGAMATED_BRAIN("amalgamated_brain", () -> new AmalgamatedBrain(UNCOMMON_ONE)),
+    REGENATOR("regenator", () -> new Regenator(UNCOMMON_ONE)),
+    BLOOM_STONE("bloom_stone", () -> new BloomStone(UNCOMMON_ONE)),
+    LIVING_DEW("living_dew", () -> new LivingDew(UNCOMMON_ONE)),
+    ANGELIC_ALLIANCE("angelic_alliance", () -> new AngelicAlliance(UNCOMMON_ONE)),
+    INFECTED_JEWEL("infected_jewel", () -> new InfectedJewel(UNCOMMON_ONE)),
+    BLOOD_PACT("blood_pact", () -> new BloodPact(UNCOMMON_ONE)),
+    FLESH_TOTEM("flesh_totem", () -> new FleshTotem(UNCOMMON_ONE)),
+    AMBROSIAL_AMPOULE("ambrosial_ampoule", () -> new AmbrosialAmpoule(RARE_ONE)),
+    VITAL_JELLY("vital_jelly", () -> new VitalJelly(COMMON_ONE)),
+    GRAND_GELATIN("grand_gelatin", () -> new GrandGelatin(UNCOMMON_ONE)),
+    ABSORBER("absorber", () -> new Absorber(RARE_ONE)),
+    DEIFIC_AMULET("deific_amulet", () -> new DeificAmulet(UNCOMMON_ONE)),
+    BLAZING_CORE("blazing_core", () -> new BlazingCore(UNCOMMON_ONE)),
+    BLOODFLARE_CORE("bloodflare_core", () -> new BloodflareCore(UNCOMMON_ONE)),
+    EVOLUTION("evolution", () -> new Evolution(EPIC_ONE)),
+    NEBULOUS_CORE("nebulous_core", () -> new NebulousCore(RARE_ONE)),
+    SPONGE("sponge", () -> new Sponge(RARE_ONE)),
+    ROVER_DRIVE("rover_drive", () -> new RoverDrive(UNCOMMON_ONE)),
+    BLOOD_GOD_CHALICE("blood_god_chalice", () -> new BloodGodChalice(EPIC_ONE)),
+    DEITIES_RAMPART("deities_rampart", () -> new DeitiesRampart(EPIC_ONE)),
+    DRAEDON_HEART("draedon_heart", () -> new DraedonHeart(EPIC_ONE)),
+    HARPY_RING("harpy_ring", () -> new HarpyRing(COMMON_ONE)),
+    AERO_STONE("aero_stone", () -> new AeroStone(COMMON_ONE)),
+    DEEP_DIVER("deep_diver", () -> new DeepDiver(RARE_ONE)),
+    ORNATE_SHIELD("ornate_shield", () -> new OrnateShield(UNCOMMON_ONE)),
+    ANGEL_TREADS("angel_treads", () -> new AngelTreads(UNCOMMON_ONE)),
+    MOON_WALKERS("moon_walkers", () -> new MoonWalkers(RARE_ONE)),
+    VOID_STRIDERS("void_striders", () -> new VoidStriders(EPIC_ONE)),
+    SERAPH_TRACERS("seraph_tracers", () -> new SeraphTracers(RegisterList.CALAMITY_ONE)),
+    ASGARD_VALOR("asgard_valor", () -> new AsgardValor(RARE_ONE)),
+    LEVIATHAN_AMBERGRIS("leviathan_ambergris", () -> new LeviathanAmbergris(RARE_ONE)),
+    GRAVISTAR_SABATON("gravistar_sabaton", () -> new GravistarSabaton(UNCOMMON_ONE)),
+    GRUESOME_EMINENCE("gruesome_eminence", () -> new GruesomeEminence(CALAMITY_ONE)),
+    SHIELD_OF_THE_HIGH_RULER("shield_of_the_high_ruler", () -> new ShieldOfTheHighRuler(UNCOMMON_ONE)),
+    STATIS_NINJA_BELT("statis_ninja_belt", () -> new StatisNinjaBelt(RARE_ONE, false)),
+    STATIS_VOID_SASH("statis_void_sash", () -> new StatisNinjaBelt(EPIC_ONE, true)),
+    ELYSIAN_AEGIS("elysian_aegis", () -> new ElysianAegis(UNCOMMON_ONE)),
+    ASCENDANT_INSIGNIA("ascendant_insignia", () -> new AscendantInsignia(UNCOMMON_ONE)),
+    OLD_DUKE_SCALES("old_duke_scales", () -> new OldDukeScales(UNCOMMON_ONE)),
+    CRIMSON_FLASK("crimson_flask", () -> new Flask(UNCOMMON_ONE, Level.NETHER, "crimson_flask", MobEffects.MOVEMENT_SLOWDOWN)),
+    CORRUPT_FLASK("corrupt_flask", () -> new Flask(UNCOMMON_ONE, Level.OVERWORLD, "corrupt_flask", MobEffects.BLINDNESS)),
+    ASGARDIAN_AEGIS("asgardian_aegis", () -> new AsgardianAegis(EPIC_ONE)),
+    GLADIATOR_LOCKET("gladiator_locket", () -> new GladiatorLocket(UNCOMMON_ONE)),
+    FROST_FLARE("frost_flare", () -> new FrostFlare(RARE_ONE)),
+    COMMUNITY("community", () -> new Community(EPIC_ONE)),
+    CAMPER("camper", () -> new Camper(UNCOMMON_ONE)),
+    DARK_SUN_RING("dark_sun_ring", () -> new DarkSunRing(EPIC_ONE)),
+    AMALGAM("amalgam", () -> new Amalgam(EPIC_ONE)),
+    COIN_OF_DECEIT("coin_of_deceit", () -> new CoinOfDeceit(COMMON_ONE)),
+    SCUTTLERS_JEWEL("scuttlers_jewel", () -> new ScuttlersJewel(COMMON_ONE)),
+    RAIDERS_TALISMAN("raiders_talisman", () -> new RaidersTalisman(COMMON_ONE)),
+    ROTTEN_DOG_TOOTH("rotten_dog_tooth", () -> new RottenDogTooth(COMMON_ONE)),
+    INK_BOMB("ink_bomb", () -> new InkBomb(UNCOMMON_ONE)),
+    SILENCING_SHEATH("silencing_sheath", () -> new SilencingSheath(COMMON_ONE)),
+    BLOODSTAINED_GLOVE("bloodstained_glove", () -> new BloodstainedGlove(COMMON_ONE)),
+    FILTHY_GLOVE("filthy_glove", () -> new FilthyGlove(COMMON_ONE)),
+    FEATHER_CROWN("feather_crown", () -> new FeatherCrown(COMMON_ONE)),
+    MIRAGE_MIRROR("mirage_mirror", () -> new MirageMirror(COMMON_ONE)),
+    CORROSIVE_SPINE("corrosive_spine", () -> new CorrosiveSpine(COMMON_ONE)),
+    ELECTRICIANS_GLOVE("electricians_glove", () -> new ElectriciansGlove(UNCOMMON_ONE)),
+    RUIN_MEDALLION("ruin_medallion", () -> new RuinMedallion(UNCOMMON_ONE)),
+    VAMPIRIC_TALISMAN("vampiric_talisman", () -> new VampiricTalisman(UNCOMMON_ONE)),
+    PRECISION_GLOVE("precision_glove", () -> new PrecisionGlove(COMMON_ONE)),
+    RECKLESSNESS_GLOVE("recklessness_glove", () -> new RecklessnessGlove(COMMON_ONE)),
+    ABYSSAL_MIRROR("abyssal_mirror", () -> new AbyssalMirror(RARE_ONE)),
+    ETHEREAL_EXTORTER("ethereal_extorter", () -> new EtherealExtorter(UNCOMMON_ONE)),
+    PLAGUE_FUEL_PACK("plagued_fuel_pack", () -> new PlagueFuelPack(RARE_ONE)),
+    DARK_MATTER_SHEATH("dark_matter_sheath", () -> new DarkMatterSheath(RARE_ONE)),
+    MOONSTONE_CROWN("moonstone_crown", () -> new MoonstoneCrown(RARE_ONE)),
+    BLUNDER_BOOSTER("blunder_booster", () -> new BlunderBooster(EPIC_ONE)),
+    SPECTRAL_VEIL("spectral_veil", () -> new SpectralVeil(RARE_ONE)),
+    VENERATED_LOCKET("venerated_locket", () -> new VeneratedLocket(EPIC_ONE)),
     ORACLE_DECK("oracle_deck", OracleDeck::new),
     FATE_THREAD("fate_thread", () -> new UnsealingRope("fate_thread")),
     ABYSS_THREAD("abyss_thread", () -> new UnsealingRope("abyss_thread")),
-    BRILLIANCE("brilliance", () -> new Brilliance(CURIOS_UNCOMMON)),
-    AURA("aura", () -> new Aura(CURIOS_UNCOMMON)),
-    INSPIRATION("inspiration", () -> new Inspiration(CURIOS_UNCOMMON)),
-    ENDURANCE("endurance", () -> new Endurance(CURIOS_UNCOMMON)),
-    ENTITY("entity", () -> new Entity(CURIOS_UNCOMMON)),
-    WISDOM("wisdom", () -> new Wisdom(CURIOS_UNCOMMON)),
-    METROPOLIS("metropolis", () -> new Metropolis(CURIOS_UNCOMMON)),
-    RADIANCE_CARD("radiance_card", () -> new RadianceCard(CURIOS_UNCOMMON)),
-    TEMPERANCE("temperance", () -> new Temperance(CURIOS_UNCOMMON)),
-    WYRM_TOOTH_NECKLACE("wyrm_tooth_necklace", () -> new WyrmToothNecklace(CURIOS_CALAMITY)),
-    DEUS_CORE("deus_core", () -> new DeusCore(CURIOS_EPIC)),
-    FORESEE_ORB("foresee_orb", () -> new ForeseeOrb(CURIOS_RARE)),
-    SACRIFICES_MASK("sacrifices_mask", () -> new SacrificesMask(CURIOS_UNCOMMON)),
+    BRILLIANCE("brilliance", () -> new Brilliance(UNCOMMON_ONE)),
+    AURA("aura", () -> new Aura(UNCOMMON_ONE)),
+    INSPIRATION("inspiration", () -> new Inspiration(UNCOMMON_ONE)),
+    ENDURANCE("endurance", () -> new Endurance(UNCOMMON_ONE)),
+    ENTITY("entity", () -> new EntityCard(UNCOMMON_ONE)),
+    WISDOM("wisdom", () -> new Wisdom(UNCOMMON_ONE)),
+    METROPOLIS("metropolis", () -> new Metropolis(UNCOMMON_ONE)),
+    RADIANCE_CARD("radiance_card", () -> new RadianceCard(UNCOMMON_ONE)),
+    TEMPERANCE("temperance", () -> new Temperance(UNCOMMON_ONE)),
+    WYRM_TOOTH_NECKLACE("wyrm_tooth_necklace", () -> new WyrmToothNecklace(CALAMITY_ONE)),
+    DEUS_CORE("deus_core", () -> new DeusCore(EPIC_ONE)),
+    FORESEE_ORB("foresee_orb", () -> new ForeseeOrb(RARE_ONE)),
+    SACRIFICES_MASK("sacrifices_mask", () -> new SacrificesMask(UNCOMMON_ONE)),
     TAINTED_DECK("tainted_deck", TaintedDeck::new),
-    CONFUSE("confuse", () -> new Confuse(CURIOS_EPIC)),
-    BARREN("barren", () -> new Barren(CURIOS_EPIC)),
-    FRAIL("frail", () -> new Frail(CURIOS_EPIC)),
-    NOTHING("nothing", () -> new Nothing(CURIOS_EPIC)),
-    GREED("greed", () -> new Greed(CURIOS_EPIC)),
-    FOOL("fool", () -> new Fool(CURIOS_EPIC)),
-    TARNISH("tarnish", () -> new Tarnish(CURIOS_EPIC)),
-    PERPLEXED("perplexed", () -> new Perplexed(CURIOS_EPIC)),
-    SACRIFICE("sacrifice", () -> new Sacrifice(CURIOS_EPIC)),
-    HOLY_MOONLIGHT("holy_moonlight", () -> new HolyMoonlight(CURIOS_EPIC)),
-    STAR_CHARM("star_charm", () -> new StarCharm(CURIOS_UNCOMMON)),
-    FUNGAL_CLUMP("fungal_clump", () -> new FungalClump(CURIOS_UNCOMMON)),
-    ODINS_REFUGE("odins_refuge", () -> new OdinsRefuge(CURIOS_EPIC)),
-    SILVAS_CROWN("silvas_crown", () -> new SilvasCrown(CURIOS_UNCOMMON)),
-    NIHILITY_SHELL("nihility_shell", () -> new NihilityShell(CURIOS_EPIC)),
-    AZURE_ABYSS_TALISMAN("azure_abyss_talisman", () -> new AzureAbyssTalisman(CURIOS_RARE)),
-    ARC_FLASH_RING("arc_flash_ring", () -> new ArcFlashRing(CURIOS_RARE)),
+    CONFUSE("confuse", () -> new Confuse(EPIC_ONE)),
+    BARREN("barren", () -> new Barren(EPIC_ONE)),
+    FRAIL("frail", () -> new Frail(EPIC_ONE)),
+    NOTHING("nothing", () -> new Nothing(EPIC_ONE)),
+    GREED("greed", () -> new Greed(EPIC_ONE)),
+    FOOL("fool", () -> new Fool(EPIC_ONE)),
+    TARNISH("tarnish", () -> new Tarnish(EPIC_ONE)),
+    PERPLEXED("perplexed", () -> new Perplexed(EPIC_ONE)),
+    SACRIFICE("sacrifice", () -> new Sacrifice(EPIC_ONE)),
+    HOLY_MOONLIGHT("holy_moonlight", () -> new HolyMoonlight(EPIC_ONE)),
+    STAR_CHARM("star_charm", () -> new StarCharm(UNCOMMON_ONE)),
+    FUNGAL_CLUMP("fungal_clump", () -> new FungalClump(UNCOMMON_ONE)),
+    ODINS_REFUGE("odins_refuge", () -> new OdinsRefuge(EPIC_ONE)),
+    SILVAS_CROWN("silvas_crown", () -> new SilvasCrown(UNCOMMON_ONE)),
+    NIHILITY_SHELL("nihility_shell", () -> new NihilityShell(EPIC_ONE)),
+    AZURE_ABYSS_TALISMAN("azure_abyss_talisman", () -> new AzureAbyssTalisman(RARE_ONE)),
+    ARC_FLASH_RING("arc_flash_ring", () -> new ArcFlashRing(RARE_ONE)),
     ECLIPSE_MIRROR("eclipse_mirror", EclipseMirror::new),
+    DEITY_MASK("deity_mask", NamelessDeityMask::new),
+    AVATAR_MASK("avatar_mask", EmptinessAvatarMask::new),
+    PORTAL_SKIRT("portal_skirt", PortalSkirt::new),
+    HYPERPLANE_MATRIX("hyperplane_matrix", HyperplaneMatrix::new),
+    PURITY("purity", Purity::new),
+    OCEAN_FLOWER("ocean_flower", OceanFlower::new),
 
     //Item
     COMET_SHARD(() -> new MagicItem(RARE_ONE, 0), "comet_shard"),
@@ -191,23 +206,9 @@ public enum CalamityItems implements EnumRegister<Item>/*, IExtensibleEnum */ {
 
     PHANTOM_HEART(() -> new MagicItem(EPIC_ONE, 2), "phantom_heart"),
 
-    ENCHANTED_STARFISH(() -> new EnchantedStarfish(
-        getFoodProperties(Rarity.COMMON, 16, null)), "enchanted_starfish"),
+    ENCHANTED_STARFISH(EnchantedStarfish::new, "enchanted_starfish"),
 
-    WEAK_MANA_POTION(() -> new ManaPotion(
-        getFoodProperties(Rarity.COMMON, 16, null), 10, 15), "weak_mana_potion"),
-
-    MANA_POTION(() -> new ManaPotion(
-        getFoodProperties(Rarity.COMMON, 16, null), 25, 20), "mana_potion"),
-
-    STRONG_MANA_POTION(() -> new ManaPotion(
-        getFoodProperties(Rarity.UNCOMMON, 16, null), 50, 25), "strong_mana_potion"),
-
-    SUPER_MANA_POTION(() -> new ManaPotion(
-        getFoodProperties(Rarity.RARE, 16, null), 100, 30), "super_mana_potion"),
-
-    SUPREME_MANA_POTION(() -> new ManaPotion(
-        getFoodProperties(Rarity.EPIC, 16, null), 200, 35, false), "supreme_mana_potion"),
+    SUPREME_MANA_POTION(SupremeManaPotion::new, "supreme_mana_potion"),
 
     MUSHROOM_PLASMA_ROOT(() -> new RageItem(RARE_ONE, 0), "mushroom_plasma_root"),
 
@@ -235,9 +236,7 @@ public enum CalamityItems implements EnumRegister<Item>/*, IExtensibleEnum */ {
 
     SOLAR(() -> new NoGravityItem(ITEM_UNCOMMON, "solar"), "solar_fragment"),
 
-    MELD_CONSTRUCT(() -> new Item(ITEM_EPIC), "meld_construct"),
-
-    MELD_BLOB(() -> new Item(ITEM_UNCOMMON), "meld_blob"),
+    MELD_CONSTRUCT(() -> new Item(ITEM_UNCOMMON), "meld_construct"),
 
     ELECTROLYTE_GEL_PACK(() -> new AdrenalineItem(RARE_ONE, 0), "electrolyte_gel_pack"),
 
@@ -253,7 +252,7 @@ public enum CalamityItems implements EnumRegister<Item>/*, IExtensibleEnum */ {
 
     TAINTED_CLOUDBERRY(() -> new LifeFruit(Rarity.EPIC, 3), "tainted_cloudberry"),
 
-    SACRED_STRAWBERRY(() -> new LifeFruit(RegisterList.CALAMITY, 4), "sacred_strawberry"),
+    SACRED_STRAWBERRY(() -> new LifeFruit(CALAMITY_RARITY, 4), "sacred_strawberry"),
 
     HADAL_STEW(() -> new HadalStew(getFoodProperties(Rarity.UNCOMMON, 16, null)), "hadal_stew"),
 
@@ -311,7 +310,7 @@ public enum CalamityItems implements EnumRegister<Item>/*, IExtensibleEnum */ {
 
     GOOD_APPLE(() -> new GoodApple(getFoodProperties(Rarity.EPIC, 1, null)), "good_apple"),
 
-    BRIMSTONE_LOCUS(() -> new BrimstoneLocus(ITEM_CALAMITY, "brimstone_locus", 1), "brimstone_locus"),
+    BRIMSTONE_LOCUS(() -> new BrimstoneLocus(RegisterList.CALAMITY_ONE, "brimstone_locus", 1), "brimstone_locus"),
 
     PERVERSE_PURSE(() -> new PerversePurse(UNCOMMON_ONE), "perverse_purse"),
 
@@ -323,8 +322,7 @@ public enum CalamityItems implements EnumRegister<Item>/*, IExtensibleEnum */ {
 
     DEMON_SHADE_BOOTS(() -> new DemonShade(ArmorItem.Type.BOOTS), "demon_shade_boots"),
 
-    SHADOW_SPEC_BAR(() -> new TooltipItem(new Item.Properties().stacksTo(64).fireResistant()
-            .rarity(RegisterList.CALAMITY), "shadow_spec_bar"), "shadow_spec_bar"),
+    SHADOW_SPEC_BAR(ShadowSpecBar::new, "shadow_spec_bar"),
 
     SUNLIGHT_ESSENCE(() -> new SunlightEssence(ITEM_COMMON), "sunlight_essence"),
 
@@ -346,15 +344,88 @@ public enum CalamityItems implements EnumRegister<Item>/*, IExtensibleEnum */ {
 
     TERMINUS(Terminus::new, "terminus"),
 
+    EMPTINESS_SPRAYER(EmptinessSprayer::new, "emptiness_sprayer"),
+
+    INFERNAL_SUEVITE_ORE(() -> new BlockItem(CalamityLightBlock.INFERNAL_SUEVITE_ORE.get(), FIRE_RESISTANT_ORE), "infernal_suevite_ore"),
+
+    INFERNAL_SUEVITE(() -> new Item(FIRE_RESISTANT_ORE), "infernal_suevite"),
+
+    EXODIUM_CLUSTER(() -> new TooltipItem(ITEM_EPIC, "exodium_cluster"), "exodium_cluster"),
+
+    EXODIUM_CLUSTER_ORE(() -> new BlockItem(CalamityLightBlock.EXODIUM_CLUSTER_ORE.get(), ITEM_EPIC), "exodium_cluster_ore"),
+
+    BODY(Body::new, "ancient_fragments_body"),
+
+    ECHO(Echo::new, "ancient_fragments_echo"),
+
+    MIND(Mind::new, "ancient_fragments_mind"),
+
+    SOUL(Soul::new, "ancient_fragments_soul"),
+
+    THORNY(Thorny::new, "rune_stone_thorny"),
+
+    SHINING(Shining::new, "rune_stone_shining"),
+
+    HARD(() -> new Defense("hard", .1), "rune_stone_hard"),
+
+    REGEN(Regen::new, "rune_stone_regen"),
+
+    LIGHT(Light::new, "rune_stone_light"),
+
+    SILENCE(Silence::new, "rune_stone_silence"),
+
+    GUARDED(() -> new Defense("guarded", .15), "rune_stone_guarded"),
+
+    BIOCHEMISTRY(Biochemistry::new, "rune_stone_biochemistry"),
+
+    MAGICAL(Magical::new, "enchanted_scroll_magical"),
+
+    RECKLESS(Reckless::new, "enchanted_scroll_reckless"),
+
+    EVOKER(Evoker::new, "enchanted_scroll_evoker"),
+
+    MIRACLE(Miracle::new, "enchanted_scroll_miracle"),
+
+    MASSIVE(Massive::new, "enchanted_scroll_massive"),
+
+    DESTINED_GREATNESS(DestinedGreatness::new, "origin_gem_destined_greatness"),
+
+    GREAT(Great::new, "origin_gem_great"),
+
+    SACRIFICAL(Sacrifical::new, "origin_gem_sacrifical"),
+
+    WIZARD(Wizard::new, "origin_gem_wizard"),
+
+    GOD_FORGED(GodForged::new, "origin_gem_god_forged"),
+
+    VOID(Void::new, "blessing_void"),
+
+    VOID_TOUCHED(VoidTouched::new, "blessing_void_touched"),
+
+    END(End::new, "blessing_end"),
+
+    LAST_STAND(LastStand::new, "blessing_last_stand"),
+
+    HEAT_DEATH(HeatDeath::new, "blessing_heat_death"),
+
+    PREFIX_CLEAR_KNIFE(() -> new TooltipItem(UNCOMMON_ONE, "prefix_clear_knife"), "prefix_clear_knife"),
+
+    HAVOC_ESSENCE(HavocEssence::new, "havoc_essence"),
+
+    ELEUM_ESSENCE(EleumEssence::new, "eleum_essence"),
+
+    CALAMITY_CORE(() -> new TooltipItem(ITEM_UNCOMMON, "calamity_core"), "calamity_core"),
+
+    RUINOUS_SOUL(RuinousSoul::new, "ruinous_soul"),
+
+    SCORIA_INGOT(() -> new TooltipItem(ITEM_UNCOMMON, "scoria_ingot"), "scoria_ingot"),
+
+    UNHOLY_CORE(() -> new TooltipItem(ITEM_UNCOMMON, "unholy_core"), "unholy_core"),
+
     //SwordAndTool
-    ETERNITY(() -> {
-        setUniqueProperties(EPIC_ONE);
-        return new Eternity();
-    }, "eternity"),
+    ETERNITY(Eternity::new, "eternity"),
 
     NEBULOUS_CATACLYSM(() -> new NebulousCataclysm(EPIC_ONE), "nebulous_cataclysm"),
-
-    RANCOR(() -> new Rancor(ITEM_CALAMITY), "rancor"),
 
     EXCELSUS(() -> new Excelsus(14, -2f, EPIC_ONE), "excelsus"),
 
@@ -362,7 +433,7 @@ public enum CalamityItems implements EnumRegister<Item>/*, IExtensibleEnum */ {
 
     UNIVERSE_SPLITTER(() -> new UniverseSplitter(EPIC_ONE), "universe_splitter"),
 
-    YHARIMS_CRYSTAL(() -> new YharimsCrystal(ITEM_CALAMITY), "yharims_crystal"),
+    YHARIMS_CRYSTAL(() -> new YharimsCrystal(RegisterList.CALAMITY_ONE), "yharims_crystal"),
 
     CRYSTYL_CRUSHER(() -> new CrystylCrusher(EPIC_ONE), "crystyl_crusher"),
 
@@ -374,13 +445,15 @@ public enum CalamityItems implements EnumRegister<Item>/*, IExtensibleEnum */ {
 
     XYTHERON(Xytheron::new, "xytheron"),
 
-    STORM_MAIDENS_RETRIBUTION(() -> new StormMaidensRetribution(ITEM_CALAMITY), "storm_maidens_retribution"),
+    STORM_MAIDENS_RETRIBUTION(() -> new StormMaidensRetribution(RegisterList.CALAMITY_ONE), "storm_maidens_retribution"),
 
     ICE_SNOW_MIRROR(IceSnowMirror::new, "ice_mirror"),
 
     BRIMSTONE_BARRIER(BrimstoneCrescentStaff::new, "brimstone_crescent_staff"),
 
     SEAFOAM_BOMB(SeafoamBomb::new, "seafoam_bomb"),
+
+    METALLIC_CHUNK(MetallicChunk::new, "metallic_chunk"),
 
     BALLISTIC_POISON_BOMB(BallisticPoisonBomb::new, "ballistic_poison_bomb"),
 

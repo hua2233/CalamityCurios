@@ -14,6 +14,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Pose;
@@ -31,7 +32,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 
-@AutoEntityRegister(sized = {.5f, .5f}, trackingRange = 4, updateInterval = 1)
+@AutoEntityRegister(sized = {.5f, .5f}, trackingRange = 20, updateInterval = 1)
 public class ItemPro extends ThrowableItemProjectile {
     public ItemPro(EntityType<? extends ThrowableItemProjectile> type, Level level) {
         super(type, level);
@@ -85,7 +86,7 @@ public class ItemPro extends ThrowableItemProjectile {
     }
 
     @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
+    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
         return NetworkHooks.getEntitySpawningPacket(this);
     }
 

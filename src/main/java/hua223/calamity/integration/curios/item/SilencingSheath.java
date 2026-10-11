@@ -1,8 +1,8 @@
 package hua223.calamity.integration.curios.item;
 
 import hua223.calamity.events.ApplyEvent;
+import hua223.calamity.events.listeners.PostAttackListener;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.util.CMLangUtil;
 import hua223.calamity.util.CurioRepel;
 import net.minecraft.network.chat.Component;
@@ -21,7 +21,7 @@ public class SilencingSheath extends BaseCurio {
     }
 
     @ApplyEvent
-    public final void onAttack(PlayerAttackListener listener) {
+    public final void onAttack(PostAttackListener listener) {
         if (listener.player.isCrouching()) {
             boolean canSneakAttack = true;
 

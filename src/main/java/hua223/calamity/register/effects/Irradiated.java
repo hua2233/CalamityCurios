@@ -2,7 +2,6 @@ package hua223.calamity.register.effects;
 
 import hua223.calamity.util.CMLangUtil;
 import net.minecraft.ChatFormatting;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -16,8 +15,7 @@ import java.util.List;
 public class Irradiated extends CalamityEffect {
     public Irradiated(MobEffectCategory pCategory, int pColor) {
         super(pCategory, pColor);
-        this.addAttributeModifier(Attributes.ARMOR,
-            "123e4567-e89b-12d3-a456-426614174004", -10, AttributeModifier.Operation.ADDITION);
+        this.addAttributeModifier(Attributes.ARMOR, getSelfUUID(), -10, AttributeModifier.Operation.ADDITION);
     }
 
     @Override
@@ -26,7 +24,7 @@ public class Irradiated extends CalamityEffect {
     }
 
     @Override
-    public void applyEffectTick(@NotNull LivingEntity pLivingEntity, int pAmplifier) {
+    public void applyServerTick(@NotNull LivingEntity pLivingEntity, int pAmplifier) {
         pLivingEntity.hurt(pLivingEntity.damageSources().magic(), 1);
     }
 

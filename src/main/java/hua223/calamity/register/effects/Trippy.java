@@ -22,8 +22,9 @@ import java.util.List;
 public class Trippy extends CalamityEffect implements IEffectsCallBack, IEffectDataResponse {
     public Trippy(MobEffectCategory category, int color) {
         super(category, color);
-        addAttributeModifier(Attributes.ATTACK_DAMAGE, "50cd184c-6dc0-486d-b52b-bb73cb5cc417", 0.3, AttributeModifier.Operation.MULTIPLY_TOTAL);
-        addAttributeModifier(AttributeRegistry.SPELL_POWER.get(), "50cd184c-6dc0-486d-b52b-bb73cb5cc417", 1, AttributeModifier.Operation.MULTIPLY_BASE);
+        String id = getSelfUUID();
+        addAttributeModifier(Attributes.ATTACK_DAMAGE, id, 0.3, AttributeModifier.Operation.MULTIPLY_TOTAL);
+        addAttributeModifier(AttributeRegistry.SPELL_POWER.get(), id, 1, AttributeModifier.Operation.MULTIPLY_BASE);
     }
 
     @Override

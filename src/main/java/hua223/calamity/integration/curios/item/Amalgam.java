@@ -7,10 +7,8 @@ import hua223.calamity.events.listeners.EffectListener;
 import hua223.calamity.events.listeners.HurtListener;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.effects.CalamityEffects;
-import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.CalamityHelp;
-import hua223.calamity.util.ConflictChain;
-import hua223.calamity.util.VariableAttributeModifier;
+import hua223.calamity.register.effects.SurvivableEffectInstance;
+import hua223.calamity.util.*;
 import hua223.calamity.util.delaytask.DelayRunnable;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -34,7 +32,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-@ConflictChain(AmalgamatedBrain.class)
+@CurioRepel(isRoot = true)
 public class Amalgam extends AmalgamatedBrain {
     public Amalgam(Properties properties) {
         super(properties);
@@ -64,18 +62,19 @@ public class Amalgam extends AmalgamatedBrain {
             listener.setEffectDuration(listener.instance.getDuration() * 2);
     }
 
-    @ApplyEvent
+    @ApplyEvent(2000)
     public final void onDeath(DeathListener listener) {
         if (listener.isPlayerDeath) {
             Collection<MobEffectInstance> actives = listener.player.getActiveEffects();
             if (!actives.isEmpty()) {
-                List<MobEffectInstance> effects =
-                    actives.stream().filter(effect -> effect.getEffect().isBeneficial()).toList();
+                List<MobEffectInstance> effects = actives.stream().filter(effect ->
+                    effect.getEffect().isBeneficial() && !(effect instanceof SurvivableEffectInstance)).toList();
+
                 if (!effects.isEmpty()) {
                     UUID id = listener.player.getUUID();
                     PlayerList players = listener.player.server.getPlayerList();
+
                     DelayRunnable.conditionsLoop(() -> {
-                        if (listener.isCanceled()) return true;
                         ServerPlayer player = players.getPlayer(id);
                         //If you die again within 2Tick, this attachment will be invalidated
                         if (player != null && player != listener.player && !player.isDeadOrDying()) {
@@ -83,7 +82,7 @@ public class Amalgam extends AmalgamatedBrain {
                             return true;
                         }
 
-                        //If the player has already exited, cancel this mission
+                        //If the tracker has already exited, cancel this mission
                         //If it has not been reborn yet, continue the loop
                         return player == null || player != listener.player;
                     }, 2);
@@ -99,7 +98,7 @@ public class Amalgam extends AmalgamatedBrain {
 
     @Override
     protected void additionalDebuff(LivingEntity target) {
-        CalamityHelp.addIfDoesNotExist(target, 100, 1, MobEffects.POISON, MobEffects.WEAKNESS,
+        CalamityHelp.addAllIfDoesNotExist(target, 100, 1, MobEffects.POISON, MobEffects.WEAKNESS,
             CalamityEffects.ACID_VENOM.get(), CalamityEffects.ASTRAL_INFECTION.get(), CalamityEffects.CONFUSED.get());
     }
 

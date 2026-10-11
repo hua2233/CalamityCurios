@@ -1,27 +1,31 @@
 package hua223.calamity.events;
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+import hua223.calamity.integration.curios.item.Mask;
+import hua223.calamity.integration.curios.item.PortalSkirt;
+import hua223.calamity.integration.curios.item.Sponge;
 import hua223.calamity.integration.curios.item.entropy.NihilityShell;
 import hua223.calamity.main.CalamityCurios;
-import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.register.attribute.CalamityAttributes;
 import hua223.calamity.register.config.CalamityConfig;
-import hua223.calamity.register.entity.*;
+import hua223.calamity.register.entity.SummonedAncientKnight;
 import hua223.calamity.register.gui.CalamityCurseScreen;
-import hua223.calamity.register.gui.SpellType;
+import hua223.calamity.register.gui.HyperplaneMatrixOperatingInterface;
+import hua223.calamity.register.rune.SpellType;
+import hua223.calamity.register.items.CalamityItems;
 import hua223.calamity.register.keys.ClientInteraction;
 import hua223.calamity.register.particle.*;
-import hua223.calamity.render.Item.TransformBakeModel;
-import hua223.calamity.render.hud.CrystallizationRenderLayer;
+import hua223.calamity.render.font.DradonTechnologyFont;
+import hua223.calamity.render.item.TransformBakeModel;
 import hua223.calamity.render.entity.PlayerLayerRender;
 import hua223.calamity.render.entity.PurpleFlames;
 import hua223.calamity.render.hud.*;
-import hua223.calamity.util.RenderUtil;
+import hua223.calamity.render.shaders.CalamityShaders;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.model.geom.builders.CubeDeformation;
-import net.minecraft.client.model.geom.builders.LayerDefinition;
-import net.minecraft.client.model.geom.builders.MeshDefinition;
+import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.item.ItemProperties;
@@ -41,10 +45,11 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import top.theillusivec4.curios.api.client.CuriosRendererRegistry;
+import top.theillusivec4.curios.api.client.ICurioRenderer;
 
 import static hua223.calamity.main.CalamityCurios.MODID;
-import static hua223.calamity.register.items.CalamityItems.NIHILITY_SHELL;
 import static hua223.calamity.register.RegisterList.CALAMITY_CURES;
+import static hua223.calamity.register.items.CalamityItems.*;
 
 @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ModEvents {
@@ -55,7 +60,7 @@ public class ModEvents {
                 event.add(EntityType.PLAYER, attribute);
     }
 
-    //Okay, I feel sad for my art
+    //Okay, I feel sad about my artistic ability
 //    public static void Render(CustomizeGuiOverlayEvent.BossEventProgress event) {
 //        event.getBossEvent()
 //    }
@@ -80,8 +85,17 @@ public class ModEvents {
         @SubscribeEvent
         @SuppressWarnings("all")
         public static void onFMLClientSetupEvent(final FMLClientSetupEvent event) {
-            CuriosRendererRegistry.register(NIHILITY_SHELL.get(), NihilityShell.Render::new);
             MenuScreens.register(CALAMITY_CURES.get(), CalamityCurseScreen::new);
+            CuriosRendererRegistry.register(PORTAL_SKIRT.get(), PortalSkirt.Render::new);
+            CuriosRendererRegistry.register(NIHILITY_SHELL.get(), NihilityShell.Render::new);
+
+            Supplier<ICurioRenderer> mask = Suppliers.memoize(Mask.Render::new);
+            CuriosRendererRegistry.register(DEITY_MASK.get(), mask);
+            CuriosRendererRegistry.register(AVATAR_MASK.get(), mask);
+
+            Supplier<ICurioRenderer> barrier = Suppliers.memoize(Sponge.BarrierRenderer::new);
+            CuriosRendererRegistry.register(SPONGE.get(), barrier);
+            CuriosRendererRegistry.register(ROVER_DRIVE.get(), barrier);
         }
 
         @SubscribeEvent
@@ -105,16 +119,18 @@ public class ModEvents {
             ResourceLocation location = atlas.location();
             if (location.equals(InventoryMenu.BLOCK_ATLAS))
                 PurpleFlames.afterSpriteStitch(atlas);
-            else if (location.equals(CalamityCurios.ModResource("textures/atlas/calamity_gui.png"))) {
+            else if (location.getNamespace().equals(MODID)) {
                 AdrenalineHud.afterMainTextureLoad(atlas);
                 RageHud.afterMainTextureLoad(atlas);
                 EnergyBarHud.afterMainTextureLoad(atlas);
-                SpongeHud.afterMainTextureLoad(atlas);
+                BarrierHud.afterMainTextureLoad(atlas);
                 FatigueHud.afterMainTextureLoad(atlas);
                 CrystallizationRenderLayer.afterMainTextureLoad(atlas);
                 CalamityCurseScreen.afterMainTextureLoad(atlas);
                 SpellType.afterMainTextureLoad(atlas);
                 FatigueSlot.afterMainTextureLoad(atlas);
+                DradonTechnologyFont.afterMainTextureLoad(atlas);
+                HyperplaneMatrixOperatingInterface.OptionsUI.afterMainTextureLoad(atlas);
             }
         }
 
@@ -122,7 +138,7 @@ public class ModEvents {
         public static void registerReloadListeners(RegisterClientReloadListenersEvent event) {
             ItemProperties.register(CalamityItems.NEBULOUS_CATACLYSM.get(), CalamityCurios.ModResource("cataclysm_hold"),
                 (itemStack, clientLevel, livingEntity, i) ->
-                    livingEntity != null && livingEntity.calamity$IsPlayer && livingEntity.isUsingItem() ? 1f : 0f);
+                    TransformBakeModel.modelSelectionPredicate(itemStack, livingEntity) ? 1f : 0f);
 
             event.registerReloadListener(new TextureAtlasHolder(Minecraft.getInstance().getTextureManager(),
                 CalamityCurios.ModResource("textures/atlas/calamity_gui.png"), CalamityCurios.ModResource("calamity_gui")) {});
@@ -130,7 +146,7 @@ public class ModEvents {
 
         @SubscribeEvent
         public static void onRegisterShaders(RegisterShadersEvent event) {
-            RenderUtil.Shaders.registerShaders(event);
+            CalamityShaders.registerShaders(event);
         }
 
         @SubscribeEvent
@@ -140,9 +156,9 @@ public class ModEvents {
 
         @SubscribeEvent
         public static void hudRender(RegisterGuiOverlaysEvent event) {
-            event.registerAboveAll("rage", new RageHud());
-            event.registerAboveAll("sponge", new SpongeHud());
-            event.registerAboveAll("adrenaline", new AdrenalineHud());
+            event.registerAboveAll("rage", RageHud.INSTANCE);
+            event.registerAboveAll("adrenaline", AdrenalineHud.INSTANCE);
+            event.registerAboveAll("sponge", new BarrierHud());
             event.registerAboveAll("fatigue_slot", new FatigueSlot());
             event.registerAboveAll("fatigue_hud", new FatigueHud());
             event.registerAboveAll("crystallization", new CrystallizationRenderLayer());

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A" : {
+      "item": "calamity_curios:bloodstone_core"
+    },
+    "D": {
+      "item": "calamity_curios:solar_fragment"
+    }
+  },
+  "pattern": [
+    "DDD",
+    "AAA",
+    "A A"
+  ],
+  "result": {
+    "item": "calamity_curios:bloodflare_core"
+  }
+}

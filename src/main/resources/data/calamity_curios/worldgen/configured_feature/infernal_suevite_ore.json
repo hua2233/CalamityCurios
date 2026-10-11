@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:ore",
+  "config": {
+    "targets": [
+      {
+        "target": {
+          "predicate_type": "minecraft:random_block_match",
+          "block": "minecraft:blackstone",
+          "probability": 0.7
+        },
+        "state": {
+          "Name": "calamity_curios:infernal_suevite_ore"
+        }
+      },
+      {
+        "target": {
+          "predicate_type": "minecraft:random_block_match",
+          "block": "minecraft:basalt",
+          "probability": 0.45
+        },
+        "state": {
+          "Name": "calamity_curios:infernal_suevite_ore"
+        }
+      }
+    ],
+    "size": 7,
+    "discard_chance_on_air_exposure": 0.5
+  }
+}

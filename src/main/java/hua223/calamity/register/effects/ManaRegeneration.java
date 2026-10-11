@@ -13,8 +13,7 @@ import java.util.List;
 public class ManaRegeneration extends CalamityEffect {
     public ManaRegeneration(MobEffectCategory category, int color) {
         super(category, color);
-        addAttributeModifier(AttributeRegistry.MANA_REGEN.get(),
-            "50cd184c-6dc0-486d-b52b-bb73cb5cc413", 0.2, AttributeModifier.Operation.MULTIPLY_BASE);
+        addAttributeModifier(AttributeRegistry.MANA_REGEN.get(), getSelfUUID(), 0.2, AttributeModifier.Operation.MULTIPLY_BASE);
     }
 
     @Override

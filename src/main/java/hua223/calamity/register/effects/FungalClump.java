@@ -27,7 +27,7 @@ public class FungalClump extends CalamityEffect implements IEffectsCallBack {
 
     @Override
     @SuppressWarnings("ConstantConditions")
-    public void applyEffectTick(@NotNull LivingEntity target, int amplifier) {
+    public void applyServerTick(@NotNull LivingEntity target, int amplifier) {
         UUID id = target.getPersistentData().getUUID("owner");
         Player player = target.getServer().getPlayerList().getPlayer(id);
         if (player == null) {

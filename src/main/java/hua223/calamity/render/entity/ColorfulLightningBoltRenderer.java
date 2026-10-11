@@ -2,7 +2,6 @@ package hua223.calamity.render.entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import hua223.calamity.register.entity.ColorfulLightningBolt;
-import hua223.calamity.render.IllusionBufferSource;
 import hua223.calamity.util.delaytask.DelayRunnable;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -21,8 +20,7 @@ public class ColorfulLightningBoltRenderer extends EntityRenderer<ColorfulLightn
     public ColorfulLightningBoltRenderer(EntityRendererProvider.Context context) {
         super(context);
         //Waiting for resource loading to complete
-        DelayRunnable.currentTickEndRun(() ->
-            renderer = (LightningBoltRenderer) context.getEntityRenderDispatcher().renderers.get(EntityType.LIGHTNING_BOLT));
+        DelayRunnable.currentTickEndRun(() -> renderer = (LightningBoltRenderer) context.getEntityRenderDispatcher().renderers.get(EntityType.LIGHTNING_BOLT));
     }
 
     @Override
@@ -32,7 +30,6 @@ public class ColorfulLightningBoltRenderer extends EntityRenderer<ColorfulLightn
 
     @Override
     public void render(@NotNull ColorfulLightningBolt entity, float entityYaw, float partialTick, @NotNull PoseStack poseStack, @NotNull MultiBufferSource buffer, int packedLight) {
-        entity.applyColor();
-        renderer.render(entity, entityYaw, partialTick, poseStack, IllusionBufferSource.getSource(buffer), packedLight);
+        renderer.render(entity, entityYaw, partialTick, poseStack, entity.getColorfulBuffer(buffer), packedLight);
     }
 }

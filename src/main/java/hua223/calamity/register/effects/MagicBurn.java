@@ -23,13 +23,11 @@ public class MagicBurn extends CountFactorEffects {
 
     @Override
     @SuppressWarnings("ConstantConditions")
-    public void applyEffectTick(@NotNull LivingEntity entity, int amplifier) {
-        if (!entity.level().isClientSide) {
-            MobEffectInstance instance = entity.getEffect(this);
-            float intensity = instance.calamity$GetUniversalFactor(this).getRatio(instance.getDuration(), 0);
-            float heal = entity.getMaxHealth() * 0.1f;
-            entity.hurt(entity.damageSources().magic(), (float) (Math.sqrt(intensity) * Math.pow(heal, 1 + intensity)));
-        }
+    public void applyServerTick(@NotNull LivingEntity entity, int amplifier) {
+        MobEffectInstance instance = entity.getEffect(this);
+        float intensity = instance.calamity$GetUniversalFactor(this).getRatio(instance.getDuration(), 0);
+        float heal = entity.getMaxHealth() * 0.1f;
+        entity.hurt(entity.damageSources().magic(), (float) (Math.sqrt(intensity) * Math.pow(heal, 1 + intensity)));
     }
 
     @Override

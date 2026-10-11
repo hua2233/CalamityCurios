@@ -1,10 +1,9 @@
 package hua223.calamity.render.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import hua223.calamity.render.shaders.CalamityShaders;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
-
-import java.util.function.BooleanSupplier;
 
 public class ScreenMaskRenderer extends ScreenEffectRenderer {
     private final ResourceLocation mask;
@@ -32,6 +31,7 @@ public class ScreenMaskRenderer extends ScreenEffectRenderer {
 
     @Override
     public boolean render(float partialTick, Minecraft minecraft) {
+        CalamityShaders.XNA_ALPHA_BLEND.setupRenderState();
         RenderSystem.setShaderTexture(0, mask);
         RenderSystem.setShaderColor(colorMixer[0], colorMixer[1], colorMixer[2], colorMixer[3]);
         renderMask(minecraft);

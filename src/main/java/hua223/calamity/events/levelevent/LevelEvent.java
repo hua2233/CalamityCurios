@@ -4,9 +4,6 @@ import hua223.calamity.net.IDataPackResponse;
 import hua223.calamity.util.delaytask.DelayRunnable;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingDropsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -52,7 +49,7 @@ public abstract class LevelEvent <T extends ILevelWave> {
 
 
     public static boolean inProgress(Class<? extends LevelEvent<?>> event) {
-        return activeWorldEvent != null && activeWorldEvent.getClass() == event;
+        return activeWorldEvent != null && activeWorldEvent.inProgress && activeWorldEvent.getClass() == event;
     }
 
     public static LevelEvent<?> getActiveWorldEvent() {
@@ -63,7 +60,7 @@ public abstract class LevelEvent <T extends ILevelWave> {
         return currentWave;
     }
 
-    protected final T getNetWave() {
+    protected final T getNextWave() {
         return currentWave = challengeWave.remove(challengeWave.size() - 1);
     }
 
@@ -71,9 +68,8 @@ public abstract class LevelEvent <T extends ILevelWave> {
         return level.getServer().getPlayerList().getPlayers();
     }
 
-    @SubscribeEvent
     public void onDrop(LivingDropsEvent event) {
-        if (currentWave.isMobInWave(event.getEntity())) {
+        if (currentWave != null && currentWave.isMobInWave(event.getEntity())) {
             attemptToGenerateTheNextWave();
             currentWave.onKillDrop(event);
         }
@@ -91,7 +87,7 @@ public abstract class LevelEvent <T extends ILevelWave> {
         response.sendToAllClient();
     }
 
-    protected void failureEvent() {
+    public void failureEvent() {
         endEvent();
         response.getPack().putInt("state", 2);
         response.sendToAllClient();

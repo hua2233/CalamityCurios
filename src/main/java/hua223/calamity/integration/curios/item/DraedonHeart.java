@@ -1,21 +1,20 @@
 package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import hua223.calamity.capability.Adrenaline;
 import hua223.calamity.events.ApplyEvent;
+import hua223.calamity.events.listeners.DamageListener;
+import hua223.calamity.events.listeners.PostAttackListener;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.events.listeners.HurtListener;
-import hua223.calamity.events.listeners.PlayerAttackListener;
 import hua223.calamity.net.IDataPackResponse;
 import hua223.calamity.register.attribute.CalamityAttributes;
-import hua223.calamity.register.sounds.CalamitySounds;
-import hua223.calamity.render.Item.ICustomBackgroundRender;
-import hua223.calamity.render.hud.AdrenalineHud;
-import hua223.calamity.util.*;
 import hua223.calamity.register.keys.IKeyDataPackResponse;
+import hua223.calamity.register.sounds.CalamitySounds;
+import hua223.calamity.render.hud.AdrenalineHud;
+import hua223.calamity.render.item.IDraedonCreationBG;
+import hua223.calamity.util.CMLangUtil;
+import hua223.calamity.util.ICuriosStorage;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -31,14 +30,13 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 import java.util.UUID;
 
 public class DraedonHeart extends BaseCurio implements ICuriosStorage,
-    IKeyDataPackResponse, IDataPackResponse, ICustomBackgroundRender {
+    IKeyDataPackResponse, IDataPackResponse, IDraedonCreationBG {
     public DraedonHeart(Properties properties) {
         super(properties);
     }
@@ -47,7 +45,7 @@ public class DraedonHeart extends BaseCurio implements ICuriosStorage,
     public @NotNull InteractionResultHolder<ItemStack> use(Level level, Player player, @NotNull InteractionHand usedHand) {
         ItemStack stack = player.getItemInHand(usedHand);
         if (!level.isClientSide) {
-            player.Calamity$Player.adrenaline.switchMode(this);
+            player.Calamity$Player.adrenaline.switchMode();
             return InteractionResultHolder.success(stack);
         }
 
@@ -66,28 +64,27 @@ public class DraedonHeart extends BaseCurio implements ICuriosStorage,
     @Override
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
         setKeyMapping(player, true);
-        player.Calamity$Player.adrenaline.setEnabled(true, this);
+        player.Calamity$Player.adrenaline.setEnabled(true);
     }
 
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
         setKeyMapping(player, false);
-        player.Calamity$Player.adrenaline.setEnabled(false, this);
+        player.Calamity$Player.adrenaline.setEnabled(false);
     }
 
     @Override
     public void onServerResponse(ServerPlayer player, CompoundTag tag) {
-        player.Calamity$Player.adrenaline.adrenalineActivate(true, this);
+        player.Calamity$Player.adrenaline.adrenalineActivate(true);
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
     public int getKeyCode() {
         return GLFW.GLFW_KEY_K;
     }
 
     @ApplyEvent
-    public final void onHurt(HurtListener listener) {
+    public final void onDamage(DamageListener listener) {
         if (!listener.isTriggerByLiving) return;
         ServerPlayer player = listener.player;
         float[] count = getCount(player);
@@ -101,31 +98,42 @@ public class DraedonHeart extends BaseCurio implements ICuriosStorage,
             } else {
                 if (adrenaline.isMax()) listener.amplifier -= adrenaline.getDamageOffset();
                 CalamitySounds.MAJOR_LOSS.playSound(player);
-                adrenaline.zero(this);
+                adrenaline.zero();
             }
         }
+    }
+
+    @ApplyEvent
+    public final void onAttack(PostAttackListener listener) {
+        Adrenaline adrenaline = listener.player.Calamity$Player.adrenaline;
+        if (adrenaline.isActive() && !adrenaline.isNanoMachinesMode())
+            listener.amplifier += adrenaline.getAmplifier();
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
     @SuppressWarnings("ConstantConditions")
     public void onClientResponse(CompoundTag tag) {
-        if (tag.contains("value")) AdrenalineHud.setAdrenalineProgress(tag.getInt("value"));
-        if (tag.contains("state")) AdrenalineHud.setAdrenalineEnabled(tag.getBoolean("state"));
-        if (tag.contains("count")) AdrenalineHud.setAdrenalineCount(tag.getByte("count"));
-        if (tag.contains("isNano")) AdrenalineHud.setForMachinesMode(tag.getBoolean("isNano"));
-        if (tag.contains("play")) {
-            boolean flag = tag.getBoolean("play");
-            if (flag) CalamitySounds.FULL_ADRENALINE.playLocalSound();
-            AdrenalineHud.playAnimation(flag);
-        }
+        byte stateInfo = tag.getByte("bit");
+        for (int i = 0; i < 6; i++)
+            if (((stateInfo >> i) & 1) == 1) byBit(i, tag);
     }
 
-    @ApplyEvent
-    public final void onAttack(PlayerAttackListener listener) {
-        Adrenaline adrenaline = listener.player.Calamity$Player.adrenaline;
-        if (adrenaline.isActive() && !adrenaline.isNanoMachinesMode())
-            listener.amplifier += adrenaline.getAmplifier();
+    @OnlyIn(Dist.CLIENT)
+    private static void byBit(int bit, CompoundTag tag) {
+        switch (bit) {
+            case 0 -> AdrenalineHud.INSTANCE.setEnabled(tag.getBoolean("state"));
+
+            case 1 -> AdrenalineHud.INSTANCE.setProgress(tag.getInt("value"));
+
+            case 2 -> AdrenalineHud.INSTANCE.setDisplayCount(tag.getByte("count"));
+
+            case 3 -> AdrenalineHud.INSTANCE.playAnimation();
+
+            case 4 -> AdrenalineHud.INSTANCE.active();
+
+            case 5 -> AdrenalineHud.INSTANCE.setModel(tag.getBoolean("nano"));
+        }
     }
 
     @Override
@@ -136,37 +144,7 @@ public class DraedonHeart extends BaseCurio implements ICuriosStorage,
     @Override
     protected void onPlayerTick(Player player) {
         if (resetOrUpdate(player, 0, 20))
-            player.Calamity$Player.adrenaline.addValue(this);
-    }
-
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public RenderType getRenderType() {
-        return RenderUtil.Shaders.getDisintegration();
-    }
-
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public void internalRender(VertexConsumer consumer, int x1, int y1, int x2, int y2, int z, float[] gradientColor, Matrix4f matrix4f) {
-        consumer.vertex(matrix4f, x1, y1, z)
-            .color(gradientColor[1], gradientColor[2], gradientColor[3], gradientColor[0])
-            .uv(1f, 1f)
-            .endVertex();
-
-        consumer.vertex(matrix4f, x1, y2, z)
-            .color(gradientColor[5], gradientColor[6], gradientColor[7], gradientColor[4])
-            .uv(1f, 0f)
-            .endVertex();
-
-        consumer.vertex(matrix4f, x2, y2, z)
-            .color(gradientColor[5], gradientColor[6], gradientColor[7], gradientColor[4])
-            .uv(0f, 0f)
-            .endVertex();
-
-        consumer.vertex(matrix4f, x2, y1, z)
-            .color(gradientColor[1], gradientColor[2], gradientColor[3], gradientColor[0])
-            .uv(0f, 1f)
-            .endVertex();
+            player.Calamity$Player.adrenaline.addValue();
     }
 
     @Override
@@ -176,7 +154,7 @@ public class DraedonHeart extends BaseCurio implements ICuriosStorage,
         tooltips.add(CMLangUtil.blankLine());
         tooltips.add(CMLangUtil.getTranslatable("draedon_heart", 1).withStyle(ChatFormatting.YELLOW));
         tooltips.add(CMLangUtil.blankLine());
-        tooltips.add(CMLangUtil.getTranslatable("draedon_heart", AdrenalineHud.isNanoMachinesMode ? 6 : 7).withStyle(ChatFormatting.GOLD));
+        tooltips.add(CMLangUtil.getTranslatable("draedon_heart", AdrenalineHud.INSTANCE.isNanoMode() ? 6 : 7).withStyle(ChatFormatting.GOLD));
         return tooltips;
     }
 }

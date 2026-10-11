@@ -18,7 +18,11 @@ public class GlobalLootsProvider extends GlobalLootModifierProvider {
     protected void start() {
         add("chests_global_loots", new GlobalLootModifier(
             new LootItemCondition[]{LootTableTypeCondition.of("chests/")}, GlobalLoot.CHESTS_LOOTS));
+
         add("entities_global_loots", new GlobalLootModifier(
             new LootItemCondition[]{LootTableTypeCondition.of("entities/")}, GlobalLoot.ENTITY_LOOTS));
+
+        add("fishing_global_loots", new GlobalLootModifier(
+            new LootItemCondition[]{LootTableTypeCondition.of("gameplay/fishing")}, GlobalLoot.FISHING_LOOTS));
     }
 }

@@ -2,15 +2,15 @@ package hua223.calamity.integration.curios.item;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.events.LogoutRelease;
-import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.events.listeners.DeathListener;
+import hua223.calamity.events.listeners.DamageListener;
 import hua223.calamity.events.listeners.HurtListener;
+import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.register.damage.DamageRequester;
 import hua223.calamity.register.damage.DamageSupplier;
 import hua223.calamity.register.entity.projectiles.Meteor;
 import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.ConflictChain;
+import hua223.calamity.util.CurioRepel;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -25,24 +25,26 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import static hua223.calamity.generators.DamageMapping.*;
+import static hua223.calamity.generators.DamageMapping.SPUTTERING;
 
-@ConflictChain(value = DeitiesRampart.class)
+@CurioRepel(OdinsRefuge.class)
 public class DeitiesRampart extends BaseCurio {
     @DamageRequester(key = SPUTTERING, msg = "protect",
-        style = ChatFormatting.GOLD, zh_cn = "%s为了守护他人英勇的牺牲了")
+        style = ChatFormatting.GOLD, zh_cn = "%s成为了他人的替死鬼")
     public static DamageSupplier supplier;
     private static Set<UUID> players;
+    private static ObjectArrayList<ServerPlayer> sharer;
 
     public DeitiesRampart(Properties properties) {
         super(properties);
     }
 
-    @ApplyEvent
+    @ApplyEvent(205)
     public final void onHurt(HurtListener listener) {
         ServerPlayer player = listener.player;
         if (listener.isTriggerByLiving)
@@ -53,39 +55,38 @@ public class DeitiesRampart extends BaseCurio {
         int count = invincibleTimes(maxHealth, health);
 
         float halfHealth = player.getMaxHealth() / 2;
-        if (listener.baseAmount > halfHealth) count += 20;
+        if (listener.getCorrectionValue() > halfHealth) count += 20;
 
         player.calamity$SetInvulnerableTime(count);
         if (health < halfHealth) listener.amplifier -= 0.15f;
     }
 
-    @ApplyEvent
-    public final void onDeath(DeathListener listener) {
-        if (listener.isPlayerDeath) players.remove(listener.player.getUUID());
-    }
-
-    @LogoutRelease
-    public static void onLogOut(ServerPlayer player) {
-        if (players != null) players.remove(player.getUUID());
-    }
-
     @SuppressWarnings("ConstantConditions")
-    public static void rampartGuard(HurtListener listener) {
+    public static void rampartGuard(DamageListener listener) {
         if (players == null || players.contains(listener.player.getUUID())) return;
 
+        Iterator<UUID> iterator = players.iterator();
         PlayerList list = listener.player.getServer().getPlayerList();
-        int[] count = {0};
-        final float base = listener.baseAmount * 0.25f;
-        DamageSource source = supplier.get();
-        players.stream().map(list::getPlayer).filter(player -> {
-            if (player.getHealth() > (player.getMaxHealth() / 4)) {
-                count[0]++;
-                return true;
-            }
-            return false;
-        }).forEach(player -> player.hurt(source, base / count[0]));
 
-        if (count[0] > 0) listener.amplifier -= 0.25f;
+        while (iterator.hasNext()) {
+            ServerPlayer player = list.getPlayer(iterator.next());
+            if (player == null) iterator.remove();
+            else if (player.level() == listener.player.level() && player.getHealth() > (player.getMaxHealth() / 4)) sharer.add(player);
+        }
+
+        if (players.isEmpty()) {
+            players = null;
+            sharer = null;
+        } else if (!sharer.isEmpty()) {
+            listener.amplifier -= 0.25f;
+            DamageSource source = supplier.get();
+            float hurt = listener.baseAmount * 0.25f / sharer.size();
+
+            for (ServerPlayer player : sharer)
+                player.hurt(source, hurt);
+
+            sharer.clear();
+        }
     }
 
     private static int invincibleTimes(float maxHealth, float health) {
@@ -100,14 +101,21 @@ public class DeitiesRampart extends BaseCurio {
 
     @Override
     protected void equipHandle(ServerPlayer player, ItemStack stack) {
-        if (players == null) players = new ObjectOpenHashSet<>();
+        if (players == null) {
+            int count = player.server.getPlayerCount();
+            players = new ObjectOpenHashSet<>(count);
+            sharer = new ObjectArrayList<>(count);
+        }
+
         players.add(player.getUUID());
     }
 
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
-        if (players != null && players.remove(player.getUUID()) && players.isEmpty())
+        if (players != null && players.remove(player.getUUID()) && players.isEmpty()) {
             players = null;
+            sharer = null;
+        }
     }
 
     @Override

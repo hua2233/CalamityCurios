@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "minecraft:prismarine_crystals"
+    },
+    "C": {
+      "item": "irons_spellbooks:amethyst_resonance_charm"
+    },
+    "B": {
+      "item": "minecraft:twisting_vines"
+    },
+    "D": {
+      "item": "calamity_curios:lumenyl"
+    }
+  },
+  "pattern": [
+    " B ",
+    "DCD",
+    "AAA"
+  ],
+  "result": {
+    "item": "calamity_curios:abyssal_amulet"
+  }
+}

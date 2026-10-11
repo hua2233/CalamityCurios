@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "C": {
+      "item": "minecraft:gold_ingot"
+    },
+    "D": {
+      "item": "minecraft:granite"
+    }
+  },
+  "pattern": [
+    "DAD",
+    "ACA",
+    "DAD"
+  ],
+  "result": {
+    "item": "calamity_curios:marnite_repulsion_shield"
+  }
+}

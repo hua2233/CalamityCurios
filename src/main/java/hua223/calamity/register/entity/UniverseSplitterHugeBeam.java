@@ -5,7 +5,6 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import hua223.calamity.main.CalamityCurios;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.render.screen.FlashScreenRenderer;
-import hua223.calamity.util.RenderUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;

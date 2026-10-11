@@ -58,18 +58,13 @@ public class EndDragonWave extends BossRushBossWave {
                     return false;
                 }
 
-
                 EnderDragon dragon = (EnderDragon) end.getEntity(fight.getDragonUUID());
                 if (dragon != null) {
                     setEntryBossEntity(dragon);
-                    for (EndCrystal crystal : crystals)
-                        crystal.kill();
-
                     //Boss Rush Reinforcement
                     applyBossAttribute(dragon, new AttributeContainer(() -> Attributes.MAX_HEALTH, 3, MULTIPLY_TOTAL),
                         new AttributeContainer(() -> Attributes.MOVEMENT_SPEED, 0.2, MULTIPLY_TOTAL),
                         new AttributeContainer(() -> Attributes.ARMOR, dragon.getAttributeValue(Attributes.MAX_HEALTH) / 2, ADDITION));
-
 
                     dragon.heal(dragon.getMaxHealth());
                     for(SpikeFeature.EndSpike endspike : SpikeFeature.getSpikesForLevel(end))
@@ -129,11 +124,19 @@ public class EndDragonWave extends BossRushBossWave {
     @SuppressWarnings("ConstantConditions")
     public void onTerminationEvent() {
         //如果事件失败或终止，非BossRush召唤的龙仍然会存在
-        EnderDragon dragon = (EnderDragon) getBoss();
         EndDragonFight fight = event.level.getDragonFight();
+        boolean fromSpawn = false;
+        EnderDragon dragon = null;
+
+        if (getBoss() != null) dragon = (EnderDragon) getBoss();
+        else if (fight.getDragonUUID() != null) {
+           dragon = (EnderDragon) event.level.getEntity(fight.getDragonUUID());
+           fromSpawn = true;
+        }
+
         if (fight.hasPreviouslyKilledDragon()) fight.spawnExitPortal(true);
         if (dragon != null) {
-            if (crystalReinforcement) {
+            if (fromSpawn || crystalReinforcement) {
                 dragon.discard();
                 eliminateReinforcement(event.level);
                 fight.scanState();

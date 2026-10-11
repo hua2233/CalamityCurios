@@ -12,12 +12,12 @@ import java.util.UUID;
 
 public class ToothNecklace extends BaseCurio {
     private final int penetrate;
-    private final float damegeUp;
+    private final float damageUp;
 
-    public ToothNecklace(Properties pProperties, int penetrate, float damageUp) {
-        super(pProperties);
+    public ToothNecklace(Properties properties, int penetrate, float damageUp) {
+        super(properties);
         this.penetrate = penetrate;
-        this.damegeUp = damageUp;
+        this.damageUp = damageUp;
     }
 
     @Override
@@ -27,6 +27,6 @@ public class ToothNecklace extends BaseCurio {
             new AttributeModifier(uuid, "tooth_necklace", penetrate, AttributeModifier.Operation.ADDITION));
 
         modifier.put(CalamityAttributes.DAMAGE_UP.get(),
-            new AttributeModifier(uuid, "tooth_necklace", damegeUp, AttributeModifier.Operation.MULTIPLY_BASE));
+            new AttributeModifier(uuid, "tooth_necklace", damageUp, AttributeModifier.Operation.MULTIPLY_BASE));
     }
 }

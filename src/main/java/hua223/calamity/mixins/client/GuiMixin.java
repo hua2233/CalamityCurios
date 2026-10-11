@@ -1,9 +1,7 @@
 package hua223.calamity.mixins.client;
 
 import hua223.calamity.mixed.ICalamityHeartType;
-import hua223.calamity.render.font.CurseFont;
-import hua223.calamity.util.CalamityHelp;
-import hua223.calamity.util.CalamityPlayer;
+import hua223.calamity.render.heart.CalamityHeartManage;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
@@ -11,8 +9,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -26,17 +22,6 @@ public abstract class GuiMixin {
 
     @Shadow @Final protected static ResourceLocation GUI_ICONS_LOCATION;
 
-    @SuppressWarnings("ConstantConditions")
-    @Redirect(method = "renderSelectedItemName(Lnet/minecraft/client/gui/GuiGraphics;I)V", at = @At(value = "INVOKE", target =
-        "Lnet/minecraftforge/client/extensions/common/IClientItemExtensions;of(Lnet/minecraft/world/item/ItemStack;)Lnet/minecraftforge/client/extensions/common/IClientItemExtensions;"),
-        remap = false) //FORGE METHOD
-    private IClientItemExtensions getCurseFonts(ItemStack stack) {
-        if (stack.hasTag() && stack.getTag().getInt(CalamityHelp.FONT_FLAG) == 1)
-            return CurseFont.getExtensions(stack);
-
-        return IClientItemExtensions.of(stack);
-    }
-
     /**
      * @author hua223
      * @reason Insert custom rendering heart
@@ -46,8 +31,7 @@ public abstract class GuiMixin {
     protected void renderHearts(GuiGraphics graphics, Player player, int x, int y,
                                 int height, int offsetHeartIndex, float maxHealth, int currentHealth,
                                 int displayHealth, int absorptionAmount, boolean renderHighlight) {
-        CalamityPlayer calamity = player.Calamity$Player;
-        ICalamityHeartType type = calamity.forPlayer(player);
+        ICalamityHeartType type = CalamityHeartManage.forPlayer(player);
         int i = 9 * (player.level().getLevelData().isHardcore() ? 5 : 0);
         int j = Mth.ceil((double)maxHealth / (double)2.0F);
         int k = Mth.ceil((double)absorptionAmount / (double)2.0F);
@@ -81,8 +65,8 @@ public abstract class GuiMixin {
 
             if (j2 < currentHealth) {
                 boolean flag3 = j2 + 1 == currentHealth;
-                calamity$RenderHeart(graphics, calamity.astrAmount > 0 && j2 >= currentHealth -
-                    calamity.astrAmount ? calamity.astr : type, l1, i2, i, false, flag3);
+                calamity$RenderHeart(graphics, CalamityHeartManage.astrAmount > 0 && j2 >= currentHealth -
+                    CalamityHeartManage.astrAmount ? CalamityHeartManage.astr : type, l1, i2, i, false, flag3);
             }
         }
     }
@@ -101,8 +85,17 @@ public abstract class GuiMixin {
     }
 
     @Mixin(Gui.HeartType.class)
-    public static abstract class CalamityHeartType implements ICalamityHeartType {
+    public static abstract class CalamityHeartType implements /* IExtensibleEnum, */ ICalamityHeartType {
         @Shadow public abstract int getX(boolean pHalfHeart, boolean pRenderHighlight);
+
+//        private static Gui.HeartType create(int index, boolean canBlink) {
+//            throw new IllegalStateException("Enumeration not expanded");
+//        }
+//
+//        @Override
+//        public Gui.HeartType calamity$GetNew(int index, boolean canBlink) {
+//            return calamity$GetNew(index, canBlink);
+//        }
 
         @Override
         public int calamity$GetX(boolean halfHeart, boolean renderHighlight) {

@@ -1,12 +1,12 @@
 package hua223.calamity.integration.curios.item;
 
 import hua223.calamity.events.ApplyEvent;
-import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.events.listeners.CriticalHitCheckListener;
 import hua223.calamity.events.listeners.ProjectileSpawnListener;
+import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.register.effects.CalamityEffects;
 import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.ConflictChain;
+import hua223.calamity.util.CurioRepel;
 import hua223.calamity.util.FriendlyEffectCloudBuilder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -20,7 +20,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.List;
 
-@ConflictChain(value = PlagueFuelPack.class, isRoot = true)
+@CurioRepel(BlunderBooster.class)
 public class PlagueFuelPack extends BaseCurio {
     @OnlyIn(Dist.CLIENT)
     public static int energy = 40;
@@ -41,14 +41,16 @@ public class PlagueFuelPack extends BaseCurio {
     @Override
     @OnlyIn(Dist.CLIENT)
     protected void onClientTick(Player player) {
-        if (player.isFallFlying()) {
-            if (energy > 2 && player.getFallFlyingTicks() % 10 == 0
-                && Minecraft.getInstance().options.keyJump.isDown()) {//((LocalPlayer) player).input.jumping
-                energy -= 2;
-                Vec3 vec3 = player.getLookAngle().normalize();
-                player.push(vec3.x * 0.6f, vec3.y * 0.4f, vec3.z * 0.6f);
-            }
-        } else if(energy < 40) energy += 2;
+        if (player.isLocalPlayer()) {
+            if (player.isFallFlying()) {
+                if (energy > 2 && player.getFallFlyingTicks() % 10 == 0
+                    && Minecraft.getInstance().options.keyJump.isDown()) {//((LocalPlayer) tracker).input.jumping
+                    energy -= 2;
+                    Vec3 vec3 = player.getLookAngle().normalize();
+                    player.push(vec3.x * 0.6f, vec3.y * 0.4f, vec3.z * 0.6f);
+                }
+            } else if(energy < 40) energy += 2;
+        }
     }
 
     @ApplyEvent

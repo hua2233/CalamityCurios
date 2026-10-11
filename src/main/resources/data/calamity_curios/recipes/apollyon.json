@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": {
+      "item": "calamity_curios:unholy_core"
+    },
+    "D": {
+      "item": "irons_spellbooks:cinder_essence"
+    },
+    "C": {
+      "item": "calamity_curios:abaddon"
+    },
+    "H": {
+      "item": "calamity_curios:calamity_core"
+    }
+  },
+  "pattern": [
+    "DAD",
+    "HCH",
+    "DAD"
+  ],
+  "result": {
+    "item": "calamity_curios:apollyon"
+  }
+}

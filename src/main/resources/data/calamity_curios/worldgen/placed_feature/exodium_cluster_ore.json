@@ -1,0 +1,33 @@
+{
+  "feature": "calamity_curios:exodium_cluster_ore",
+  "placement": [
+    {
+      "type": "minecraft:count",
+      "count": {
+        "type": "minecraft:uniform",
+        "value": {
+          "min_inclusive": 1,
+          "max_inclusive": 3
+        }
+      }
+    },
+    {
+      "type": "minecraft:in_square"
+    },
+    {
+      "type": "minecraft:height_range",
+      "height": {
+        "type": "minecraft:uniform",
+        "max_inclusive": {
+          "absolute": 55
+        },
+        "min_inclusive": {
+          "absolute": 20
+        }
+      }
+    },
+    {
+      "type": "minecraft:biome"
+    }
+  ]
+}

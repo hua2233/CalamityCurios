@@ -41,7 +41,7 @@ public class CalamityPotion extends Item {
     public @NotNull ItemStack finishUsingItem(@NotNull ItemStack stack, @NotNull Level level, LivingEntity entity) {
         if (entity.calamity$IsPlayer && !level.isClientSide) {
             ServerPlayer player = (ServerPlayer) entity;
-//            CriteriaTriggers.CONSUME_ITEM.trigger(player, stack);
+//            CriteriaTriggers.CONSUME_ITEM.trigger(tracker, stack);
             player.addEffect(effect.get());
             player.awardStat(Stats.ITEM_USED.get(this));
 

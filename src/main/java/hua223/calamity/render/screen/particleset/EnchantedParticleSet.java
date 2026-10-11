@@ -1,7 +1,9 @@
 package hua223.calamity.render.screen.particleset;
 
-import com.mojang.blaze3d.vertex.*;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import hua223.calamity.main.CalamityCurios;
+import hua223.calamity.render.shaders.CalamityShaders;
 import hua223.calamity.util.RenderUtil;
 import hua223.calamity.util.Vector2f;
 import hua223.calamity.util.delaytask.DelayRunnable;
@@ -19,22 +21,23 @@ import java.awt.*;
 
 @OnlyIn(Dist.CLIENT)
 public class EnchantedParticleSet extends ScreenParticleSet<EnchantedParticleSet.GuiEnchantedParticle> {
-    private static final float INTERPOLATION_SPEED = 0.2f;
     private static final int EDGE_OFFSET = 18;
-    private static EnchantedParticleSet INSTANCE;
+    private static final float INTERPOLATION_SPEED = 0.2f;
+
     public static boolean hasBrimstoneLocus;
+    private static EnchantedParticleSet INSTANCE;
 
     public boolean isInventory;
     private final Vector4i white;
-    private final Vector4i darkViolet;
     private final RenderType type;
+    private final Vector4i darkViolet;
     private final RandomSource random;
 
     private EnchantedParticleSet(RandomSource source) {
         super(17, 80,  80, 100);
         white = RenderUtil.fromColorGet(Color.WHITE);
         darkViolet = new Vector4i(148, 0, 211, 255);
-        type = RenderUtil.Shaders.getEnchanmentRenderType(
+        type = CalamityShaders.getEnchanmentRenderType(
             CalamityCurios.ModResource("textures/calamity_gui/light.png"));
         random = source;
         INSTANCE = this;

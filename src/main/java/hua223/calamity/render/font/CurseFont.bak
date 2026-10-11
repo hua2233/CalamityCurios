@@ -1,0 +1,185 @@
+package hua223.calamity.render.font;
+
+import com.mojang.blaze3d.systems.RenderSystem;
+import hua223.calamity.events.LogoutRelease;
+import hua223.calamity.util.RenderUtil;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.util.FastColor.ARGB32;
+import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.util.Mth;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.NotNull;
+import org.joml.Matrix4f;
+
+import java.util.Map;
+
+@OnlyIn(Dist.CLIENT)
+public class CurseFont extends CalamityFont {
+    private DefaultFontFormat format;
+    //This type no longer mounts formatted data onto font objects to avoid creating the same font multiple times
+    public static final CurseFont INSTANCE = new CurseFont();
+    private static final Map<Item, CurseEnchantmentExtensions> EXTENSIONS = new Object2ObjectOpenHashMap<>(4);
+
+
+    public CurseFont setRenderFormat(DefaultFontFormat format) {
+        this.format = format.updateTick();
+        return this;
+    }
+
+    public static CurseFont setOrCreateFormat(ItemStack stack) {
+        Item item = stack.getItem();
+        CurseEnchantmentExtensions extensions = EXTENSIONS.get(item);
+        if (extensions != null) return INSTANCE.setRenderFormat(extensions.format());
+        else return createDefaultFontFormat(stack);
+    }
+
+    @LogoutRelease
+    public static void reSet(LocalPlayer player) {
+        EXTENSIONS.clear();
+    }
+
+    @SuppressWarnings({"ConstantConditions", "deprecation"})
+    private static CurseFont createDefaultFontFormat(ItemStack stack) {
+        Item item = stack.getItem();
+        DefaultFontFormat format = new DefaultFontFormat(item.getDefaultInstance().getRarity().color.getColor());
+        EXTENSIONS.put(item, new CurseEnchantmentExtensions(format));
+        return INSTANCE.setRenderFormat(format);
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    public static void createFont(Item item, int[] info) {
+        EXTENSIONS.computeIfAbsent(item, key -> info.length == 1 ? new CurseEnchantmentExtensions(
+            new DefaultFontFormat(info[0])) : new CurseEnchantmentExtensions(new FontFormat(info[0], info[1], info[2])));
+    }
+
+    public static CurseEnchantmentExtensions getExtensions(ItemStack stack) {
+        Item item = stack.getItem();
+        if (EXTENSIONS.containsKey(item)) return EXTENSIONS.get(item);
+        createDefaultFontFormat(stack);
+        return EXTENSIONS.get(item);
+    }
+
+    //重写以重定向Gui调用
+    @Override
+    public int drawInBatch(@NotNull FormattedCharSequence text, float x, float y, int color, boolean dropShadow, @NotNull Matrix4f matrix,
+                           @NotNull MultiBufferSource buffer, @NotNull DisplayMode displayMode, int backgroundColor, int packedLightCoords) {
+        Matrix4f transientMatrix = RenderUtil.TRANSIENT_MATRIX;
+        int width = width(text);
+        int mixed = format.extractMixedColor(format.getColor(), preRender(width, matrix, transientMatrix, x, y));
+
+        super.drawInBatch(text, -width / 2f, -lineHeight / 2f, mixed, true,
+            transientMatrix, buffer, displayMode, backgroundColor, packedLightCoords);
+
+        super.drawInBatch(text, -width / 2f, -lineHeight / 2f, mixed, true,
+            transientMatrix, buffer, displayMode, backgroundColor, packedLightCoords);
+
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.depthMask(true);
+        int i = super.drawInBatch(text, x, y, format.getColor(), true,
+            matrix, buffer, displayMode, backgroundColor, packedLightCoords);
+        RenderSystem.disableBlend();
+        return i;
+    }
+
+    private float preRender(int width, Matrix4f sourceMatrix, Matrix4f transientMatrix, float x, float y) {
+        float backInterpolant = (float) Math.pow(RenderUtil.getLocalTick() * 0.03f % 1f, 1.5f);
+        float backScale = Mth.lerp(backInterpolant, 1.0f, 1.2f);
+
+        transientMatrix.set(sourceMatrix);
+        transientMatrix.translate(x + width / 2f, y + lineHeight / 2f, 0);
+        transientMatrix.scale(backScale, backScale, 1.0f);
+
+        return backInterpolant;
+    }
+
+    @Override
+    public void reRender(Matrix4f matrix4f, String describe, float x, float y, MultiBufferSource source) {
+        Matrix4f transientMatrix = RenderUtil.TRANSIENT_MATRIX;
+        int width = width(describe);
+        int mixed = format.extractMixedColor(format.getColor(), preRender(width, matrix4f, transientMatrix, x, y));
+
+        super.drawInBatch(describe, -width / 2f, -lineHeight / 2f, mixed, true,
+            transientMatrix, source, DisplayMode.NORMAL, 0, 15728880);
+
+        super.drawInBatch(describe, -width / 2f, -lineHeight / 2f, mixed, true,
+            transientMatrix, source, DisplayMode.NORMAL, 0, 15728880);
+
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.depthMask(true);
+        super.drawInBatch(describe, x, y, format.getColor(), true,
+            matrix4f, source, DisplayMode.NORMAL, 0, 15728880);
+        RenderSystem.disableBlend();
+    }
+
+    public static class DefaultFontFormat {
+        protected final int color;
+
+        DefaultFontFormat(int color) {
+            this.color = color;
+        }
+
+        public int getColor() {
+            return color;
+        }
+
+        protected int extractMixedColor(int color, float backInterpolant) {
+            int c = ARGB32.lerp(backInterpolant, color, 0xFF8B0000);
+            float a = (float) Math.pow(1f - backInterpolant, 0.46f);
+
+            return ARGB32.color(Math.min(255, (int) (255 * a)), Math.min(255, (int) (ARGB32.red(c) * a)),
+                Math.min(255, (int) (ARGB32.green(c) * a)), Math.min(255, (int) (ARGB32.blue(c) * a)));
+        }
+
+        protected DefaultFontFormat updateTick() {
+            return this;
+        }
+    }
+
+    public static class FontFormat extends DefaultFontFormat{
+        private final int end;
+        private final int semiCycle;
+        private int lastTime;
+        private boolean orderGradient = true;
+        private int gradualTick;
+
+        FontFormat(int color, int end, int semiCycle) {
+            super(color);
+            this.end = end;
+            this.semiCycle = semiCycle;
+        }
+
+        @Override
+        public int getColor() {
+            float progress = (float) (gradualTick < semiCycle ? gradualTick : semiCycle * 2 - gradualTick) / semiCycle;
+            return ARGB32.lerp(progress, color, end);
+        }
+
+        @Override
+        protected FontFormat updateTick() {
+            int interval =  Math.abs(RenderUtil.getLocalTick() - lastTime);
+            if (interval > 0) {
+                if (interval > 10) {
+                    orderGradient = true;
+                    gradualTick = 0;
+                }
+
+                if (orderGradient) {
+                    gradualTick++;
+                    if (gradualTick >= semiCycle) orderGradient = false;
+                } else {
+                    gradualTick--;
+                    if (gradualTick <= 0) orderGradient = true;
+                }
+
+                lastTime = RenderUtil.getLocalTick();
+            }
+
+            return this;
+        }
+    }
+}

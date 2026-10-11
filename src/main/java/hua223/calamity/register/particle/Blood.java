@@ -15,11 +15,9 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Quaternionf;
 import org.joml.Vector4i;
 
 import java.awt.*;
-import java.util.concurrent.ThreadLocalRandom;
 
 @OnlyIn(Dist.CLIENT)
 public class Blood extends SingleTexturedParticle {

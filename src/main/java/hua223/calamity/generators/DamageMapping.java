@@ -23,6 +23,7 @@ public interface DamageMapping {
     String SPUTTERING = "sputtering";
     String MAGIC_PROJECTILE = "magic_projectile";
 
+    String VOID = "outside_border";
     String GENERIC_KILL = "generic_kill";
 
     static void registerUniversal(Map<String, List<String>> map) {

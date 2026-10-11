@@ -2,22 +2,22 @@ package hua223.calamity.integration.curios.item.entropy;
 
 import com.google.common.collect.Multimap;
 import hua223.calamity.events.ApplyEvent;
+import hua223.calamity.events.listeners.DamageListener;
+import hua223.calamity.events.listeners.PreAttackListener;
+import hua223.calamity.events.listeners.PlayerHealListener;
 import hua223.calamity.generators.DamageMapping;
 import hua223.calamity.integration.curios.BaseCurio;
-import hua223.calamity.events.listeners.HurtListener;
-import hua223.calamity.events.listeners.PlayerAttackListener;
-import hua223.calamity.events.listeners.PlayerHealListener;
 import hua223.calamity.net.IDataPackResponse;
 import hua223.calamity.register.damage.DamageRequester;
 import hua223.calamity.register.damage.DamageSupplier;
-import hua223.calamity.util.*;
-
+import hua223.calamity.render.heart.CalamityHeartManage;
+import hua223.calamity.util.CMLangUtil;
+import hua223.calamity.util.ICuriosStorage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -40,15 +40,10 @@ public class DeusCore extends BaseCurio implements ICuriosStorage, IDataPackResp
     }
 
     @Override
-    protected void equipHandle(ServerPlayer player, ItemStack stack) {
-        getMemory(player).putTypeStorage(supplier.get());
-    }
-
-    @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
         float erosionValue = getCount(player)[1];
         if (erosionValue > 0f) {
-            player.hurt(getMemory(player).getTypeStorage(DamageSource.class), erosionValue);
+            player.hurt(supplier.get(), erosionValue);
             getPack().putInt("v", 0);
             sendToClient(player);
         } else syncHealth(player);
@@ -61,7 +56,7 @@ public class DeusCore extends BaseCurio implements ICuriosStorage, IDataPackResp
     }
 
     @ApplyEvent(1000)
-    public final void onHurt(HurtListener listener) {
+    public final void onDamage(DamageListener listener) {
         if (listener.isTriggerByLiving) {
             listener.amplifier += 0.2f;
             float[] astrErosion = getCount(listener.player);
@@ -72,7 +67,7 @@ public class DeusCore extends BaseCurio implements ICuriosStorage, IDataPackResp
             astrErosion[1] = amount;
             astrErosion[2] = amount / 5f;
             astrErosion[3] = amount;
-            getPack().putInt("v", Mth.ceil(amount / 2f));
+            getPack().putInt("v", Mth.ceil(amount));
             sendToClient(listener.player);
         }
     }
@@ -97,7 +92,7 @@ public class DeusCore extends BaseCurio implements ICuriosStorage, IDataPackResp
     }
 
     @ApplyEvent
-    public final void onAttack(PlayerAttackListener listener) {
+    public final void onAttack(PreAttackListener listener) {
         float[] astrErosion = getCount(listener.player);
         if (astrErosion[1] > 0f) {
             float maxErosion = listener.player.getMaxHealth();
@@ -106,8 +101,7 @@ public class DeusCore extends BaseCurio implements ICuriosStorage, IDataPackResp
             float value = listener.baseAmount * (float)  (1.0 + (Math.sqrt(maxErosion) *
                 (Math.log(1 + a * t) / Math.log(1 + a)))) - listener.baseAmount;
             listener.floating += value;
-            getPack().putInt("v", Mth.ceil((
-                astrErosion[1] -= Math.min(astrErosion[1], value * 0.2f))));
+            getPack().putInt("v", Mth.ceil((astrErosion[1] -= Math.min(astrErosion[1], value * 0.2f))));
             sendToClient(listener.player);
         }
     }
@@ -115,27 +109,21 @@ public class DeusCore extends BaseCurio implements ICuriosStorage, IDataPackResp
     @Override
     @OnlyIn(Dist.CLIENT)
     public void onClientResponse(CompoundTag tag) {
-        CalamityHelp.getClientCalamity().setAstrHeart(tag.getInt("v"));
+        CalamityHeartManage.setAstrHeart(tag.getInt("v"));
     }
 
     @Override
     protected void onPlayerTick(Player player) {
-        var memory = getMemory(player);
-        float[] astrErosion = memory.count;
+        float[] astrErosion = getCount(player);
         if (--astrErosion[0] <= 0) {
             astrErosion[0] = 20;
             if (astrErosion[1] > 0) {
                 float hurt = Math.min(astrErosion[2], astrErosion[1]);
-                player.hurt(memory.getTypeStorage(DamageSource.class), hurt);
-                getPack().putInt("v", Mth.ceil((astrErosion[1] -= hurt) / 2f));
+                player.hurt(supplier.get(), hurt);
+                getPack().putInt("v", Mth.ceil((astrErosion[1] -= hurt)));
                 sendToClient((ServerPlayer) player);
             }
         }
-    }
-
-    @Override
-    public Class<?>[] defineStorageType() {
-        return new Class[] {DamageSource.class};
     }
 
     @Override

@@ -33,7 +33,7 @@ public interface IKeyDataPackResponse {
      * Called when a server-side data pack response is received,
      * used to handle server response logic.
      *
-     * @param player The server player that triggered the response, must not be null
+     * @param player The server tracker that triggered the response, must not be null
      */
     void onServerResponse(ServerPlayer player, CompoundTag tag);
 
@@ -54,12 +54,10 @@ public interface IKeyDataPackResponse {
      * Gets the key code associated with this data pack response
      * <p>
      * Returns the numeric key code that represents the keyboard key
-     * bound to this curios ability. This method is client-side only
-     * as key handling is exclusively performed on the client.
+     * bound to this curios ability.
      *
      * @return The key code value representing the bound keyboard key
      */
-    @OnlyIn(Dist.CLIENT)
     int getKeyCode();
 
 
@@ -96,12 +94,12 @@ public interface IKeyDataPackResponse {
     }
 
     /**
-     * Sets the key mapping state for the specified player
+     * Sets the key mapping state for the specified tracker
      * <p>
      * Sends a network packet to the client to enable or disable
      * the key mapping association for this curios ability.
      *
-     * @param player The server player to whom the key mapping state will be sent, must not be null
+     * @param player The server tracker to whom the key mapping state will be sent, must not be null
      * @param enable true to enable the key mapping, false to disable it
      */
     default void setKeyMapping(ServerPlayer player, boolean enable) {

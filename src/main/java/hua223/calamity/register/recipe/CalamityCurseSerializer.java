@@ -5,7 +5,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import hua223.calamity.capability.EnchantmentProvider;
-import hua223.calamity.main.CalamityCurios;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -26,22 +25,6 @@ public class CalamityCurseSerializer implements RecipeSerializer<CalamityCurseRe
     private CalamityCurseSerializer() {
     }
 
-    private static void parseRenderData(CalamityCurseRecipe recipe, JsonObject serializedRecipe) {
-        JsonObject render = GsonHelper.getAsJsonObject(serializedRecipe, "renderer");
-        ItemStack stack = recipe.getResultItem(null);
-
-        if (GsonHelper.getAsBoolean(render, "isDefault")) {
-            EnchantmentProvider.addDefaultProvider(stack);
-        } else {
-            boolean gradual = GsonHelper.getAsBoolean(render, "gradual");
-
-            EnchantmentProvider.addStyleProvider(stack.getItem(), gradual,
-                gradual ? Integer.decode(GsonHelper.getAsString(render, "startColor")) : 0,
-                gradual ? Integer.decode(GsonHelper.getAsString(render, "endColor")) : 0,
-                gradual ? GsonHelper.getAsInt(render, "semiCycle") : 0, true);
-        }
-    }
-
     @Override
     public @NotNull CalamityCurseRecipe fromJson(@NotNull ResourceLocation id, @NotNull JsonObject serializedRecipe) {
         JsonArray array = GsonHelper.getAsJsonArray(serializedRecipe, "ingredients");
@@ -60,10 +43,8 @@ public class CalamityCurseSerializer implements RecipeSerializer<CalamityCurseRe
 
         ItemStack result = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(serializedRecipe, "result"));
         ItemStack reactant = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(serializedRecipe, "reactant"));
-
-        CalamityCurseRecipe recipe = new CalamityCurseRecipe(reactant, result, ingredients, id);
-        parseRenderData(recipe, serializedRecipe);
-        return recipe;
+        EnchantmentProvider.addExhumedItem(result.getItem());
+        return new CalamityCurseRecipe(reactant, result, ingredients, id);
     }
 
     @Override

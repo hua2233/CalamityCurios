@@ -3,10 +3,7 @@ package hua223.calamity.integration.curios.item;
 import com.google.common.collect.Multimap;
 import hua223.calamity.integration.curios.BaseCurio;
 import hua223.calamity.register.attribute.CalamityAttributes;
-import hua223.calamity.util.CMLangUtil;
-import hua223.calamity.util.ICuriosStorage;
-import hua223.calamity.util.PlayerServantsManager;
-import hua223.calamity.util.VariableAttributeModifier;
+import hua223.calamity.util.*;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -22,7 +19,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 import java.util.UUID;
 
-public class DarkSunRing extends BaseCurio implements ICuriosStorage {
+public class DarkSunRing extends BaseCurio implements ICuriosStorage, IServantsReinforcement {
     public DarkSunRing(Properties properties) {
         super(properties);
     }
@@ -43,17 +40,18 @@ public class DarkSunRing extends BaseCurio implements ICuriosStorage {
         if (player.level().getDayTime() > 14000) count[1] = 1;
         update(player, count);
 
-        PlayerServantsManager.loadPlayerServantsEntity(player, DarkSunRing::modifyServantAttribute);
+        PlayerServantsManager.addServantsReinforcement(player, this);
     }
 
     @Override
     protected void unEquipHandle(ServerPlayer player, ItemStack stack) {
-        PlayerServantsManager.removePlayerServantsEntity(player, DarkSunRing::modifyServantAttribute);
+        PlayerServantsManager.removeServantsReinforcement(player, this);
     }
 
-    private static void modifyServantAttribute(LivingEntity servant) {
-        PlayerServantsManager.changeAttribute(servant, Attributes.MAX_HEALTH, 1, AttributeModifier.Operation.MULTIPLY_BASE);
-        PlayerServantsManager.changeAttribute(servant, Attributes.ATTACK_DAMAGE, 0.5, AttributeModifier.Operation.MULTIPLY_BASE);
+    @Override
+    public void modifyServant(boolean apply, ServerPlayer player, LivingEntity servant) {
+        PlayerServantsManager.changeAttribute(apply, servant, Attributes.MAX_HEALTH, 1, AttributeModifier.Operation.MULTIPLY_BASE);
+        PlayerServantsManager.changeAttribute(apply, servant, Attributes.ATTACK_DAMAGE, 0.5, AttributeModifier.Operation.MULTIPLY_BASE);
     }
 
     @Override
